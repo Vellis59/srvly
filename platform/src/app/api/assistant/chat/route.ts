@@ -510,6 +510,28 @@ function httpRequest(method: string, path: string, body?: string): Promise<strin
   });
 }
 
+// ─── Tool call parser (text-based, works with any LLM) ──────────────
+function parseToolCalls(text: string): Array<{ name: string; args: Record<string, string> }> {
+  const results: Array<{ name: string; args: Record<string, string> }> = [];
+  const regex = /⸻TOOL⸻\s*\n([^\n]+)\n([\s\S]*?)⸻\/TOOL⸻/g;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    const name = match[1].trim();
+    const body = match[2].trim();
+    const args: Record<string, string> = {};
+    for (const line of body.split("\n")) {
+      const eqIdx = line.indexOf("=");
+      if (eqIdx > 0) {
+        const key = line.slice(0, eqIdx).trim();
+        const val = line.slice(eqIdx + 1).trim();
+        args[key] = val;
+      }
+    }
+    results.push({ name, args });
+  }
+  return results;
+}
+
 // ─── POST handler ──────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
@@ -618,28 +640,6 @@ export async function POST(req: NextRequest) {
       "- activer_ssl(nom_domaine) : active Let's Encrypt",
       "- lister_serveurs() : liste les serveurs connectés",
     ].join("\n");
-
-    // ── Tool call parser (text-based, works with any LLM) ──────────
-    function parseToolCalls(text: string): Array<{ name: string; args: Record<string, string> }> {
-      const results: Array<{ name: string; args: Record<string, string> }> = [];
-      const regex = /⸻TOOL⸻\s*\n([^\n]+)\n([\s\S]*?)⸻\/TOOL⸻/g;
-      let match;
-      while ((match = regex.exec(text)) !== null) {
-        const name = match[1].trim();
-        const body = match[2].trim();
-        const args: Record<string, string> = {};
-        for (const line of body.split("\n")) {
-          const eqIdx = line.indexOf("=");
-          if (eqIdx > 0) {
-            const key = line.slice(0, eqIdx).trim();
-            const val = line.slice(eqIdx + 1).trim();
-            args[key] = val;
-          }
-        }
-        results.push({ name, args });
-      }
-      return results;
-    }
 
     // ── Agent loop (text-based tools) ─────────────────────────────
     let currentMessages: any[] = [
