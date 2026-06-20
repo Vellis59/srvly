@@ -254,22 +254,7 @@ export default function ServerDetailPage() {
           )}
 
           {/* Domain section */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6">
-            <h2 className="font-semibold text-slate-900 mb-4">🌐 Domaines</h2>
-            <p className="text-sm text-slate-500 mb-4">
-              Associez un domaine à votre serveur pour exposer vos apps en HTTPS.
-            </p>
-            <div className="flex gap-3">
-              <input
-                type="text"
-                placeholder="mon-domaine.com"
-                className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-              <button className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 transition-colors">
-                Ajouter
-              </button>
-            </div>
-          </div>
+          <DomainSection serverId={server.id} />
         </>
       )}
 
@@ -283,6 +268,91 @@ export default function ServerDetailPage() {
           </p>
         </div>
       )}
+    </div>
+  );
+}
+
+function DomainSection({ serverId }: { serverId: string }) {
+  const utils = trpc.useUtils();
+  const { data: domains } = trpc.domain.list.useQuery({ serverId });
+  const addDomain = trpc.domain.add.useMutation({
+    onSuccess: () => utils.domain.list.invalidate({ serverId }),
+  });
+  const deleteDomain = trpc.domain.delete.useMutation({
+    onSuccess: () => utils.domain.list.invalidate({ serverId }),
+  });
+
+  const [name, setName] = useState("");
+  const [port, setPort] = useState("");
+
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 p-6">
+      <h2 className="font-semibold text-slate-900 mb-2">🌐 Domaines</h2>
+      <p className="text-sm text-slate-500 mb-4">
+        Ajoutez un domaine personnalisé pointant vers une app installée (Nginx reverse proxy automatique).
+      </p>
+
+      {/* List */}
+      {domains && domains.length > 0 && (
+        <div className="space-y-2 mb-4">
+          {domains.map((d) => (
+            <div key={d.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+              <span className="text-lg">🌍</span>
+              <div className="flex-1 min-w-0">
+                <p className="font-mono text-sm text-slate-900 truncate">{d.name}</p>
+                <p className="text-xs text-slate-500">
+                  {d.targetApp && <span>{d.targetApp} → </span>}
+                  port {d.targetPort || "—"} • SSL {d.sslStatus}
+                </p>
+              </div>
+              <button
+                onClick={() => { if (confirm("Supprimer " + d.name + " ?")) deleteDomain.mutate({ id: d.id }); }}
+                className="text-sm text-red-500 hover:text-red-700"
+              >
+                Supprimer
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add form */}
+      <div className="flex flex-col md:flex-row gap-3">
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="app.mondomaine.com"
+          className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        />
+        <input
+          type="number"
+          value={port}
+          onChange={(e) => setPort(e.target.value)}
+          placeholder="port cible (80, 3000...)"
+          className="w-full md:w-48 px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        />
+        <button
+          onClick={() => {
+            if (!name) return;
+            addDomain.mutate({
+              serverId,
+              name,
+              targetPort: port ? parseInt(port) : undefined,
+            });
+            setName("");
+            setPort("");
+          }}
+          disabled={addDomain.isPending}
+          className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+        >
+          {addDomain.isPending ? "Ajout..." : "Ajouter"}
+        </button>
+      </div>
+
+      <p className="text-xs text-slate-400 mt-3">
+        Configurez votre DNS (A record) pour pointer vers l'IP du serveur avant que le SSL puisse être activé.
+      </p>
     </div>
   );
 }

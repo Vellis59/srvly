@@ -97,3 +97,14 @@ export const installations = pgTable("installations", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+// ─── Domains ───
+export const domains = pgTable("domains", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  serverId: uuid("server_id").references(() => servers.id, { onDelete: "cascade" }).notNull(),
+  name: text("name").notNull(),
+  sslStatus: text("ssl_status").default("pending"),
+  targetPort: integer("target_port"),
+  targetApp: text("target_app"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});

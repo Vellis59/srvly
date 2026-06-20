@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, protectedProcedure } from "@/server/trpc/context";
-import { servers, installations, recipes } from "@/server/db/schema";
+import { servers, installations, recipes, domains } from "@/server/db/schema";
 import { eq, and } from "drizzle-orm";
 import crypto from "crypto";
 
@@ -188,12 +188,129 @@ export const installRouter = router({
     }),
 });
 
+// ─── Domain routes ───
+
+export const domainRouter = router({
+  list: protectedProcedure
+    .input(z.object({ serverId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Verify server ownership
+      const [server] = await ctx.db
+        .select()
+        .from(servers)
+        .where(and(eq(servers.id, input.serverId), eq(servers.userId, ctx.user.id!)));
+      if (!server) return [];
+
+      return await ctx.db
+        .select()
+        .from(domains)
+        .where(eq(domains.serverId, input.serverId))
+        .orderBy(domains.createdAt);
+    }),
+
+  add: protectedProcedure
+    .input(z.object({
+      serverId: z.string(),
+      name: z.string().min(3).max(255),
+      targetPort: z.number().int().optional(),
+      targetApp: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Verify server ownership
+      const [server] = await ctx.db
+        .select()
+        .from(servers)
+        .where(and(eq(servers.id, input.serverId), eq(servers.userId, ctx.user.id!)));
+      if (!server) throw new TRPCError({ code: "NOT_FOUND" });
+
+      // Basic domain validation
+      const domainRegex = /^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i;
+      if (!domainRegex.test(input.name)) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Domaine invalide" });
+      }
+
+      const [domain] = await ctx.db
+        .insert(domains)
+        .values({
+          serverId: input.serverId,
+          name: input.name,
+          targetPort: input.targetPort,
+          targetApp: input.targetApp,
+          sslStatus: "pending",
+        })
+        .returning();
+
+      // Auto-configure Nginx on the server (if app+port specified)
+      if (domain && input.targetPort) {
+        const nginxScript = `
+cat > /etc/nginx/sites-enabled/${input.name}.conf << NGINX
+server {
+    listen 80;
+    server_name ${input.name};
+
+    location / {
+        proxy_pass http://127.0.0.1:${input.targetPort};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+NGINX
+nginx -t && systemctl reload nginx
+echo "NGINX_CONFIGURED"
+`;
+
+        fetch(`${process.env.TUNNEL_URL || "http://tunnel-server:8080"}/dispatch`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            server_id: "unknown",
+            command_id: `nginx-${domain.id}`,
+            script: nginxScript,
+            timeout: 30,
+          }),
+        }).catch(() => {});
+      }
+
+      return domain;
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Find domain + verify ownership
+      const [domain] = await ctx.db
+        .select({ domain: domains, server: servers })
+        .from(domains)
+        .innerJoin(servers, eq(domains.serverId, servers.id))
+        .where(and(eq(domains.id, input.id), eq(servers.userId, ctx.user.id!)));
+      if (!domain) throw new TRPCError({ code: "NOT_FOUND" });
+
+      // Remove Nginx config
+      fetch(`${process.env.TUNNEL_URL || "http://tunnel-server:8080"}/dispatch`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          server_id: "unknown",
+          command_id: `nginx-rm-${input.id}`,
+          script: `rm -f /etc/nginx/sites-enabled/${domain.domain.name}.conf && nginx -t && systemctl reload nginx && echo "REMOVED"`,
+          timeout: 15,
+        }),
+      }).catch(() => {});
+
+      await ctx.db.delete(domains).where(eq(domains.id, input.id));
+      return { success: true };
+    }),
+});
+
 // ─── Main router ───
 
 export const appRouter = router({
   server: serverRouter,
   catalog: catalogRouter,
   install: installRouter,
+  domain: domainRouter,
 });
 
 export type AppRouter = typeof appRouter;
