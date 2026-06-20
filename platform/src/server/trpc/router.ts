@@ -109,55 +109,110 @@ export const installRouter = router({
         serverId: z.string(),
         recipeId: z.string(),
         params: z.record(z.string(), z.any()).optional(),
+        port: z.number().int().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Verify server ownership
       const [server] = await ctx.db
         .select()
         .from(servers)
         .where(and(eq(servers.id, input.serverId), eq(servers.userId, ctx.user.id!)));
       if (!server) throw new TRPCError({ code: "NOT_FOUND" });
 
-      // Get recipe for install instructions
       const [recipe] = await ctx.db
         .select()
         .from(recipes)
         .where(eq(recipes.id, input.recipeId));
       if (!recipe) throw new TRPCError({ code: "NOT_FOUND" });
 
+      const recipeData = recipe.recipe as any;
+      const params = input.params || {};
+
+      // Resolve variables
+      const defaultPort = recipeData?.params?.port?.default || 80;
+      const port = input.port || defaultPort;
+      const image = recipeData?.params?.image?.default || "alpine";
+
+      // Build full script
+      let script = "set -e\n\n";
+
+      // 1. Handle service dependencies (MySQL, etc.)
+      const services = recipeData?.services || {};
+      for (const [svcName, svcConfig] of Object.entries(services) as [string, any][]) {
+        const svcType = svcConfig.type || svcName;
+        const svcVersion = svcConfig.version || "latest";
+        if (svcType === "mysql") {
+          script += `# Setup MySQL dependency\n`;
+          script += `docker rm -f ${recipe.name}-mysql 2>/dev/null; `;
+          script += `docker run -d --name ${recipe.name}-mysql `;
+          script += `-e MYSQL_ROOT_PASSWORD=srvly_${Math.random().toString(36).slice(2, 10)} `;
+          script += `-e MYSQL_DATABASE=${recipe.name} `;
+          script += `-e MYSQL_USER=${recipe.name} `;
+          script += `-e MYSQL_PASSWORD=srvly_${Math.random().toString(36).slice(2, 10)} `;
+          script += `--restart unless-stopped `;
+          script += `mysql:${svcVersion} 2>&1\n`;
+          script += `echo "MySQL started for ${recipe.name}"\n\n`;
+        }
+      }
+
+      // 2. Pull + run the app container
+      const installStage = recipeData?.install?.[0];
+      if (installStage?.docker) {
+        const d = installStage.docker;
+        const resolvedImage = d.image?.replace("$IMAGE", image) || image;
+        const resolvedPort = d.port?.replace("$PORT:", `${port}:`).replace("$PORT", `${port}`) || `${port}:${defaultPort}`;
+
+        script += `# Pull image\n`;
+        script += `docker pull ${resolvedImage} 2>&1 || echo "PULL_FAILED"\n\n`;
+
+        script += `# Remove old container and run\n`;
+        script += `docker rm -f ${d.name} 2>/dev/null; `;
+        script += `docker run -d --name ${d.name} --restart unless-stopped -p ${resolvedPort}`;
+
+        // Volumes
+        for (const vol of d.volumes || []) {
+          const volDir = vol.split("/").filter(Boolean).pop() || "data";
+          script += ` -v /opt/srvly/${d.name}-${volDir}:${vol}`;
+        }
+
+        // Extra ports
+        for (const ep of d.extra_ports || []) {
+          script += ` -p ${ep}`;
+        }
+
+        // Env vars from recipe params
+        for (const [pKey, pVal] of Object.entries(recipeData?.params || {})) {
+          if (pKey === "port" || pKey === "image") continue;
+          const p = pVal as any;
+          const pDefault = p.default || "";
+          script += ` -e ${pKey.toUpperCase()}=${pDefault}`;
+        }
+
+        script += ` ${resolvedImage} 2>&1\n\n`;
+
+        // 3. Verify
+        script += `# Verify installation\n`;
+        script += `sleep 3\n`;
+        script += `curl -s -o /dev/null -w "%{http_code}" http://localhost:${port} || echo "VERIFY_FAILED"\n`;
+
+      } else if (installStage?.script) {
+        script += installStage.script;
+      } else {
+        script += `docker pull ${image} && echo "IMAGE_PULLED"\n`;
+      }
+
+      // Create installation record
       const [inst] = await ctx.db
         .insert(installations)
         .values({
           serverId: input.serverId,
           recipeId: input.recipeId,
-          params: input.params || {},
+          params: { ...params, port, image },
           status: "running",
         })
         .returning();
 
-      // Build install command from recipe
-      const recipeData = recipe.recipe as any;
-      let script = "";
-      if (recipeData?.install?.[0]?.docker) {
-        const d = recipeData.install[0].docker;
-        const port = d.port?.replace("$PORT:", "") || "80";
-        script = `docker pull ${d.image} && docker rm -f ${d.name} 2>/dev/null; docker run -d --name ${d.name} --restart unless-stopped -p ${port}:${port}`;
-        for (const v of d.volumes || []) {
-          const volName = v.split("/").filter(Boolean).pop() || "data";
-          script += ` -v ${d.name}-${volName}:${v}`;
-        }
-        for (const ep of d.extra_ports || []) {
-          script += ` -p ${ep}`;
-        }
-        script += ` ${d.image}`;
-      } else if (recipeData?.install?.[0]?.script) {
-        script = recipeData.install[0].script;
-      } else {
-        script = `docker pull ${recipeData?.params?.image?.default || "app"} && echo "Image pulled"`;
-      }
-
-      // Dispatch to tunnel-server (async)
+      // Dispatch to tunnel-server (async but tracked)
       const tunnelUrl = process.env.TUNNEL_URL || "http://tunnel-server:8080";
       fetch(`${tunnelUrl}/dispatch`, {
         method: "POST",
@@ -166,7 +221,7 @@ export const installRouter = router({
           server_id: "unknown",
           command_id: inst.id,
           script: script,
-          timeout: 120,
+          timeout: 180,
         }),
       })
         .then(res => res.json())
@@ -174,7 +229,7 @@ export const installRouter = router({
           const status = result?.success ? "success" : "failed";
           await ctx.db
             .update(installations)
-            .set({ status, result: result, updatedAt: new Date() })
+            .set({ status, result, logs: result?.output || "", updatedAt: new Date() })
             .where(eq(installations.id, inst.id));
         })
         .catch(async (err: any) => {
@@ -184,7 +239,13 @@ export const installRouter = router({
             .where(eq(installations.id, inst.id));
         });
 
-      return { ...inst, status: "running", message: "Installation en cours..." };
+      return {
+        id: inst.id,
+        status: "running",
+        port: port,
+        script: script,
+        message: `Installation de ${recipe.name} lancée sur le port ${port}...`,
+      };
     }),
 });
 
