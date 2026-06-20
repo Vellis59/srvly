@@ -141,7 +141,6 @@ nginx -t && systemctl reload nginx
 echo "SSL_ACTIVE"
 `;
 
-    const tunnelUrl = env["TUNNEL_URL"] || "http://tunnel-server:8080";
     const dispatchResp = await fetch(`${tunnelUrl}/dispatch`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
