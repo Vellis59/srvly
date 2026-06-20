@@ -5,14 +5,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
   providers: [
     GitHub({
-      clientId: process.env.AUTH_GITHUB_ID || process.env.GITHUB_CLIENT_ID!,
-      clientSecret: process.env.AUTH_GITHUB_SECRET || process.env.GITHUB_CLIENT_SECRET!,
+      clientId: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
     }),
   ],
   pages: {
     signIn: "/auth/signin",
   },
   callbacks: {
+    async jwt({ token, account, profile }) {
+      // Use the GitHub numeric ID as the persistent user identifier
+      if (account?.providerAccountId) {
+        token.sub = account.providerAccountId;
+      }
+      return token;
+    },
     session({ session, token }) {
       if (session.user) session.user.id = token.sub!;
       return session;
