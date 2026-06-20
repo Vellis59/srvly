@@ -1,13 +1,60 @@
-import { pgTable, text, timestamp, uuid, integer, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid, integer, jsonb, primaryKey } from "drizzle-orm/pg-core";
+import type { AdapterAccount } from "next-auth/adapters";
 
-// ─── Users ───
+// ─── Users (NextAuth-compatible) ───
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
   name: text("name"),
   email: text("email").unique(),
+  emailVerified: timestamp("email_verified", { mode: "date" }),
   image: text("image"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// ─── NextAuth adapter tables ───
+export const accounts = pgTable(
+  "accounts",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: text("type").$type<AdapterAccount["type"]>().notNull(),
+    provider: text("provider").notNull(),
+    providerAccountId: text("provider_account_id").notNull(),
+    refresh_token: text("refresh_token"),
+    access_token: text("access_token"),
+    expires_at: integer("expires_at"),
+    token_type: text("token_type"),
+    scope: text("scope"),
+    id_token: text("id_token"),
+    session_state: text("session_state"),
+  },
+  (account) => ({
+    compoundKey: primaryKey({
+      columns: [account.provider, account.providerAccountId],
+    }),
+  })
+);
+
+export const sessions = pgTable("sessions", {
+  sessionToken: text("session_token").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  expires: timestamp("expires", { mode: "date" }).notNull(),
+});
+
+export const verificationTokens = pgTable(
+  "verification_tokens",
+  {
+    identifier: text("identifier").notNull(),
+    token: text("token").notNull(),
+    expires: timestamp("expires", { mode: "date" }).notNull(),
+  },
+  (vt) => ({
+    compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
+  })
+);
 
 // ─── Servers (VPS membres) ───
 export const servers = pgTable("servers", {
@@ -15,9 +62,9 @@ export const servers = pgTable("servers", {
   userId: text("user_id").references(() => users.id).notNull(),
   name: text("name").notNull(),
   ip: text("ip").notNull(),
-  os: text("os"),                        // détecté par l'agent
-  ram: integer("ram"),                   // Mo
-  status: text("status").default("pending").notNull(), // pending | connected | disconnected | error
+  os: text("os"),
+  ram: integer("ram"),
+  status: text("status").default("pending").notNull(),
   agentToken: text("agent_token").unique(),
   lastSeen: timestamp("last_seen"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -25,16 +72,16 @@ export const servers = pgTable("servers", {
 
 // ─── Recipes / Catalogue ───
 export const recipes = pgTable("recipes", {
-  id: text("id").primaryKey(),           // "nginx", "nextcloud", etc.
+  id: text("id").primaryKey(),
   name: text("name").notNull(),
   version: text("version"),
   description: text("description"),
-  category: text("category"),            // webserver, database, cms, etc.
+  category: text("category"),
   icon: text("icon"),
   osSupport: text("os_support").array(),
   dependencies: text("dependencies").array(),
-  params: jsonb("params"),               // schéma des paramètres
-  recipe: jsonb("recipe"),               // la recette YAML complète
+  params: jsonb("params"),
+  recipe: jsonb("recipe"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -44,9 +91,8 @@ export const installations = pgTable("installations", {
   serverId: uuid("server_id").references(() => servers.id).notNull(),
   recipeId: text("recipe_id").references(() => recipes.id).notNull(),
   status: text("status").default("pending").notNull(),
-  // pending | running | success | failed
-  params: jsonb("params"),               // paramètres utilisateur
-  result: jsonb("result"),               // URL, admin, password, etc.
+  params: jsonb("params"),
+  result: jsonb("result"),
   logs: text("logs"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

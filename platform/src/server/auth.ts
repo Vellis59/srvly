@@ -7,7 +7,9 @@ import * as schema from "@/server/db/schema";
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: DrizzleAdapter(db, {
     usersTable: schema.users,
-    // NextAuth v5 auto-creates account/session tables via Drizzle adapter
+    accountsTable: schema.accounts,
+    sessionsTable: schema.sessions,
+    verificationTokensTable: schema.verificationTokens,
   }),
   providers: [
     GitHub({
