@@ -1,9 +1,8 @@
 FROM golang:1.22-alpine AS build
 WORKDIR /app
 COPY go.mod ./
-RUN go mod tidy
 COPY . .
-RUN CGO_ENABLED=0 go build -o /tunnel-server ./cmd/tunnel-server
+RUN go mod tidy && CGO_ENABLED=0 go build -o /tunnel-server ./cmd/tunnel-server
 
 FROM alpine:3.19
 RUN apk add --no-cache ca-certificates
