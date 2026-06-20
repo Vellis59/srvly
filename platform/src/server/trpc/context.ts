@@ -5,7 +5,7 @@ import { db } from "@/server/db";
 
 export async function createContext(opts: FetchCreateContextFnOptions) {
   const session = await auth();
-  return { db, session, headers: opts.headers };
+  return { db, session };
 }
 
 export type Context = Awaited<ReturnType<typeof createContext>>;
