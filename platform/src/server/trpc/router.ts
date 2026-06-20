@@ -135,6 +135,13 @@ export const installRouter = router({
 
       // Build full script
       let script = "set -e\n\n";
+      const safeName = recipe.id.replace(/[^a-zA-Z0-9_.-]/g, "-");
+      const networkName = `srvly-${safeName}`;
+      const hasMysql = Object.values(recipeData?.services || {}).some((svc: any) => (svc.type || "") === "mysql");
+      let mysqlUserPass = "";
+      if (Object.keys(recipeData?.services || {}).length > 0) {
+        script += `docker network create ${networkName} 2>/dev/null || true\n`;
+      }
 
       // 1. Handle service dependencies (MySQL, etc.)
       const services = recipeData?.services || {};
@@ -143,23 +150,23 @@ export const installRouter = router({
         const svcVersion = svcConfig.version || "latest";
         if (svcType === "mysql") {
           const mysqlRootPass = `srvly_${Math.random().toString(36).slice(2, 10)}`;
-          const mysqlUserPass = `srvly_${Math.random().toString(36).slice(2, 10)}`;
+          mysqlUserPass = `srvly_${Math.random().toString(36).slice(2, 10)}`;
           script += `# Setup MySQL dependency\n`;
           script += `MYSQL_ROOT_PASS="${mysqlRootPass}"\n`;
           script += `MYSQL_USER_PASS="${mysqlUserPass}"\n`;
-          script += `docker rm -f ${recipe.name}-mysql 2>/dev/null; `;
-          script += `docker run -d --name ${recipe.name}-mysql `;
+          script += `docker rm -f ${safeName}-mysql 2>/dev/null || true\n`;
+          script += `docker run -d --name ${safeName}-mysql --network ${networkName} `;
           script += `-e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASS `;
-          script += `-e MYSQL_DATABASE=${recipe.name} `;
-          script += `-e MYSQL_USER=${recipe.name} `;
+          script += `-e MYSQL_DATABASE=${safeName} `;
+          script += `-e MYSQL_USER=${safeName} `;
           script += `-e MYSQL_PASSWORD=$MYSQL_USER_PASS `;
           script += `--restart unless-stopped `;
           script += `mysql:${svcVersion} 2>&1\n`;
-          script += `echo "Waiting for MySQL..."; `;
-          script += `for i in 1 2 3 4 5 6 7 8 9 10; do `;
-          script += `if docker exec ${recipe.name}-mysql mysqladmin ping -u root -p$MYSQL_ROOT_PASS --silent 2>/dev/null; then `;
-          script += `echo "MySQL ready!"; break; fi; `;
-          script += `sleep 3; done\n\n`;
+          script += `echo "Waiting for MySQL..."\n`;
+          script += `for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do\n`;
+          script += `  if docker exec ${safeName}-mysql mysqladmin ping -u root -p$MYSQL_ROOT_PASS --silent 2>/dev/null; then echo "MySQL ready!"; break; fi\n`;
+          script += `  sleep 3\n`;
+          script += `done\n\n`;
         }
       }
 
@@ -174,8 +181,20 @@ export const installRouter = router({
         script += `docker pull ${resolvedImage} 2>&1 || echo "PULL_FAILED"\n\n`;
 
         script += `# Remove old container and run\n`;
-        script += `docker rm -f ${d.name} 2>/dev/null; `;
-        script += `docker run -d --name ${d.name} --restart unless-stopped -p ${resolvedPort}`;
+        script += `docker rm -f ${d.name} 2>/dev/null || true\n`;
+        script += `docker run -d --name ${d.name} --restart unless-stopped`;
+        if (Object.keys(services).length > 0) {
+          script += ` --network ${networkName}`;
+        }
+        script += ` -p ${resolvedPort}`;
+
+        if (hasMysql) {
+          script += ` -e database__client=mysql`;
+          script += ` -e database__connection__host=${safeName}-mysql`;
+          script += ` -e database__connection__user=${safeName}`;
+          script += ` -e database__connection__password=$MYSQL_USER_PASS`;
+          script += ` -e database__connection__database=${safeName}`;
+        }
 
         // Volumes
         for (const vol of d.volumes || []) {
