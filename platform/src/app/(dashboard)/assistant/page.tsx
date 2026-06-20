@@ -37,6 +37,11 @@ function isInstallIntent(text: string) {
   return /\b(installe|installer|lance|déploie|deploie|mets|met moi|crée|cree)\b/i.test(text);
 }
 
+function isActionableNeed(text: string) {
+  return /\b(je veux|je cherche|j'aimerais|besoin|il me faut)\b/i.test(text) &&
+    /\b(automatis|workflow|tâche|tache|apps|blog|surveiller|monitoring|drive|stockage|fichiers)\b/i.test(text);
+}
+
 function isYes(text: string) {
   return /^(oui|yes|ok|vas-y|vasy|go|active|avec|ssl|https|confirme|lance|installe)/i.test(text.trim());
 }
@@ -267,7 +272,8 @@ export default function AssistantPage() {
       setRecommendations(recs);
       appendAssistant(data.answer || "Je n'ai pas trouvé de réponse.");
 
-      if (isInstallIntent(content) && recs[0]) {
+      const shouldStartWizard = (isInstallIntent(content) || isActionableNeed(content)) && recs[0];
+      if (shouldStartWizard) {
         setTimeout(() => startWizard(recs[0]), 50);
       }
     } catch (err: any) {

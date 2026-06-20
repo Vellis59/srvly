@@ -33,7 +33,7 @@ const STOP_WORDS = new Set([
 const INTENT_KEYWORDS: Record<string, string[]> = {
   blog: ["ghost", "wordpress", "cms", "publication", "newsletter"],
   cms: ["ghost", "wordpress", "strapi", "directus", "cms"],
-  automation: ["n8n", "automation", "workflow", "zapier", "automatisation"],
+  automation: ["n8n", "automation", "workflow", "zapier", "automatisation", "automatiser", "automatis", "taches", "apps", "integrations", "no-code", "nocode"],
   monitoring: ["uptime", "kuma", "monitoring", "status", "surveillance"],
   password: ["vaultwarden", "password", "mot de passe", "pass"],
   cloud: ["nextcloud", "files", "drive", "cloud", "fichiers"],
@@ -56,7 +56,14 @@ function extractTerms(input: string): string[] {
     if (extras) expanded.push(...extras);
   }
   if (normalized.includes("blog")) expanded.push(...INTENT_KEYWORDS.blog);
-  if (normalized.includes("no code") || normalized.includes("workflow")) expanded.push(...INTENT_KEYWORDS.automation);
+  if (
+    normalized.includes("no code") ||
+    normalized.includes("nocode") ||
+    normalized.includes("workflow") ||
+    normalized.includes("automatis") ||
+    normalized.includes("tache") ||
+    normalized.includes("apps")
+  ) expanded.push(...INTENT_KEYWORDS.automation);
   return Array.from(new Set(expanded));
 }
 
@@ -86,6 +93,16 @@ function scoreRecipe(recipe: RecipeRow, terms: string[]): number {
 
   // Apps validées/prioritaires dans le flux actuel.
   if (["ghost", "n8n", "uptime-kuma", "uptimekuma"].includes(recipe.id)) score += 2;
+  const joinedTerms = terms.join(" ");
+  if (recipe.id === "n8n" && /n8n|automation|automatisation|automatiser|automatis|workflow|zapier|taches|apps|integrations/.test(joinedTerms)) {
+    score += 20;
+  }
+  if (recipe.id === "ghost" && /blog|cms|publication|newsletter/.test(joinedTerms)) {
+    score += 20;
+  }
+  if ((recipe.id === "uptime-kuma" || recipe.id === "uptimekuma") && /monitoring|surveillance|status|uptime/.test(joinedTerms)) {
+    score += 20;
+  }
   return score;
 }
 
@@ -115,6 +132,21 @@ function compactRecipeContext(items: Recommendation[]): string {
     const port = r.defaultPort ? ` port par défaut: ${r.defaultPort}` : "";
     return `${i + 1}. ${r.name} (id: ${r.id}, catégorie: ${r.category || "n/a"}${port}${deps}) — ${r.description || ""}`;
   }).join("\n");
+}
+
+function localAnswer(question: string, recommendations: Recommendation[]): string {
+  const first = recommendations[0];
+  if (!first) {
+    return "Je n'ai pas trouvé d'app évidente pour ce besoin. Tu peux préciser ce que tu veux faire ? Par exemple : blog, automatisation, monitoring, stockage de fichiers.";
+  }
+  const q = question.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (first.id === "n8n" || q.includes("automatis") || q.includes("workflow") || q.includes("apps")) {
+    return `Pour automatiser des tâches entre tes apps, je te conseille ${first.name}. C'est fait pour créer des workflows et connecter des services entre eux.\n\nSi tu veux, je peux le préparer maintenant : je vais te demander le domaine, le port, puis si tu veux activer le SSL.`;
+  }
+  if (first.id === "ghost" || q.includes("blog")) {
+    return `Pour un blog, je te conseille ${first.name}. C'est une bonne option simple et propre pour publier des articles.\n\nSi tu veux, je peux le préparer maintenant : domaine, port, SSL, puis installation.`;
+  }
+  return `Je te conseille ${first.name}. ${first.reason}\n\nSi tu veux l'installer, je peux te guider dans le chat : domaine, port, SSL, puis lancement.`;
 }
 
 export async function POST(req: NextRequest) {
@@ -152,7 +184,7 @@ export async function POST(req: NextRequest) {
 
     if (!AI_ENDPOINT || !AI_KEY) {
       return NextResponse.json({
-        answer: "L'assistant n'est pas encore configuré côté serveur, mais voici les apps qui correspondent le mieux.",
+        answer: localAnswer(lastUser, recommendations),
         recommendations,
       });
     }
@@ -200,7 +232,8 @@ ${compactRecipeContext(recommendations) || "Aucune correspondance forte. Propose
     }
 
     const data = await res.json();
-    const answer = data?.choices?.[0]?.message?.content || "Je n'ai pas réussi à formuler une réponse.";
+    const aiAnswer = data?.choices?.[0]?.message?.content?.trim();
+    const answer = aiAnswer || localAnswer(lastUser, recommendations);
     return NextResponse.json({ answer, recommendations });
   } catch (err: any) {
     return NextResponse.json({ error: err?.name === "AbortError" ? "Assistant trop lent, réessayez." : err.message }, { status: 500 });
