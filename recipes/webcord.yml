@@ -27,6 +27,10 @@ params:
     type: integer
     title: Port HTTP
     default: 3000
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: Documentation
   url: https://docs.linuxserver.io/images/docker-webcord

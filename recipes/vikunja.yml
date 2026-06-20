@@ -28,6 +28,10 @@ params:
     type: integer
     title: Port HTTP
     default: 3456
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: Documentation
   url: https://vikunja.io/docs/

@@ -27,6 +27,10 @@ params:
     type: integer
     title: Port HTTP
     default: 9001
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: Website
   url: https://www.universalmediaserver.com/

@@ -38,6 +38,10 @@ params:
     type: integer
     title: Port HTTP
     default: 3000
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: GitHub Repository
   url: https://github.com/yakGPT/yakGPT

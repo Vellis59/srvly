@@ -24,6 +24,10 @@ params:
     type: integer
     title: Port HTTP
     default: 12345
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: Website
   url: https://tianji.msgbyte.com/

@@ -27,6 +27,10 @@ params:
     type: integer
     title: Port HTTP
     default: 4080
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: Documentation
   url: https://zincsearch-docs.zinc.dev/

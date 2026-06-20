@@ -29,6 +29,10 @@ params:
     type: integer
     title: Port HTTP
     default: 8090
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: GitHub
   url: https://github.com/seriousm4x/upsnap

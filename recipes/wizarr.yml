@@ -29,6 +29,10 @@ params:
     type: integer
     title: Port HTTP
     default: 5690
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: Documentation
   url: https://docs.wizarr.dev

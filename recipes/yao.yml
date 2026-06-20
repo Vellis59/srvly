@@ -39,6 +39,10 @@ params:
     type: integer
     title: Port HTTP
     default: 5099
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: Website
   url: https://yaoapps.com/
