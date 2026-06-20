@@ -4,7 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
-const TUNNEL_URL = ""; // Uses API proxy (same origin)
+const TUNNEL_URL = "/api"; // Uses API proxy (same origin)
 
 // Action recipes
 const ACTIONS: Record<string, { label: string; desc: string; icon: string; script: string; color: string }> = {
