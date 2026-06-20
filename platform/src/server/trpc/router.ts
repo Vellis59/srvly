@@ -119,18 +119,72 @@ export const installRouter = router({
         .where(and(eq(servers.id, input.serverId), eq(servers.userId, ctx.user.id!)));
       if (!server) throw new TRPCError({ code: "NOT_FOUND" });
 
+      // Get recipe for install instructions
+      const [recipe] = await ctx.db
+        .select()
+        .from(recipes)
+        .where(eq(recipes.id, input.recipeId));
+      if (!recipe) throw new TRPCError({ code: "NOT_FOUND" });
+
       const [inst] = await ctx.db
         .insert(installations)
         .values({
           serverId: input.serverId,
           recipeId: input.recipeId,
           params: input.params || {},
-          status: "pending",
+          status: "running",
         })
         .returning();
 
-      // TODO: dispatch to job queue → tunnel → Go agent
-      return inst;
+      // Build install command from recipe
+      const recipeData = recipe.recipe as any;
+      let script = "";
+      if (recipeData?.install?.[0]?.docker) {
+        const d = recipeData.install[0].docker;
+        const port = d.port?.replace("$PORT:", "") || "80";
+        script = `docker pull ${d.image} && docker rm -f ${d.name} 2>/dev/null; docker run -d --name ${d.name} --restart unless-stopped -p ${port}:${port}`;
+        for (const v of d.volumes || []) {
+          const volName = v.split("/").filter(Boolean).pop() || "data";
+          script += ` -v ${d.name}-${volName}:${v}`;
+        }
+        for (const ep of d.extra_ports || []) {
+          script += ` -p ${ep}`;
+        }
+        script += ` ${d.image}`;
+      } else if (recipeData?.install?.[0]?.script) {
+        script = recipeData.install[0].script;
+      } else {
+        script = `docker pull ${recipeData?.params?.image?.default || recipeId} && echo "Image pulled"`;
+      }
+
+      // Dispatch to tunnel-server (async)
+      const tunnelUrl = process.env.TUNNEL_URL || "http://tunnel-server:8080";
+      fetch(`${tunnelUrl}/dispatch`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          server_id: "unknown",
+          command_id: inst.id,
+          script: script,
+          timeout: 120,
+        }),
+      })
+        .then(res => res.json())
+        .then(async (result: any) => {
+          const status = result?.success ? "success" : "failed";
+          await ctx.db
+            .update(installations)
+            .set({ status, result: result, updatedAt: new Date() })
+            .where(eq(installations.id, inst.id));
+        })
+        .catch(async (err: any) => {
+          await ctx.db
+            .update(installations)
+            .set({ status: "failed", result: { error: err.message }, updatedAt: new Date() })
+            .where(eq(installations.id, inst.id));
+        });
+
+      return { ...inst, status: "running", message: "Installation en cours..." };
     }),
 });
 

@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/Vellis59/srvly/agent/store"
 	"github.com/gorilla/websocket"
@@ -29,6 +30,80 @@ func NewHub(s *store.Store) *Hub {
 
 func (h *Hub) Run() {}
 
+// Dispatch sends a command to a connected agent and waits for the result
+func (h *Hub) Dispatch(serverID, commandID, script string, timeout time.Duration) *CommandResult {
+	h.mu.RLock()
+	conn, ok := h.clients[serverID]
+	h.mu.RUnlock()
+
+	if !ok {
+		return &CommandResult{Error: "agent not connected"}
+	}
+
+	resultChan := make(chan *CommandResult, 1)
+	h.mu.Lock()
+	if h.pendingResults == nil {
+		h.pendingResults = make(map[string]chan *CommandResult)
+	}
+	h.pendingResults[commandID] = resultChan
+	h.mu.Unlock()
+
+	defer func() {
+		h.mu.Lock()
+		delete(h.pendingResults, commandID)
+		h.mu.Unlock()
+	}()
+
+	// Send command to agent
+	msg := Message{
+		Type:    "exec",
+		ID:      commandID,
+		Payload: json.RawMessage(`{"script":"` + script + `"}`),
+	}
+	data, _ := json.Marshal(msg)
+	if err := conn.WriteMessage(websocket.TextMessage, data); err != nil {
+		return &CommandResult{Error: "write error: " + err.Error()}
+	}
+
+	// Wait for result
+	select {
+	case result := <-resultChan:
+		return result
+	case <-time.After(timeout):
+		return &CommandResult{Error: "timeout"}
+	}
+}
+
+type CommandResult struct {
+	Success bool   `json:"success"`
+	Output  string `json:"output"`
+	Error   string `json:"error"`
+}
+
+var pendingResults map[string]chan *CommandResult
+
+func (h *Hub) handleMessageFrom(serverID string, data []byte) {
+	var msg Message
+	if err := json.Unmarshal(data, &msg); err != nil {
+		log.Printf("invalid message from %s: %v", serverID, err)
+		return
+	}
+
+	if msg.Type == "result" && msg.ID != "" {
+		h.mu.RLock()
+		ch, ok := h.pendingResults[msg.ID]
+		h.mu.RUnlock()
+		if ok {
+			var result CommandResult
+			json.Unmarshal(msg.Payload, &result)
+			ch <- &result
+		}
+		return
+	}
+
+	log.Printf("unhandled message from %s: type=%s", serverID, msg.Type)
+}
+
 func (h *Hub) HandleWS(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -36,12 +111,7 @@ func (h *Hub) HandleWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extract token from Authorization header
-	token := ""
-	authHeader := r.Header.Get("Authorization")
-	if len(authHeader) > 0 {
-		token = authHeader
-	}
+	token := r.Header.Get("Authorization")
 
 	// Wait for auth message
 	_, data, err := conn.ReadMessage()
@@ -66,7 +136,6 @@ func (h *Hub) HandleWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extract server_id — optional for now
 	var auth struct {
 		ServerID string `json:"server_id"`
 	}
@@ -81,31 +150,28 @@ func (h *Hub) HandleWS(w http.ResponseWriter, r *http.Request) {
 	h.mu.Unlock()
 	log.Printf("agent connected: %s (total: %d)", serverID, len(h.clients))
 
-	// Update database status
 	if token != "" {
 		h.store.SetServerConnected(token)
 	}
 
-	// Send confirmation
 	conn.WriteJSON(Message{Type: "auth_ok"})
 
-	// Read loop — detect disconnection
 	defer func() {
 		h.mu.Lock()
 		delete(h.clients, serverID)
 		h.mu.Unlock()
 		conn.Close()
 		log.Printf("agent disconnected: %s", serverID)
-
 		if token != "" {
 			h.store.SetServerDisconnected(token)
 		}
 	}()
 
 	for {
-		_, _, err := conn.ReadMessage()
+		_, data, err := conn.ReadMessage()
 		if err != nil {
 			break
 		}
+		h.handleMessageFrom(serverID, data)
 	}
 }

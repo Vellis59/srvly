@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Vellis59/srvly/agent/config"
+	"github.com/Vellis59/srvly/agent/executor"
 	"github.com/gorilla/websocket"
 )
 
@@ -15,10 +16,14 @@ type Message struct {
 	Payload json.RawMessage `json:"payload,omitempty"`
 }
 
+type execPayload struct {
+	Script string `json:"script"`
+}
+
 type Tunnel struct {
-	cfg    *config.Config
-	conn   *websocket.Conn
-	done   chan struct{}
+	cfg  *config.Config
+	conn *websocket.Conn
+	done chan struct{}
 }
 
 func New(cfg *config.Config) *Tunnel {
@@ -70,8 +75,44 @@ func (t *Tunnel) handleMessage(data []byte) {
 		log.Printf("invalid message: %v", err)
 		return
 	}
-	log.Printf("received: type=%s id=%s", msg.Type, msg.ID)
-	// TODO: dispatch to executor
+
+	switch msg.Type {
+	case "auth_ok":
+		log.Printf("received: type=auth_ok id=%s", msg.ID)
+
+	case "exec":
+		log.Printf("received command: id=%s", msg.ID)
+		var payload execPayload
+		if err := json.Unmarshal(msg.Payload, &payload); err != nil {
+			log.Printf("invalid exec payload: %v", err)
+			t.sendResult(msg.ID, false, "", "invalid payload: "+err.Error())
+			return
+		}
+
+		// Execute the command
+		result := executor.Run(executor.Command{
+			ID:     msg.ID,
+			Script: payload.Script,
+		})
+
+		t.sendResult(msg.ID, result.Success, result.Output, result.Error)
+
+	default:
+		log.Printf("unhandled message: type=%s id=%s", msg.Type, msg.ID)
+	}
+}
+
+func (t *Tunnel) sendResult(id string, success bool, output, errMsg string) {
+	payload, _ := json.Marshal(map[string]interface{}{
+		"success": success,
+		"output":  output,
+		"error":   errMsg,
+	})
+	t.send(Message{
+		Type:    "result",
+		ID:      id,
+		Payload: payload,
+	})
 }
 
 func (t *Tunnel) send(msg Message) {
