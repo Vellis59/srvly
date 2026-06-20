@@ -6,6 +6,7 @@ import { signOut, useSession } from "next-auth/react";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: "♜" },
+  { href: "/assistant", label: "Assistant", icon: "✦" },
   { href: "/servers", label: "Serveurs", icon: "♝" },
   { href: "/catalog", label: "Catalogue", icon: "♞" },
 ];
