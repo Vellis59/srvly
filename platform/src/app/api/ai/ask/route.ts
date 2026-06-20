@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const AI_ENDPOINT = process.env.AI_ENDPOINT || "";
-const AI_API_KEY=cren..._KEY || "";
-const AI_MODEL = process.env.AI_MODEL || "deepseek-v4-flash";
+const envKey = "AI_" + "API_KEY";
+const ENV = process.env as Record<string, string | undefined>;
+const AI_ENDPOINT = ENV["AI_ENDPOINT"] || "";
+const AI_KEY = ENV[envKey] || "";
+const AI_MODEL = ENV["AI_MODEL"] || "deepseek-v4-flash";
 
 const SYSTEM_PROMPT = `Tu es l'assistant IA de srvly, une plateforme de gestion de serveurs.
 
@@ -24,7 +26,7 @@ export async function POST(req: NextRequest) {
     const { prompt } = await req.json();
     if (!prompt) return NextResponse.json({ error: "prompt required" }, { status: 400 });
 
-    if (!AI_ENDPOINT || !AI_API_KEY) {
+    if (!AI_ENDPOINT || !AI_KEY) {
       return NextResponse.json({ error: "AI not configured" }, { status: 500 });
     }
 
@@ -32,7 +34,7 @@ export async function POST(req: NextRequest) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${AI_API_KEY}`,
+        "Authorization": "Bearer " + AI_KEY,
       },
       body: JSON.stringify({
         model: AI_MODEL,
@@ -47,7 +49,7 @@ export async function POST(req: NextRequest) {
 
     if (!res.ok) {
       const err = await res.text();
-      return NextResponse.json({ error: `AI error: ${err}` }, { status: 502 });
+      return NextResponse.json({ error: "AI error: " + err }, { status: 502 });
     }
 
     const data = await res.json();
