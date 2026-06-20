@@ -149,9 +149,9 @@ echo "SSL_ACTIVE"
 
 async function checkDns(name: string, expectedIp: string): Promise<{ ok: boolean; error?: string; got?: string | null }> {
   try {
-    const { promises: dns } = await import("dns");
-    return new Promise((resolve) => {
-      dns.resolve4(name, (err, addresses) => {
+    const dns = await import("dns");
+    return await new Promise((resolve) => {
+      dns.resolve4(name, (err: NodeJS.ErrnoException | null, addresses: string[]) => {
         if (err) {
           resolve({ ok: false, error: err.message, got: null });
           return;
