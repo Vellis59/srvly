@@ -70,9 +70,18 @@ function saysAlreadyInstalled(text: string) {
 }
 
 function cleanDomain(text: string) {
-  const raw = text.trim().toLowerCase();
+  let raw = text.trim().toLowerCase();
   if (!raw || isNo(raw)) return "";
-  return raw.replace(/^https?:\/\//, "").replace(/\/.*$/, "").replace(/\s+/g, "");
+  raw = raw
+    .replace(/^(oui|yes|ok|vas-y|vasy|go|avec|domaine)\s*[:=\-]?\s*/i, "")
+    .replace(/^https?:\/\//, "")
+    .replace(/\/.*$/, "")
+    .replace(/\s+/g, "");
+  return raw;
+}
+
+function looksLikeDomain(text: string) {
+  return /([a-z0-9-]+\.)+[a-z]{2,}/i.test(text);
 }
 
 function sleep(ms: number) {
@@ -96,6 +105,7 @@ export default function AssistantPage() {
   ]);
   const [input, setInput] = useState("");
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [pendingApp, setPendingApp] = useState<Recommendation | null>(null);
   const [wizard, setWizard] = useState<Wizard | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -113,8 +123,18 @@ export default function AssistantPage() {
     setMessages((prev) => [...prev, { role: "assistant", content }]);
   }
 
-  function startWizard(app: Recommendation) {
-    setWizard({ app, step: "domain", port: app.defaultPort || 80 });
+  function startWizard(app: Recommendation, initialDomain = "") {
+    const base = { app, port: app.defaultPort || 80 };
+    setPendingApp(null);
+    if (initialDomain) {
+      const next = { ...base, domain: initialDomain, step: "port" as WizardStep };
+      setWizard(next);
+      appendAssistant(
+        `Très bien, je prépare l'installation de ${app.name} sur ${initialDomain}.\n\nVeux-tu garder le port par défaut ${app.defaultPort || 80} ? Réponds “oui” ou donne un autre port.`
+      );
+      return;
+    }
+    setWizard({ ...base, step: "domain" });
     appendAssistant(
       `Très bien, je prépare l'installation de ${app.name}.\n\nQuel domaine veux-tu utiliser ?\nExemple : ${app.id}.tondomaine.com\n\nRéponds “non” si tu veux installer sans domaine pour l'instant.`
     );
@@ -302,6 +322,12 @@ export default function AssistantPage() {
       return;
     }
 
+    if (pendingApp && isYes(content)) {
+      const domain = looksLikeDomain(content) ? cleanDomain(content) : "";
+      startWizard(pendingApp, domain);
+      return;
+    }
+
     setLoading(true);
     setRecommendations([]);
     const controller = new AbortController();
@@ -323,9 +349,16 @@ export default function AssistantPage() {
       appendAssistant(answer);
 
       const answerSaysAlreadyInstalled = saysAlreadyInstalled(answer);
+      const mentionedApp = findMentionedApp(content, recs) || findMentionedApp(answer, recs);
       const shouldStartWizard = (isInstallIntent(content) && recs[0]) || (isActionableNeed(content) && recs[0] && !answerSaysAlreadyInstalled);
       if (shouldStartWizard) {
         setTimeout(() => startWizard(recs[0]), 50);
+      } else if (mentionedApp && !answerSaysAlreadyInstalled) {
+        setPendingApp(mentionedApp);
+      } else if (mentionedApp && /\b(install|installer|lance|lancer|souhaitez|veux|voulez)\b/i.test(answer)) {
+        setPendingApp(mentionedApp);
+      } else {
+        setPendingApp(null);
       }
     } catch (err: any) {
       if (err.name !== "AbortError") {
