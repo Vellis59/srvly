@@ -4,11 +4,15 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/Vellis59/srvly/agent/store"
 	"github.com/Vellis59/srvly/agent/tunnel"
 )
 
 func main() {
-	hub := tunnel.NewHub()
+	db := store.New()
+	defer db.Close()
+
+	hub := tunnel.NewHub(db)
 	go hub.Run()
 
 	http.HandleFunc("/ws", hub.HandleWS)

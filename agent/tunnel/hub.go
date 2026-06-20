@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/Vellis59/srvly/agent/store"
 	"github.com/gorilla/websocket"
 )
 
@@ -16,11 +17,13 @@ var upgrader = websocket.Upgrader{
 type Hub struct {
 	clients map[string]*websocket.Conn
 	mu      sync.RWMutex
+	store   *store.Store
 }
 
-func NewHub() *Hub {
+func NewHub(s *store.Store) *Hub {
 	return &Hub{
 		clients: make(map[string]*websocket.Conn),
+		store:   s,
 	}
 }
 
@@ -31,6 +34,13 @@ func (h *Hub) HandleWS(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("upgrade error: %v", err)
 		return
+	}
+
+	// Extract token from Authorization header
+	token := ""
+	authHeader := r.Header.Get("Authorization")
+	if len(authHeader) > 0 {
+		token = authHeader
 	}
 
 	// Wait for auth message
@@ -64,13 +74,17 @@ func (h *Hub) HandleWS(w http.ResponseWriter, r *http.Request) {
 	serverID := auth.ServerID
 	if serverID == "" {
 		serverID = "unknown"
-		log.Printf("agent connected without server_id, using 'unknown'")
 	}
 
 	h.mu.Lock()
 	h.clients[serverID] = conn
 	h.mu.Unlock()
 	log.Printf("agent connected: %s (total: %d)", serverID, len(h.clients))
+
+	// Update database status
+	if token != "" {
+		h.store.SetServerConnected(token)
+	}
 
 	// Send confirmation
 	conn.WriteJSON(Message{Type: "auth_ok"})
@@ -82,12 +96,15 @@ func (h *Hub) HandleWS(w http.ResponseWriter, r *http.Request) {
 		h.mu.Unlock()
 		conn.Close()
 		log.Printf("agent disconnected: %s", serverID)
+
+		if token != "" {
+			h.store.SetServerDisconnected(token)
+		}
 	}()
 
 	for {
 		_, _, err := conn.ReadMessage()
 		if err != nil {
-			log.Printf("read error from %s: %v", serverID, err)
 			break
 		}
 	}
