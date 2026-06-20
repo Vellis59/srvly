@@ -182,6 +182,16 @@ export const installRouter = router({
 
         script += `# Remove old container and run\n`;
         script += `docker rm -f ${d.name} 2>/dev/null || true\n`;
+
+        const volumeArgs: string[] = [];
+        for (const vol of d.volumes || []) {
+          const volDir = vol.split("/").filter(Boolean).pop() || "data";
+          const hostDir = `/opt/srvly/${d.name}-${volDir}`;
+          script += `mkdir -p ${hostDir}\n`;
+          script += `chown -R 1000:1000 ${hostDir} 2>/dev/null || true\n`;
+          volumeArgs.push(`-v ${hostDir}:${vol}`);
+        }
+
         script += `docker run -d --name ${d.name} --restart unless-stopped`;
         if (Object.keys(services).length > 0) {
           script += ` --network ${networkName}`;
@@ -196,10 +206,8 @@ export const installRouter = router({
           script += ` -e database__connection__database=${safeName}`;
         }
 
-        // Volumes
-        for (const vol of d.volumes || []) {
-          const volDir = vol.split("/").filter(Boolean).pop() || "data";
-          script += ` -v /opt/srvly/${d.name}-${volDir}:${vol}`;
+        for (const arg of volumeArgs) {
+          script += ` ${arg}`;
         }
 
         // Extra ports
