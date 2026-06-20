@@ -56,7 +56,7 @@ function AddServerModal({ onClose }: { onClose: () => void }) {
               Commande à exécuter sur votre serveur
             </p>
             <pre className="text-xs font-mono bg-slate-900 text-slate-100 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap">
-{`# Installer l'agent Go :
+{`# Installer l'agent serveur :
 curl -sL http://185.197.251.176:3000/agent.sh | bash -s -- \\
   --token ${createdServer.agentToken} \\
   --server ws://185.197.251.176:8080/ws`}
@@ -112,7 +112,7 @@ curl -sL http://185.197.251.176:3000/agent.sh | bash -s -- \\
             </p>
             <p>
               Après la création, un token sera généré. Vous installerez
-              l'agent Go sur votre serveur avec une commande 1-liner.
+              l'agent serveur sur votre serveur avec une commande 1-liner.
             </p>
           </div>
         </div>

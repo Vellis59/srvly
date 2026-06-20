@@ -194,7 +194,7 @@ export default function ServerDetailPage() {
           </p>
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-4">
-          <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Token</p>
+          <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Token agent serveur</p>
           <p className="text-sm font-mono text-emerald-600 text-xs truncate">{server.agentToken}</p>
         </div>
       </div>
@@ -202,6 +202,25 @@ export default function ServerDetailPage() {
       {/* Actions grid */}
       {server.status === "connected" && (
         <>
+          <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-2xl p-6 mb-6 text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold mb-1">⚡ Configurer automatiquement</h2>
+                <p className="text-sm text-emerald-100">Sécurité → Docker → Nginx → SSL en une seule commande</p>
+              </div>
+              <button onClick={() => {
+                const steps = ["security", "docker", "nginx", "ssl"];
+                steps.reduce(async (prev, step) => {
+                  await prev;
+                  await runAction(step as keyof typeof ACTIONS);
+                }, Promise.resolve());
+              }}
+                className="px-6 py-3 bg-white text-emerald-700 rounded-xl font-semibold hover:bg-emerald-50 transition-colors">
+                {running ? "En cours..." : "Configurer"}
+              </button>
+            </div>
+          </div>
+
           <h2 className="text-lg font-semibold text-slate-900 mb-4">Actions disponibles</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
             {(Object.keys(ACTIONS) as Array<keyof typeof ACTIONS>).map((action) => (
