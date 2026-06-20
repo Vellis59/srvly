@@ -12,11 +12,32 @@ import (
 )
 
 func main() {
-	var configPath string
+	var (
+		configPath string
+		token      string
+		serverURL  string
+		serverID   string
+	)
+
 	flag.StringVar(&configPath, "config", "", "path to config file")
+	flag.StringVar(&token, "token", "", "agent authentication token")
+	flag.StringVar(&serverURL, "server", "", "WebSocket server URL")
+	flag.StringVar(&serverID, "id", "", "server ID")
 	flag.Parse()
 
 	cfg := config.Load(configPath)
+
+	// CLI flags override env vars
+	if token != "" {
+		cfg.Token = token
+	}
+	if serverURL != "" {
+		cfg.ServerURL = serverURL
+	}
+	if serverID != "" {
+		cfg.ServerID = serverID
+	}
+
 	log.Printf("srvly-agent starting — server: %s", cfg.ServerURL)
 
 	t := tunnel.New(cfg)
