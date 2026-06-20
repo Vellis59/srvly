@@ -67,7 +67,7 @@ export default function CatalogPage() {
   const { data: recipes, isLoading } = trpc.catalog.list.useQuery();
 
   const categories = recipes
-    ? [...new Set(recipes.map((r) => r.category).filter(Boolean))].sort()
+    ? Array.from(new Set(recipes.map((r) => r.category).filter(Boolean) as string[])).sort()
     : [];
 
   return (
