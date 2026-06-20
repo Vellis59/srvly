@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
     const name = domain.name;
     const port = domain.target_port || 80;
     const serverIp = domain.ip;
+    const tunnelUrl = env["TUNNEL_URL"] || "http://tunnel-server:8080";
 
     // Step 1: DNS check (verify the domain resolves to this server)
     const dnsCheck = await checkDns(name, serverIp);
