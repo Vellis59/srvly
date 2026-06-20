@@ -4,6 +4,7 @@ import { db } from "@/server/db";
 import { recipes, servers, installations, domains } from "@/server/db/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
 import * as http from "http";
+import { execSync } from "child_process";
 
 // ─── Config ───────────────────────────────────────────────────────────
 
@@ -171,7 +172,57 @@ const TOOLS: ToolDef[] = [
         properties: {},
       },
     },
-  },
+    },
+    {
+    type: "function",
+    function: {
+      name: "lire_documentation_github",
+      description:
+        "Chercher et lire la documentation d'installation d'une app open-source (GitHub README, site officiel). Utilise ceci quand une installation échoue pour trouver la bonne commande Docker.",
+      parameters: {
+        type: "object",
+        properties: {
+          nom_app: { type: "string", description: "Nom de l'application" },
+          url_github: { type: "string", description: "URL GitHub optionnelle si connue" },
+        },
+        required: ["nom_app"],
+      },
+    },
+    },
+    {
+    type: "function",
+    function: {
+      name: "executer_commande_docker",
+      description:
+        "Exécuter une commande Docker arbitraire (pull, run, rm, logs, ps). Utilise ceci pour installer avec des paramètres personnalisés ou diagnostiquer.",
+      parameters: {
+        type: "object",
+        properties: {
+          commande: { type: "string", description: "Commande Docker complète" },
+        },
+        required: ["commande"],
+      },
+    },
+    },
+    {
+    type: "function",
+    function: {
+      name: "mettre_a_jour_recette",
+      description:
+        "Corriger une recette du catalogue avec les bons paramètres (image, port, commande). Après avoir trouvé la bonne installation dans la doc GitHub.",
+      parameters: {
+        type: "object",
+        properties: {
+          id_recette: { type: "string", description: "ID de la recette" },
+          image: { type: "string", description: "Nouvelle image Docker" },
+          port_defaut: { type: "number", description: "Nouveau port par défaut" },
+          port_conteneur: { type: "number", description: "Port du conteneur" },
+          commande: { type: "string", description: "Commande Docker de remplacement" },
+        },
+        required: ["id_recette"],
+      },
+    },
+  ],
 ];
 
 // ─── Tool handlers ─────────────────────────────────────────────────────
@@ -506,6 +557,127 @@ async function execTool(
         return JSON.stringify(userServers3.length ? userServers3 : [{ msg: "Aucun serveur" }]);
       }
 
+      // ── GitHub doc ────────────────────────────────────────────────
+      case "lire_documentation_github": {
+        const appName = args.nom_app || "";
+        const providedUrl = args.url_github || "";
+
+        // Try provided URL first
+        if (providedUrl) {
+          try {
+            // Convert GitHub blob URLs to raw
+            const rawUrl = providedUrl
+              .replace("github.com", "raw.githubusercontent.com")
+              .replace("/blob/", "/");
+            const readmeRes = await fetch(rawUrl + "/README.md", { signal: AbortSignal.timeout(8000) });
+            if (readmeRes.ok) {
+              const text = await readmeRes.text();
+              return text.slice(0, 5000);
+            }
+          } catch {}
+        }
+
+        // Try common patterns: github.com/{app}/{app}
+        const repoSlugs = [
+          appName,
+          `${appName}/${appName}`,
+          `redimp/${appName}`,
+          `n8n-io/${appName}`,
+          `activepieces/${appName}`,
+        ];
+
+        for (const slug of repoSlugs) {
+          try {
+            const apiRes = await fetch(
+              `https://api.github.com/repos/${slug}/readme`,
+              {
+                headers: { Accept: "application/vnd.github.raw+json", "User-Agent": "srvly/1.0" },
+                signal: AbortSignal.timeout(5000),
+              },
+            );
+            if (apiRes.ok) {
+              const text = await apiRes.text();
+              return `Documentation GitHub (${slug}):\n${text.slice(0, 5000)}`;
+            }
+          } catch {}
+        }
+
+        // Try DuckDuckGo instant answer as fallback
+        try {
+          const ddgRes = await fetch(
+            `https://api.duckduckgo.com/?q=${encodeURIComponent(appName + " docker install")}&format=json&no_html=1`,
+            { signal: AbortSignal.timeout(5000) },
+          );
+          if (ddgRes.ok) {
+            const ddg = await ddgRes.json();
+            const results = [ddg.AbstractText, ddg.Answer, (ddg.RelatedTopics?.[0]?.Text || "")].filter(Boolean);
+            if (results.length) return `Résultats web pour "${appName}":\n${results.join("\n").slice(0, 3000)}`;
+          }
+        } catch {}
+
+        return JSON.stringify({ message: `Aucune documentation trouvée pour "${appName}".` });
+      }
+
+      // ── custom docker command ──────────────────────────────────────
+      case "executer_commande_docker": {
+        const cmd = String(args.commande || "").trim();
+        if (!cmd) return JSON.stringify({ erreur: "Commande vide." });
+
+        // Only allow docker commands
+        if (!cmd.startsWith("docker ")) {
+          return JSON.stringify({ erreur: "Seules les commandes docker sont autorisées." });
+        }
+
+        try {
+          const output = execSync(cmd, {
+            timeout: 60000,
+            maxBuffer: 10 * 1024 * 1024,
+            encoding: "utf-8",
+          });
+          return `Sortie:\n${(output || "").slice(0, 4000)}\n(Commande terminée avec succès)`;
+        } catch (e: any) {
+          const stderr = e.stderr?.toString() || "";
+          const stdout = e.stdout?.toString() || "";
+          return `Erreur:\n${(stderr || stdout || e.message).slice(0, 3000)}`;
+        }
+      }
+
+      // ── update recipe ──────────────────────────────────────────────
+      case "mettre_a_jour_recette": {
+        const recipeId = args.id_recette;
+
+        const existing = await db
+          .select()
+          .from(recipes)
+          .where(eq(recipes.id, recipeId))
+          .limit(1);
+        if (!existing[0]) return JSON.stringify({ erreur: `Recette "${recipeId}" introuvable.` });
+
+        const current = existing[0];
+        const currentParams = (current.params as any) || {};
+
+        // Build updated params
+        const newParams = {
+          ...currentParams,
+          ...(args.image ? { image: args.image } : {}),
+          ...(args.port_defaut || args.port_conteneur
+            ? { port: { default: args.port_defaut || currentParams.port?.default, container: args.port_conteneur || currentParams.port?.container } }
+            : {}),
+          ...(args.variables_env ? { env: JSON.parse(args.variables_env) } : {}),
+          ...(args.commande ? { custom_install: args.commande } : {}),
+        };
+
+        await db
+          .update(recipes)
+          .set({ params: JSON.stringify(newParams) })
+          .where(eq(recipes.id, recipeId));
+
+        return JSON.stringify({
+          message: `Recette "${recipeId}" mise à jour.`,
+          modifications: Object.keys(args).filter((k) => k !== "id_recette"),
+        });
+      }
+
       default:
         return JSON.stringify({ erreur: `Outil inconnu: ${name}` });
     }
@@ -629,6 +801,9 @@ export async function POST(req: NextRequest) {
       "- verifier_installation(id_installation) : vérifie le statut",
       "- lire_logs_installation(id_installation) : logs complets",
       "- diagnostiquer_conteneur(nom_app, port?) : diagnostic Docker",
+      "- lire_documentation_github(nom_app, url_github?) : cherche la doc officielle de l'app",
+      "- executer_commande_docker(commande) : exécute une commande Docker personnalisée",
+      "- mettre_a_jour_recette(id_recette, image?, port?, commande?) : corrige la recette du catalogue",
       "- configurer_domaine(nom_domaine, port_cible, nom_app?) : ajoute un domaine avec Nginx",
       "- activer_ssl(nom_domaine) : active Let's Encrypt",
       "- lister_serveurs() : liste les serveurs connectés",
