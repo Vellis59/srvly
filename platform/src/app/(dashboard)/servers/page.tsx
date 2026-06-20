@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Link from "next/link";
 
 type Server = {
   id: string;
@@ -19,9 +20,9 @@ function AddServerModal({ onClose }: { onClose: () => void }) {
   const router = useRouter();
   const utils = trpc.useUtils();
   const createServer = trpc.server.create.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       utils.server.list.invalidate();
-      onClose();
+      setCreatedServer(data);
     },
     onError: (err) => {
       alert("Erreur : " + err.message);
@@ -29,6 +30,49 @@ function AddServerModal({ onClose }: { onClose: () => void }) {
   });
   const [name, setName] = useState("");
   const [ip, setIp] = useState("");
+  const [createdServer, setCreatedServer] = useState<any>(null);
+
+  if (createdServer) {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl">
+          <div className="text-center mb-6">
+            <p className="text-4xl mb-3">🎉</p>
+            <h2 className="text-xl font-bold text-slate-900">Serveur ajouté !</h2>
+            <p className="text-sm text-slate-500 mt-1">{createdServer.name}</p>
+          </div>
+
+          <div className="bg-slate-50 rounded-xl p-4 mb-4">
+            <p className="text-xs text-slate-500 mb-1 font-medium uppercase tracking-wide">
+              Token d'installation
+            </p>
+            <p className="text-sm font-mono bg-slate-900 text-emerald-400 p-3 rounded-lg break-all">
+              {createdServer.agentToken}
+            </p>
+          </div>
+
+          <div className="bg-slate-50 rounded-xl p-4 mb-6">
+            <p className="text-xs text-slate-500 mb-1 font-medium uppercase tracking-wide">
+              Commande à exécuter sur votre serveur
+            </p>
+            <pre className="text-xs font-mono bg-slate-900 text-slate-100 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap">
+{`# Installer l'agent Go :
+curl -s https://get.srvly.app/agent.sh | bash -s -- \\
+  --token ${createdServer.agentToken} \\
+  --server wss://platform.srvly.app/ws`}
+            </pre>
+          </div>
+
+          <div className="flex gap-3">
+            <button onClick={onClose}
+              className="flex-1 px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 transition-colors">
+              Terminé
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -74,17 +118,14 @@ function AddServerModal({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="flex gap-3 mt-6">
-          <button
-            onClick={onClose}
-            className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-medium hover:bg-slate-50 transition-colors"
-          >
+          <button onClick={onClose}
+            className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-medium hover:bg-slate-50 transition-colors">
             Annuler
           </button>
           <button
             onClick={() => createServer.mutate({ name, ip })}
             disabled={!name || !ip || createServer.isPending}
-            className="flex-1 px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 transition-colors"
-          >
+            className="flex-1 px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 transition-colors">
             {createServer.isPending ? "Création..." : "Ajouter"}
           </button>
         </div>
@@ -109,7 +150,8 @@ function ServerCard({ server }: { server: Server }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
+    <Link href={`/servers/${server.id}`}
+      className="block bg-white rounded-2xl border border-slate-200 p-5 hover:shadow-md hover:border-emerald-300 transition-all">
       <div className="flex items-start justify-between mb-3">
         <div>
           <h3 className="font-semibold text-slate-900">{server.name}</h3>
@@ -141,14 +183,13 @@ function ServerCard({ server }: { server: Server }) {
           </span>
         )}
       </div>
-    </div>
+    </Link>
   );
 }
 
 export default function ServersPage() {
   const { data: session } = useSession();
   const [showAdd, setShowAdd] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const { data: servers, isLoading } = trpc.server.list.useQuery();
 
   if (!session) return null;
