@@ -222,7 +222,8 @@ export const installRouter = router({
         script += `for i in 1 2 3 4 5 6; do\n`;
         script += `  echo "Check attempt $i..."\n`;
         script += `  sleep 10\n`;
-        script += `  CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${port} 2>/dev/null)\n`;
+        script += `  CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${port} 2>/dev/null || true)\n`;
+        script += `  [ -z "$CODE" ] && CODE=000\n`;
         script += `  echo "  HTTP $CODE"\n`;
         script += `  if [ "$CODE" != "000" ]; then\n`;
         script += `    echo "APP_READY"\n`;
