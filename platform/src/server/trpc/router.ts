@@ -190,10 +190,19 @@ export const installRouter = router({
 
         script += ` ${resolvedImage} 2>&1\n\n`;
 
-        // 3. Verify
-        script += `# Verify installation\n`;
-        script += `sleep 3\n`;
-        script += `curl -s -o /dev/null -w "%{http_code}" http://localhost:${port} || echo "VERIFY_FAILED"\n`;
+        // 3. Verify — retry until ready
+        script += `# Verify installation (retry loop)\n`;
+        script += `for i in 1 2 3 4 5 6; do\n`;
+        script += `  echo "Check attempt $i...\\n"\n`;
+        script += `  sleep 10\n`;
+        script += `  CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${port} 2>/dev/null || echo "000")\n`;
+        script += `  echo "  HTTP $CODE\\n"\n`;
+        script += `  if [ "$CODE" != "000" ]; then\n`;
+        script += `    echo "APP_READY"\n`;
+        script += `    exit 0\n`;
+        script += `  fi\n`;
+        script += `done\n`;
+        script += `echo "VERIFY_FAILED after 60s"\n`;
 
       } else if (installStage?.script) {
         script += installStage.script;
@@ -241,11 +250,39 @@ export const installRouter = router({
 
       return {
         id: inst.id,
-        status: "running",
         port: port,
         script: script,
         message: `Installation de ${recipe.name} lancée sur le port ${port}...`,
       };
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .select({ installation: installations, server: servers })
+        .from(installations)
+        .innerJoin(servers, eq(installations.serverId, servers.id))
+        .where(and(eq(installations.id, input.id), eq(servers.userId, ctx.user.id!)));
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+
+      // Kill Docker containers
+      const tunnelUrl = process.env.TUNNEL_URL || "http://tunnel-server:8080";
+      const r = await ctx.db.select().from(recipes).where(eq(recipes.id, row.installation.recipeId)).then(r => r[0]);
+      const container = (r?.recipe as any)?.install?.[0]?.docker?.name || "app";
+      await fetch(`${tunnelUrl}/dispatch`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          server_id: "unknown",
+          command_id: `kill-${input.id}`,
+          script: `docker rm -f ${container} 2>/dev/null; docker rm -f ${container}-mysql 2>/dev/null; echo "REMOVED"`,
+          timeout: 15,
+        }),
+      }).catch(() => {});
+
+      await ctx.db.delete(installations).where(eq(installations.id, input.id));
+      return { success: true };
     }),
 });
 

@@ -413,7 +413,11 @@ function DomainItem({ domain, onDelete }: { domain: any; onDelete: () => void })
 }
 
 function InstalledApps({ serverId }: { serverId: string }) {
+  const utils = trpc.useUtils();
   const { data: installations } = trpc.install.list.useQuery();
+  const deleteApp = trpc.install.delete.useMutation({
+    onSuccess: () => utils.install.list.invalidate(),
+  });
   const apps = installations?.filter((i: any) => i.installations?.serverId === serverId || i.servers?.id === serverId) || [];
 
   return (
@@ -439,7 +443,7 @@ function InstalledApps({ serverId }: { serverId: string }) {
                   <p className="font-medium text-sm text-slate-900">{rec.name || "App"}</p>
                   <p className="text-xs text-slate-500">
                     Statut: {inst.status || "inconnu"}
-                    {inst.result?.port && ` • Port: ${inst.result.port}`}
+                    {inst.params?.port && ` • Port: ${inst.params.port}`}
                   </p>
                 </div>
                 {inst.status === "running" && (
@@ -451,6 +455,13 @@ function InstalledApps({ serverId }: { serverId: string }) {
                     <pre className="mt-2 bg-slate-900 text-slate-100 p-2 rounded-lg max-h-40 overflow-y-auto">{inst.logs}</pre>
                   </details>
                 )}
+                <button
+                  onClick={() => { if (confirm("Désinstaller " + (rec.name || "cette app") + " ?")) deleteApp.mutate({ id: inst.id }); }}
+                  disabled={deleteApp.isPending}
+                  className="text-xs text-red-500 hover:text-red-700 disabled:opacity-50"
+                >
+                  Supprimer
+                </button>
               </div>
             );
           })}
