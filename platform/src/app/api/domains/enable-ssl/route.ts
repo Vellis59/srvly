@@ -47,10 +47,11 @@ export async function POST(req: NextRequest) {
     const dnsCheck = await checkDns(name, serverIp);
     if (!dnsCheck.ok) {
       return NextResponse.json({
-        error: "DNS check failed",
-        detail: dnsCheck.error,
+        error: "DNS non configuré",
+        detail: `Ajoutez un enregistrement A pour ${name} pointant vers ${serverIp}. Actuellement: ${dnsCheck.got || "DNS introuvable"}`,
         expected_ip: serverIp,
         got: dnsCheck.got,
+        fix: `Créez un enregistrement A: ${name} → ${serverIp} (TTL: 300s)`,
       }, { status: 400 });
     }
 

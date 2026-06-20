@@ -253,6 +253,9 @@ export default function ServerDetailPage() {
             </div>
           )}
 
+          {/* Installed apps */}
+          <InstalledApps serverId={server.id} />
+
           {/* Domain section */}
           <DomainSection serverId={server.id} />
         </>
@@ -404,6 +407,54 @@ function DomainItem({ domain, onDelete }: { domain: any; onDelete: () => void })
       </div>
       {status && (
         <p className="text-xs mt-2 text-slate-600 break-words">{status}</p>
+      )}
+    </div>
+  );
+}
+
+function InstalledApps({ serverId }: { serverId: string }) {
+  const { data: installations } = trpc.install.list.useQuery();
+  const apps = installations?.filter((i: any) => i.installations?.serverId === serverId || i.servers?.id === serverId) || [];
+
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
+      <h2 className="font-semibold text-slate-900 mb-4">📦 Apps installées</h2>
+      {apps.length === 0 ? (
+        <div className="text-sm text-slate-500 text-center py-6 border-2 border-dashed border-slate-200 rounded-xl">
+          Aucune installation. Lancez une app depuis le <a href="/catalog" className="text-emerald-600 hover:underline">catalogue</a>.
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {apps.map((item: any) => {
+            const inst = item.installations || item;
+            const rec = item.recipes || item;
+            return (
+              <div key={inst.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+                <span className={`w-2.5 h-2.5 rounded-full ${
+                  inst.status === "success" ? "bg-emerald-500" :
+                  inst.status === "running" ? "bg-amber-400" :
+                  inst.status === "failed" ? "bg-red-500" : "bg-slate-400"
+                }`} />
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm text-slate-900">{rec.name || "App"}</p>
+                  <p className="text-xs text-slate-500">
+                    Statut: {inst.status || "inconnu"}
+                    {inst.result?.port && ` • Port: ${inst.result.port}`}
+                  </p>
+                </div>
+                {inst.status === "running" && (
+                  <div className="animate-spin w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full" />
+                )}
+                {inst.logs && (
+                  <details className="text-xs">
+                    <summary className="text-slate-400 cursor-pointer">Logs</summary>
+                    <pre className="mt-2 bg-slate-900 text-slate-100 p-2 rounded-lg max-h-40 overflow-y-auto">{inst.logs}</pre>
+                  </details>
+                )}
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );
