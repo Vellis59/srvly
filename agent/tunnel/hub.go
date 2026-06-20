@@ -59,10 +59,11 @@ func (h *Hub) Dispatch(serverID, commandID, script string, timeout time.Duration
 	}()
 
 	// Send command to agent
+	payload, _ := json.Marshal(map[string]string{"script": script})
 	msg := Message{
 		Type:    "exec",
 		ID:      commandID,
-		Payload: json.RawMessage(`{"script":"` + script + `"}`),
+		Payload: payload,
 	}
 	data, _ := json.Marshal(msg)
 	if err := conn.WriteMessage(websocket.TextMessage, data); err != nil {
