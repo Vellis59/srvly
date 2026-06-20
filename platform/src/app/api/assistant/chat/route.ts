@@ -15,215 +15,7 @@ const TUNNEL_URL = process.env.TUNNEL_URL || "http://tunnel-server:8080";
 const MAX_TOOL_ITERS = 40;
 
 type ChatMsg = { role: string; content: string };
-type ToolDef = {
-  type: "function";
-  function: {
-    name: string;
-    description: string;
-    parameters: Record<string, unknown>;
-  };
-};
 
-// ─── Tool definitions ──────────────────────────────────────────────────
-
-const TOOLS: ToolDef[] = [
-  {
-    type: "function",
-    function: {
-      name: "recommender_catalogue",
-      description: "Rechercher des applications dans le catalogue srvly qui correspondent à un besoin exprimé en français",
-      parameters: {
-        type: "object",
-        properties: {
-          besoin: {
-            type: "string",
-            description: "Description du besoin (ex: 'prise de notes', 'automatisation', 'blog')",
-          },
-        },
-        required: ["besoin"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "installer_application",
-      description: "Lancer l'installation d'une application sur le serveur. Cette commande crée le conteneur Docker et le configure.",
-      parameters: {
-        type: "object",
-        properties: {
-          id_recette: { type: "string", description: "ID de la recette dans le catalogue" },
-          port: {
-            type: "number",
-            description: "Port d'écoute (optionnel, défaut selon la recette)",
-          },
-        },
-        required: ["id_recette"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "verifier_installation",
-      description: "Vérifier le statut d'une installation en cours ou terminée",
-      parameters: {
-        type: "object",
-        properties: {
-          id_installation: {
-            type: "string",
-            description: "ID de l'installation retourné par installer_application",
-          },
-        },
-        required: ["id_installation"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "lire_logs_installation",
-      description: "Lire les logs complets d'une installation",
-      parameters: {
-        type: "object",
-        properties: {
-          id_installation: {
-            type: "string",
-            description: "ID de l'installation",
-          },
-        },
-        required: ["id_installation"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "diagnostiquer_conteneur",
-      description:
-        "Exécuter un diagnostic sur le serveur pour une application donnée : docker ps, logs, test curl. Utile après un échec d'installation.",
-      parameters: {
-        type: "object",
-        properties: {
-          nom_app: {
-            type: "string",
-            description: "Nom de l'application à diagnostiquer (ex: 'otterwiki')",
-          },
-          port: {
-            type: "number",
-            description: "Port sur lequel l'app est sensée écouter",
-          },
-        },
-        required: ["nom_app"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "configurer_domaine",
-      description:
-        "Configurer un nom de domaine pour une application (écrit la config Nginx et redirige le trafic)",
-      parameters: {
-        type: "object",
-        properties: {
-          nom_domaine: {
-            type: "string",
-            description: "Nom de domaine complet (ex: otterwiki.localhosted.io)",
-          },
-          port_cible: {
-            type: "number",
-            description: "Port de l'application cible",
-          },
-          nom_app: {
-            type: "string",
-            description: "Nom de l'application (pour référence)",
-          },
-        },
-        required: ["nom_domaine", "port_cible"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "activer_ssl",
-      description:
-        "Activer le certificat SSL Let's Encrypt pour un domaine déjà configuré. Nécessite que le DNS pointe vers le serveur.",
-      parameters: {
-        type: "object",
-        properties: {
-          nom_domaine: {
-            type: "string",
-            description: "Nom de domaine complet",
-          },
-        },
-        required: ["nom_domaine"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "lister_serveurs",
-      description: "Lister les serveurs connectés au compte",
-      parameters: {
-        type: "object",
-        properties: {},
-      },
-    },
-    },
-    {
-    type: "function",
-    function: {
-      name: "lire_documentation_github",
-      description:
-        "Chercher et lire la documentation d'installation d'une app open-source (GitHub README, site officiel). Utilise ceci quand une installation échoue pour trouver la bonne commande Docker.",
-      parameters: {
-        type: "object",
-        properties: {
-          nom_app: { type: "string", description: "Nom de l'application" },
-          url_github: { type: "string", description: "URL GitHub optionnelle si connue" },
-        },
-        required: ["nom_app"],
-      },
-    },
-    },
-    {
-    type: "function",
-    function: {
-      name: "executer_commande_docker",
-      description:
-        "Exécuter une commande Docker arbitraire (pull, run, rm, logs, ps). Utilise ceci pour installer avec des paramètres personnalisés ou diagnostiquer.",
-      parameters: {
-        type: "object",
-        properties: {
-          commande: { type: "string", description: "Commande Docker complète" },
-        },
-        required: ["commande"],
-      },
-    },
-    },
-    {
-    type: "function",
-    function: {
-      name: "mettre_a_jour_recette",
-      description:
-        "Corriger une recette du catalogue avec les bons paramètres (image, port, commande). Après avoir trouvé la bonne installation dans la doc GitHub.",
-      parameters: {
-        type: "object",
-        properties: {
-          id_recette: { type: "string", description: "ID de la recette" },
-          image: { type: "string", description: "Nouvelle image Docker" },
-          port_defaut: { type: "number", description: "Nouveau port par défaut" },
-          port_conteneur: { type: "number", description: "Port du conteneur" },
-          commande: { type: "string", description: "Commande Docker de remplacement" },
-        },
-        required: ["id_recette"],
-      },
-    },
-  },
-];
 // ─── Tool handlers ─────────────────────────────────────────────────────
 
 async function execTool(
@@ -233,6 +25,11 @@ async function execTool(
   serverId: string,
 ): Promise<string> {
   try {
+    // Convert string values from text parser to proper types
+    const a: any = { ...args };
+    for (const key of ["port", "port_cible", "port_defaut", "port_conteneur", "targetPort"]) {
+      if (typeof a[key] === "string") a[key] = Number.parseInt(a[key], 10) || undefined;
+    }
     switch (name) {
       // ── recommend ───────────────────────────────────────────────
       case "recommender_catalogue": {
@@ -788,10 +585,20 @@ export async function POST(req: NextRequest) {
       "- Si un diagnostic montre un conteneur qui existe mais ne répond pas, propose de lire ses logs.",
       "- Ne parle jamais de modèle, de provider, de prompt, ni de détails internes.",
       "- Tu es un agent serveur, pas un chatbot de recommandations.",
-      "- REGLE CRITIQUE : appelle TOUS les outils nécessaires dans UNE SEULE réponse quand c'est possible.",
-      "- Maximum 2-3 rounds d'outils avant de répondre à l'utilisateur. Ne fais pas 10 rounds d'outils.",
-      "- Si tu as besoin de nettoyer avant d'installer, fais-le avec UNE SEULE commande docker (ex: docker rm -f otterwiki && docker rmi redimp/otterwiki).",
-      "- Après avoir exécuté des outils, réponds DIRECTEMENT à l'utilisateur. Ne relance pas d'autres outils sauf si nécessaire.",
+      "- REGLE CRITIQUE : pour appeler un outil, écris-le dans ce format EXACT entre ta réponse :",
+      "⸻TOOL⸻",
+      "nom_outil",
+      "arg1=valeur1",
+      "⸻/TOOL⸻",
+      "- Exemple :",
+      "⸻TOOL⸻",
+      "executer_commande_docker",
+      "commande=docker run -d --name nginx -p 80:80 nginx",
+      "⸻/TOOL⸻",
+      "- Tu peux appeler plusieurs outils dans UNE SEULE réponse.",
+      "- Maximum 2-3 rounds d'outils avant de répondre à l'utilisateur.",
+      "- Ne JAMAIS faire semblant d'avoir exécuté une commande.",
+      "- Le seul format valide est ⸻TOOL⸻...⸻/TOOL⸻.",
       "",
       "CONTEXTE SERVEUR :",
       `Serveur: ${ctxServeur}`,
@@ -812,7 +619,29 @@ export async function POST(req: NextRequest) {
       "- lister_serveurs() : liste les serveurs connectés",
     ].join("\n");
 
-    // ── Function-calling loop ─────────────────────────────────────
+    // ── Tool call parser (text-based, works with any LLM) ──────────
+    function parseToolCalls(text: string): Array<{ name: string; args: Record<string, string> }> {
+      const results: Array<{ name: string; args: Record<string, string> }> = [];
+      const regex = /⸻TOOL⸻\s*\n([^\n]+)\n([\s\S]*?)⸻\/TOOL⸻/g;
+      let match;
+      while ((match = regex.exec(text)) !== null) {
+        const name = match[1].trim();
+        const body = match[2].trim();
+        const args: Record<string, string> = {};
+        for (const line of body.split("\n")) {
+          const eqIdx = line.indexOf("=");
+          if (eqIdx > 0) {
+            const key = line.slice(0, eqIdx).trim();
+            const val = line.slice(eqIdx + 1).trim();
+            args[key] = val;
+          }
+        }
+        results.push({ name, args });
+      }
+      return results;
+    }
+
+    // ── Agent loop (text-based tools) ─────────────────────────────
     let currentMessages: any[] = [
       { role: "system", content: systemPrompt },
       ...safeMessages,
@@ -832,10 +661,8 @@ export async function POST(req: NextRequest) {
           body: JSON.stringify({
             model: AI_MODEL,
             messages: currentMessages,
-            tools: iter >= 5 ? [] : TOOLS,
-            tool_choice: iter >= 5 ? "none" : "auto",
             temperature: 0.15,
-            max_tokens: 1500,
+            max_tokens: 2000,
           }),
           signal: controller.signal,
         });
@@ -845,70 +672,47 @@ export async function POST(req: NextRequest) {
         if (!res.ok) {
           const errText = await res.text().catch(() => "err");
           return NextResponse.json(
-            { answer: `Erreur API (${res.status}). Je réessaie.` },
+            { answer: `Erreur API (${res.status}).` },
             { status: 502 },
           );
         }
 
         const data = await res.json();
         const choice = data.choices?.[0];
-
         if (!choice) {
           return NextResponse.json({
-            answer:
-              "Je n'ai pas reçu de réponse de l'API. Réessaie dans un instant.",
+            answer: "Je n'ai pas reçu de réponse de l'API.",
           });
         }
 
-        const msg = choice.message;
+        const content = choice.message?.content || "";
+        const toolCalls = parseToolCalls(content);
 
-        // ── Assistant finished ──
-        if (choice.finish_reason === "stop" && msg?.content) {
+        // ── No tool calls → respond to user ──
+        if (toolCalls.length === 0) {
+          const cleanContent = content.replace(/⸻TOOL⸻[\s\S]*?⸻\/TOOL⸻/g, "").trim();
           return NextResponse.json({
-            answer: msg.content,
+            answer: cleanContent || "Je n'ai pas de réponse.",
             recommendations: [],
           });
         }
 
-        // ── Tool call ──
-        if (choice.finish_reason === "tool_calls" && msg?.tool_calls) {
+        // ── Execute tool calls ──
+        currentMessages.push({ role: "assistant", content });
+
+        for (const tc of toolCalls) {
+          const result = await execTool(tc.name, tc.args, userId, sid);
           currentMessages.push({
-            role: "assistant",
-            content: msg.content || null,
-            tool_calls: msg.tool_calls.map((tc: any) => ({
-              id: tc.id,
-              type: "function",
-              function: tc.function,
-            })),
+            role: "user",
+            content: `[RÉSULTAT ${tc.name}]:\n${result.slice(0, 3000)}`,
           });
-
-          for (const tc of msg.tool_calls) {
-            const fnName = tc.function.name;
-            let fnArgs: any = {};
-            try {
-              fnArgs = JSON.parse(tc.function.arguments);
-            } catch {}
-            const result = await execTool(fnName, fnArgs, userId, sid);
-            currentMessages.push({
-              role: "tool",
-              tool_call_id: tc.id,
-              content: result,
-            });
-          }
-          continue; // next LLM iteration
         }
-
-        // ── Fallback ──
-        return NextResponse.json({
-          answer: msg?.content || "Je n'ai pas de réponse pour l'instant.",
-          recommendations: [],
-        });
+        // Continue loop with tool results as context
       } catch (err: any) {
         clearTimeout(timeout);
         if (err.name === "AbortError") {
           return NextResponse.json({
-            answer:
-              "L'opération a pris trop de temps. On reprend ?",
+            answer: "L'opération a pris trop de temps. On reprend ?",
           });
         }
         return NextResponse.json(
