@@ -23,6 +23,9 @@ function AddServerModal({ onClose }: { onClose: () => void }) {
       utils.server.list.invalidate();
       onClose();
     },
+    onError: (err) => {
+      alert("Erreur : " + err.message);
+    },
   });
   const [name, setName] = useState("");
   const [ip, setIp] = useState("");
@@ -145,6 +148,7 @@ function ServerCard({ server }: { server: Server }) {
 export default function ServersPage() {
   const { data: session } = useSession();
   const [showAdd, setShowAdd] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { data: servers, isLoading } = trpc.server.list.useQuery();
 
   if (!session) return null;

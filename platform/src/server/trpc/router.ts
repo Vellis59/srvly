@@ -31,7 +31,7 @@ export const serverRouter = router({
     .input(
       z.object({
         name: z.string().min(1).max(50),
-        ip: z.string().ip(),
+        ip: z.string().min(7).max(50),
         deployAgent: z.boolean().default(true),
       })
     )
