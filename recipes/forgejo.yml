@@ -1,0 +1,70 @@
+metadata:
+  name: Forgejo
+  version: latest
+  description: Forgejo is a community-driven, lightweight, and self-hosted Git service
+    that offers a seamless platform for managing repositories, collaborating on code,
+    and controlling your versioning needs. As a fork of Gitea, Forgejo builds on a
+    solid foundation and enhances features with contributions from a vibrant community.
+    It supports all major platforms, including Linux, macOS, Windows, and ARM-based
+    systems. Forgejo is lightweight, extensible, and easy to set up, making it an
+    excellent choice for individuals and teams looking for a self-hosted Git service.
+    Its open-source nature ensures privacy, transparency, and the flexibility to self-host
+    for maximum control.
+  category: code-hosting
+  tags:
+  - Code Hosting
+  - Self-Hosted
+  - Git Service
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: codeberg.org/forgejo/forgejo:15.0.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://forgejo.org/
+- label: Documentation
+  url: https://docs.forgejo.org/
+- label: Github
+  url: https://codeberg.org/forgejo/forgejo
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: forgejo
+    port: $PORT:3000
+    volumes:
+    - /data
+    - /etc/timezone
+    - /etc/localtime
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest
+  mysql:
+    type: mysql
+    version: latest

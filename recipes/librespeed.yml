@@ -1,0 +1,73 @@
+metadata:
+  name: LibreSpeed
+  version: latest
+  description: LibreSpeed is a free and open-source HTML5-based speed test application
+    that you can host on your own server. It provides a lightweight, self-hosted alternative
+    to commercial speed test services like Speedtest.net. LibreSpeed allows you to
+    measure download speed, upload speed, ping, and jitter of your internet connection
+    through a clean, modern web interface. It's perfect for network administrators,
+    ISPs, or anyone who wants to monitor their internet connection performance without
+    relying on third-party services. The application stores test results and provides
+    analytics to track connection quality over time.
+  category: speed-test
+  tags:
+  - Speed Test
+  - Network Tools
+  - Self-Hosted
+  - Performance Monitoring
+  - Bandwidth Testing
+  - Internet Speed
+  - Network Diagnostics
+  - Analytics
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/librespeed:5.4.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: GitHub
+  url: https://github.com/librespeed/speedtest
+- label: Documentation
+  url: https://docs.linuxserver.io/images/docker-librespeed/
+- label: Demo
+  url: https://librespeed.org/
+instructions: Leave "Results Password" empty to auto-generate a strong password at
+  deploy time, or set your own value if you want a fixed credential. After deployment,
+  open LibreSpeed from your app domain and use the configured password to access historical
+  test results.
+install:
+- docker:
+    image: $IMAGE
+    name: librespeed
+    port: $PORT:80
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Leave "Results Password" empty to auto-generate a strong password at deploy
+    time, or set your own value if you want a fixed credential. After deployment,
+    open LibreSpeed from your app domain and use the configured password to access
+    historical test results.

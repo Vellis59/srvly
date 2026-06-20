@@ -1,0 +1,76 @@
+metadata:
+  name: FOSSBilling
+  version: latest
+  description: FOSSBilling is a free, open-source billing and client management system
+    designed for hosting providers, service providers, and freelancers. It provides
+    comprehensive tools for managing clients, products, services, invoices, and payments.
+    FOSSBilling features automated billing cycles, support ticket management, domain
+    registration integration, customizable invoice templates, and multi-currency support.
+    The platform includes a client portal where customers can manage their services,
+    view invoices, and submit support tickets. With support for multiple payment gateways
+    including PayPal, Stripe, and others, FOSSBilling streamlines the entire billing
+    workflow. Perfect for web hosting companies, SaaS providers, and service-based
+    businesses who need professional billing automation without expensive licensing
+    fees.
+  category: billing
+  tags:
+  - Billing
+  - Invoice
+  - Client Management
+  - Payment Processing
+  - Hosting
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: fossbilling/fossbilling:0.7.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://fossbilling.org/
+- label: Documentation
+  url: https://fossbilling.org/docs
+- label: Github
+  url: https://github.com/FOSSBilling/FOSSBilling
+instructions: 'After deployment, open your domain and run the FOSSBilling web installer.
+
+  Use MySQL connection details, keep /var/www/html on persistent storage as configured.
+
+  '
+install:
+- docker:
+    image: $IMAGE
+    name: fossbilling
+    port: $PORT:80
+    volumes:
+    - /var/www/html
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: 'After deployment, open your domain and run the FOSSBilling web installer.
+
+    Use MySQL connection details, keep /var/www/html on persistent storage as configured.
+
+    '
+services:
+  mysql:
+    type: mysql
+    version: latest

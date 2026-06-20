@@ -1,0 +1,55 @@
+metadata:
+  name: Hastebin
+  version: latest
+  description: Haste is an open-source software that allows you to quickly and easily
+    share text snippets. It's designed to be simple, pretty, and easy to use. With
+    Haste, you can create a 'paste' of your text and it will generate a unique URL
+    that you can share. This is particularly useful for sharing code snippets or other
+    information that you want to quickly share with others. Haste is written in node.js
+    and can be backed by either a file system or redis, providing flexibility in how
+    it's set up. It also includes a utility called haste-client that allows you to
+    create pastes directly from your command line. Haste is designed to work well
+    with a variety of browsers, including Firefox, Chrome, and Safari.
+  category: code-hosting
+  tags:
+  - Code Hosting
+  - Documents
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: rlister/hastebin:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://github.com/toptal/haste-server/wiki
+- label: Github
+  url: https://github.com/toptal/haste-server
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: hastebin
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

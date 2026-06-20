@@ -1,0 +1,69 @@
+metadata:
+  name: PhotoPrism
+  version: latest
+  description: PhotoPrism is an AI-powered photos app designed for the decentralized
+    web. It uses the latest technologies to automatically tag and find pictures without
+    interrupting your workflow. You can run it at home, on a private server, or in
+    the cloud. PhotoPrism allows you to browse all your photos and videos without
+    worrying about RAW conversion, duplicates, or video formats. It offers powerful
+    search filters to easily find specific pictures and includes high-resolution world
+    maps to relive your favorite trips. The app supports playing Live Photos by hovering
+    over them in albums and search results, recognizes the faces of your family and
+    friends, and automatically classifies pictures based on their content and location.
+    PhotoPrism is committed to user and privacy-friendly solutions, ensuring your
+    data is never shared without your consent.
+  category: media
+  tags:
+  - Media
+  - Gallery
+  - Productivity
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: photoprism/photoprism:251130
+  port:
+    type: integer
+    title: Port HTTP
+    default: 2342
+links:
+- label: Website
+  url: https://photoprism.app
+- label: Demo
+  url: https://try.photoprism.app
+- label: Github
+  url: https://github.com/photoprism/photoprism
+- label: Docker
+  url: https://hub.docker.com/r/photoprism/photoprism
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: photoprism
+    port: $PORT:2342
+    volumes:
+    - /photoprism/originals
+    - /photoprism/storage
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

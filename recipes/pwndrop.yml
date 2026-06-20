@@ -1,0 +1,62 @@
+metadata:
+  name: Pwndrop
+  version: latest
+  description: Pwndrop is a self-deployable file hosting service for red teamers,
+    designed for sending payloads and collecting loot in penetration testing operations.
+    It provides a lightweight, standalone solution for hosting and managing files
+    during security assessments. With its simple web interface, you can easily upload,
+    organize, and share files with customizable download links. Pwndrop offers features
+    like file tracking, download notifications, and an admin portal protected by a
+    secret path for enhanced security.
+  category: file-sharing
+  tags:
+  - File Sharing
+  - Security Tools
+  - Red Team
+  - Penetration Testing
+  - File Hosting
+  - Self-Hosted
+  - Lightweight
+  - Admin Portal
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/pwndrop:1.0.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://breakdev.org/pwndrop/
+- label: GitHub
+  url: https://github.com/kgretzky/pwndrop
+- label: Documentation
+  url: https://breakdev.org/pwndrop/
+instructions: After deployment, user will be redirected to create an account.
+install:
+- docker:
+    image: $IMAGE
+    name: pwndrop
+    port: $PORT:8080
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After deployment, user will be redirected to create an account.

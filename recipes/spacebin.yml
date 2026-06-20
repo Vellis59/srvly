@@ -1,0 +1,60 @@
+metadata:
+  name: Spacebin
+  version: latest
+  description: Spacebin is a modern, fast, and reliable pastebin server implemented
+    in Go. Text sharing for the final frontier with features like syntax highlighting,
+    password-protected encrypted pastes, configurable expiration, QR codes, reader
+    view mode, and full API support. 99% self-contained requiring only a database
+    to run, making it perfect for self-hosting.
+  category: pastebin
+  tags:
+  - Pastebin
+  - Go
+  - Text Sharing
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: spacebinorg/spirit:v1.1.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 9000
+links:
+- label: Website
+  url: https://spaceb.in/
+- label: Documentation
+  url: https://github.com/lukewhrit/spacebin#documentation
+- label: Github
+  url: https://github.com/lukewhrit/spacebin
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: spacebin
+    port: $PORT:9000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

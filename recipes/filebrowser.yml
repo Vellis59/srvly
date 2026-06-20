@@ -1,0 +1,58 @@
+metadata:
+  name: Filebrowser
+  version: latest
+  description: File Browser is a versatile app designed to provide a file managing
+    interface within a specified directory. It's a powerful tool that allows you to
+    upload, delete, preview, rename, and edit your files with ease. The app supports
+    the creation of multiple users, with each user having their own directory, making
+    it an ideal solution for managing files in a multi-user environment. File Browser
+    also offers a range of customization options, including the ability to change
+    the way users authenticate with the server, execute shell commands before or after
+    certain events, and personalize the installation with custom branding. It can
+    be used as a standalone app, offering a comprehensive and user-friendly solution
+    for all your file management needs.
+  category: file-management
+  tags:
+  - File Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: filebrowser/filebrowser:v2.63.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://filebrowser.org/
+- label: Github
+  url: https://github.com/filebrowser/filebrowser
+instructions: 'Default credentials: User:"admin" Password:"admin"'
+install:
+- docker:
+    image: $IMAGE
+    name: filebrowser
+    port: $PORT:80
+    volumes:
+    - /srv
+    - /database
+    - /.filebrowser.json
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: 'Default credentials: User:"admin" Password:"admin"'

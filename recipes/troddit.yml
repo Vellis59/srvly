@@ -1,0 +1,54 @@
+metadata:
+  name: Troddit
+  version: latest
+  description: Troddit is a web-based Reddit client that provides a clean, modern
+    interface for browsing Reddit. It offers an alternative frontend experience with
+    improved user interface design and functionality. Troddit allows users to browse
+    subreddits, view posts, and navigate Reddit content through a streamlined web
+    interface without requiring the official Reddit app or website.
+  category: reddit
+  tags:
+  - Reddit
+  - Social Media
+  - Web Client
+  - Frontend
+  - Privacy
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: bsyed/troddit:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: GitHub
+  url: https://github.com/burhan-syed/troddit
+- label: Website
+  url: https://www.troddit.com
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: troddit
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

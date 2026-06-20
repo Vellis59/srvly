@@ -1,0 +1,66 @@
+metadata:
+  name: Khoj
+  version: latest
+  description: Khoj is an AI-powered personal search and chat application that helps
+    you find and organize your personal knowledge. It supports various AI models,
+    web search integration, and code execution capabilities.
+  category: ai
+  tags:
+  - AI
+  - Search
+  - Chat
+  - Self-Hosted
+  - Knowledge Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/khoj-ai/khoj:2.0.0-beta.28
+  port:
+    type: integer
+    title: Port HTTP
+    default: 42110
+links:
+- label: Website
+  url: https://khoj.dev
+- label: Documentation
+  url: https://docs.khoj.dev
+- label: GitHub
+  url: https://github.com/khoj-ai/khoj
+instructions: Configure your chat model provider and search api providers with khoj
+  environment variables.
+install:
+- docker:
+    image: $IMAGE
+    name: khoj
+    port: $PORT:42110
+    volumes:
+    - /root/.khoj/
+    - /root/.cache/torch/sentence_transformers
+    - /root/.cache/huggingface
+    - /app/data
+    - /etc/searxng
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Configure your chat model provider and search api providers with khoj environment
+    variables.
+services:
+  postgres:
+    type: postgres
+    version: latest

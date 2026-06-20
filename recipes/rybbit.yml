@@ -1,0 +1,82 @@
+metadata:
+  name: Rybbit
+  version: latest
+  description: Rybbit is a comprehensive analytics platform that provides powerful
+    insights into user behavior and application performance. Built with modern web
+    technologies including React frontend and Node.js backend, it offers real-time
+    data processing with ClickHouse and PostgreSQL databases. The platform features
+    a sleek dashboard for visualizing analytics data, user management with authentication,
+    and configurable signup settings. Perfect for businesses looking to gain deep
+    insights into their applications and user interactions.
+  category: analytics
+  tags:
+  - Analytics
+  - Dashboard
+  - Self-Hosted
+  - Real-time
+  - Authentication
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ''
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: GitHub
+  url: https://github.com/rybbit-io
+- label: Website
+  url: https://rybbit.io
+- label: Documentation
+  url: https://www.rybbit.io/docs
+instructions: After deployment, open your mapped domain to reach the Rybbit UI (Caddy
+  serves the web app and proxies API traffic to the backend). The template generates
+  PostgreSQL and ClickHouse passwords and a Better Auth secret automatically; you
+  do not need to set them by hand unless you rotate credentials later in the services.
+  Create the first account from the UI when sign-up is enabled. To send email (invites,
+  password reset, etc.), add a Resend API key in the backend service environment.
+  For custom domains or HTTPS, finish DNS and routing in Easypanel so the public URL
+  matches how you access the app.
+install:
+- docker:
+    image: $IMAGE
+    name: rybbit
+    port: $PORT:80
+    volumes:
+    - /etc/caddy/Caddyfile
+    - /data
+    - /config
+    - /var/lib/clickhouse
+    - /etc/clickhouse-server/config.d
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After deployment, open your mapped domain to reach the Rybbit UI (Caddy serves
+    the web app and proxies API traffic to the backend). The template generates PostgreSQL
+    and ClickHouse passwords and a Better Auth secret automatically; you do not need
+    to set them by hand unless you rotate credentials later in the services. Create
+    the first account from the UI when sign-up is enabled. To send email (invites,
+    password reset, etc.), add a Resend API key in the backend service environment.
+    For custom domains or HTTPS, finish DNS and routing in Easypanel so the public
+    URL matches how you access the app.
+services:
+  postgres:
+    type: postgres
+    version: latest

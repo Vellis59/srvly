@@ -1,0 +1,61 @@
+metadata:
+  name: InfluxDB
+  version: latest
+  description: InfluxDB is a time-series database designed to handle high write and
+    query loads commonly required for real-time analytics. It’s optimized for storing
+    timestamped data, making it ideal for monitoring metrics, tracking events, and
+    handling sensor data. With its efficient storage engine, InfluxDB offers built-in
+    support for data compression and compaction, allowing for efficient data retention
+    and storage. This database supports SQL-like queries through InfluxQL, integrates
+    seamlessly with popular data visualization tools like Grafana, and can handle
+    data from IoT devices, DevOps monitoring, finance, and more.
+  category: time-series
+  tags:
+  - Time-Series
+  - Monitoring
+  - Analytics
+  - IoT
+  - Database
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: influxdb:2.9.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8086
+links:
+- label: Website
+  url: https://www.influxdata.com/
+- label: Documentation
+  url: https://docs.influxdata.com/
+- label: Github
+  url: https://github.com/influxdata/influxdb
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: influxdb
+    port: $PORT:8086
+    volumes:
+    - /var/lib/influxdb2
+    - /etc/influxdb2
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

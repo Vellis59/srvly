@@ -1,0 +1,62 @@
+metadata:
+  name: SearXNG
+  version: latest
+  description: SearXNG is a powerful, privacy-focused metasearch engine that aggregates
+    results from over 70 search services, ensuring your searches remain private and
+    untracked. It offers secure, encrypted connections and the option to use it over
+    Tor for enhanced online anonymity. With about 130 integrated search engines and
+    60 translations, SearXNG provides a comprehensive and versatile search experience.
+    The app also offers easy integration of search engines and maintains high standards
+    of professional development, including continuous integration, quality assurance,
+    and automated UI testing. SearXNG was launched in 2021 as a fork of the searx
+    project, and it continues to evolve with user-friendly features and improvements.
+  category: privacy
+  tags:
+  - Privacy
+  - Search
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: searxng/searxng:2026.5.5-d3566fe8a
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Docs
+  url: https://docs.searxng.org/
+- label: Github
+  url: https://github.com/searxng/searxng
+- label: Docker
+  url: https://hub.docker.com/r/searxng/searxng
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: searxng
+    port: $PORT:8080
+    volumes:
+    - /etc/searxng
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  redis:
+    type: redis
+    version: '7'

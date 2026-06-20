@@ -1,0 +1,74 @@
+metadata:
+  name: Tunarr
+  version: latest
+  description: Tunarr is a modern IPTV server that creates custom TV channels from
+    your personal media library. It automatically generates continuous programming
+    schedules using your movies, TV shows, and other content, creating an authentic
+    TV viewing experience. Tunarr provides intelligent scheduling, program guide generation,
+    and seamless integration with popular media libraries like Plex, Jellyfin, and
+    Emby. Perfect for home entertainment setups, it transforms your digital media
+    collection into personalized TV channels that can be watched on any IPTV-compatible
+    device or application.
+  category: iptv
+  tags:
+  - IPTV
+  - Media Server
+  - TV Channels
+  - Streaming
+  - Home Entertainment
+  - Plex Integration
+  - Jellyfin Integration
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: chrisbenincasa/tunarr:0.22.6
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Website
+  url: https://tunarr.com
+- label: GitHub
+  url: https://github.com/chrisbenincasa/tunarr
+- label: Documentation
+  url: https://tunarr.com/api-docs
+- label: Docker Hub
+  url: https://hub.docker.com/r/chrisbenincasa/tunarr
+instructions: After deployment, access Tunarr through your domain. The web interface
+  will guide you through the initial setup process. You'll need to configure your
+  media library connections (Plex, Jellyfin, Emby, or local files), set up TV channels
+  and programming schedules, and configure your IPTV player to connect to the generated
+  M3U playlist. Tunarr will automatically scan your media library and create intelligent
+  programming schedules for your custom TV channels.
+install:
+- docker:
+    image: $IMAGE
+    name: tunarr
+    port: $PORT:8000
+    volumes:
+    - /config/tunarr
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After deployment, access Tunarr through your domain. The web interface will
+    guide you through the initial setup process. You'll need to configure your media
+    library connections (Plex, Jellyfin, Emby, or local files), set up TV channels
+    and programming schedules, and configure your IPTV player to connect to the generated
+    M3U playlist. Tunarr will automatically scan your media library and create intelligent
+    programming schedules for your custom TV channels.

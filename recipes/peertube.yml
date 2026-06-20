@@ -1,0 +1,72 @@
+metadata:
+  name: PeerTube
+  version: latest
+  description: PeerTube is a revolutionary video sharing tool developed by Framasoft,
+    a French non-profit organization. It offers an alternative to mainstream video
+    platforms, allowing you to establish your own video platform with complete independence.
+    Unlike other platforms, PeerTube doesn't rely on opaque algorithms or obscure
+    moderation policies. The platforms you visit are built, managed, and moderated
+    by their owners. PeerTube also enables platforms to connect with each other, forming
+    a large network of autonomous yet interconnected platforms. Importantly, PeerTube
+    doesn't depend on advertising and doesn't track your activities. It hosts a wide
+    variety of content, with over 600,000 videos across 1,000 platforms in the PeerTube
+    network. PeerTube is free, open-source, and created for non-commercial purposes,
+    ensuring that you are treated as a person, not a product. It is a tool that truly
+    belongs to you and respects your fundamental freedoms as a user.
+  category: media
+  tags:
+  - Media
+  - Video
+  - Social Networking
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: chocobozzz/peertube:v8.1.5
+  port:
+    type: integer
+    title: Port HTTP
+    default: 9000
+links:
+- label: Website
+  url: https://joinpeertube.org/
+- label: Documentation
+  url: https://docs.joinpeertube.org/
+- label: Github
+  url: https://github.com/Chocobozzz/PeerTube
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: peertube
+    port: $PORT:9000
+    volumes:
+    - /app/client/dist
+    - /data
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

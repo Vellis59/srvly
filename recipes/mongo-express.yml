@@ -1,0 +1,62 @@
+metadata:
+  name: Mongo Express
+  version: latest
+  description: mongo-express is a web-based MongoDB admin interface designed with
+    Node.js, Express, and Bootstrap3. It allows you to connect to multiple databases,
+    view, add, delete databases, and manage collections. You can also view, add, update,
+    and delete documents within these collections. The app supports previewing audio,
+    video, and image assets inline in the collection view. Large or nested objects
+    are collapsible for easy overview, and big document properties are loaded on-demand
+    to keep the collection view fast. The app also supports GridFS, enabling you to
+    add, get, and delete incredibly large files. It uses BSON data types in documents
+    and is mobile responsive, thanks to Bootstrap 3. The app also supports connection
+    and authentication to individual databases, as well as admin authentication to
+    view all databases. It includes features for database blacklist/whitelist, custom
+    CA, and CA validation disabling, and supports replica sets.
+  category: databases
+  tags:
+  - Databases
+  - Developer Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: mongo-express:1.0.2-20-alpine3.19
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8081
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Github
+  url: https://github.com/mongo-express/mongo-express
+- label: Docker
+  url: https://hub.docker.com/_/mongo-express/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: mongo-express
+    port: $PORT:8081
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

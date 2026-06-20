@@ -1,0 +1,62 @@
+metadata:
+  name: Readarr
+  version: latest
+  description: Readarr is an ebook and audiobook collection manager designed for Usenet
+    and BitTorrent users. It monitors multiple RSS feeds for new ebooks and audiobooks
+    and interfaces with clients and indexers to grab, sort, and rename them. Readarr
+    also has the ability to automatically upgrade the quality of existing files in
+    your library when a better quality format becomes available. The app features
+    a calendar to see all your upcoming releases in one place, manual search to find
+    all the releases and choose the ones you want, and automatic handling of failed
+    downloads. Readarr ensures you get the right release every time with its custom
+    formats feature, which allows fine control over release prioritization and selection.
+    It also supports major platforms like Windows, Linux, macOS, and others.
+  category: media
+  tags:
+  - Media
+  - Download Manager
+  - Books
+  - Ebooks
+  - Audiobooks
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: linuxserver/readarr:0.4.19-nightly
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8787
+links:
+- label: Website
+  url: https://readarr.com/
+- label: Documentation
+  url: https://wiki.servarr.com/readarr
+- label: Github
+  url: https://github.com/Readarr/Readarr
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: readarr
+    port: $PORT:8787
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

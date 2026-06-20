@@ -1,0 +1,60 @@
+metadata:
+  name: Appsmith
+  version: latest
+  description: Appsmith is a powerful tool designed to help engineers build custom
+    software on top of their data. It simplifies internal tool development for businesses,
+    streamlining operations, automating processes, and integrating multiple apps and
+    data sources. Appsmith allows you to quickly build, deploy, and share applications
+    that run critical business operations. It features intent-based auto-layouts for
+    building responsive apps faster and offers a drag-and-drop interface for creating
+    beautiful UIs without writing a single line of HTML/CSS. You can connect to any
+    database, SaaS tool, or GraphQL/REST API, and query your data directly using SQL
+    or the built-in query builder. Appsmith also provides the ability to write in-line
+    JavaScript or reusable code blocks to extend your app's functionality, customize
+    your UI, or write conditional logic. It's a secure, open-source platform that
+    can be self-hosted for total control, privacy, and security.
+  category: developer-tools
+  tags:
+  - Developer Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: appsmith/appsmith-ce:v1.99
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://www.appsmith.com/
+- label: Documentation
+  url: https://docs.appsmith.com/
+- label: Github
+  url: https://github.com/appsmithorg/appsmith
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: appsmith
+    port: $PORT:80
+    volumes:
+    - /appsmith-stacks
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

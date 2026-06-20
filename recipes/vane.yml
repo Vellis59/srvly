@@ -1,0 +1,59 @@
+metadata:
+  name: Vane
+  version: latest
+  description: Vane is a privacy focused AI answering engine that combines web search
+    with local and cloud LLM providers. It supports cited answers, file uploads, search
+    history, and configurable model backends while running on your own hardware.
+  category: ai
+  tags:
+  - AI
+  - Search Engine
+  - LLM
+  - RAG
+  - Privacy
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: itzcrazykns1337/vane:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Documentation
+  url: https://github.com/ItzCrazyKns/Vane/tree/master/docs
+- label: GitHub
+  url: https://github.com/ItzCrazyKns/Vane
+instructions: Deploy and open your domain to complete setup from the in-app onboarding
+  screen. The default image includes bundled SearxNG, so no extra search service is
+  required. To use your own SearxNG instance, set SearxNG API URL in the template
+  form. Data persists in /home/vane/data through the mounted volume.
+install:
+- docker:
+    image: $IMAGE
+    name: vane
+    port: $PORT:3000
+    volumes:
+    - /home/vane/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Deploy and open your domain to complete setup from the in-app onboarding
+    screen. The default image includes bundled SearxNG, so no extra search service
+    is required. To use your own SearxNG instance, set SearxNG API URL in the template
+    form. Data persists in /home/vane/data through the mounted volume.

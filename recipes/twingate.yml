@@ -1,0 +1,62 @@
+metadata:
+  name: Twingate
+  version: latest
+  description: Twingate Connector securely bridges your private network resources
+    to the Twingate Zero Trust platform without exposing inbound ports. Deploy a lightweight
+    connector container and authenticate it with your tenant network and connector
+    tokens.
+  category: security
+  tags:
+  - Security
+  - Zero Trust
+  - Networking
+  - Remote Access
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: twingate/connector:1.88.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://www.twingate.com
+- label: GitHub
+  url: https://github.com/Twingate/docker
+- label: Docker Hub
+  url: https://hub.docker.com/r/twingate/connector
+instructions: Before deploying, create a Connector in your Twingate Admin Console
+  and copy the generated tokens. Set `Twingate Network` to your tenant name (the subdomain
+  part of your Twingate URL), then paste the connector `Access Token` and `Refresh
+  Token` into the template fields. Deploy at least one connector; for production,
+  run two connectors on separate hosts for high availability.
+install:
+- docker:
+    image: $IMAGE
+    name: twingate
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Before deploying, create a Connector in your Twingate Admin Console and copy
+    the generated tokens. Set `Twingate Network` to your tenant name (the subdomain
+    part of your Twingate URL), then paste the connector `Access Token` and `Refresh
+    Token` into the template fields. Deploy at least one connector; for production,
+    run two connectors on separate hosts for high availability.

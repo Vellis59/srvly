@@ -1,0 +1,63 @@
+metadata:
+  name: Pic-O
+  version: latest
+  description: Pic-O is a modern self-hosted photo gallery application with a clean
+    web interface for browsing and organizing image collections. This template deploys
+    Pic-O with a MariaDB backend and preconfigured application settings so the app
+    and database communicate correctly at first startup.
+  category: photos
+  tags:
+  - Photos
+  - Gallery
+  - MariaDB
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: xirtnl/pic-o:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://github.com/Xirt/Pic-O#readme
+- label: GitHub
+  url: https://github.com/Xirt/Pic-O
+instructions: Deploy the template and wait until both services are healthy, then open
+  the configured domain to access the Pic-O interface and complete initial setup in
+  the web UI.
+install:
+- docker:
+    image: $IMAGE
+    name: pic-o
+    port: $PORT:80
+    volumes:
+    - /var/www/resources/photos
+    - /var/www/storage/app
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Deploy the template and wait until both services are healthy, then open the
+    configured domain to access the Pic-O interface and complete initial setup in
+    the web UI.
+services:
+  mysql:
+    type: mysql
+    version: latest

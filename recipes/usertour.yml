@@ -1,0 +1,68 @@
+metadata:
+  name: Usertour
+  version: latest
+  description: Usertour.io is an open-source user onboarding platform that helps developers
+    create interactive product tours, feature introductions, and user guides without
+    writing a single line of code. It allows you to design and deploy interactive
+    walkthroughs, checklists, and tooltips to improve user activation and adoption.
+    The platform provides a visual editor for creating tours, targeting specific user
+    segments, and collecting analytics on user engagement. Usertour.io integrates
+    seamlessly with your application, offering customization options to match your
+    branding and design. With its developer-friendly approach, it enables teams to
+    create, test, and deploy product tours quickly while maintaining a native look
+    and feel.
+  category: user-onboarding
+  tags:
+  - User Onboarding
+  - Product Tours
+  - User Experience
+  - Developer Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: usertour/usertour:0.4.9
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://www.usertour.io/
+- label: Documentation
+  url: https://docs.usertour.io/
+- label: Github
+  url: https://github.com/usertour/usertour
+instructions: Login using the email; lisa@simpson.com, password; secret42
+install:
+- docker:
+    image: $IMAGE
+    name: usertour
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Login using the email; lisa@simpson.com, password; secret42
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

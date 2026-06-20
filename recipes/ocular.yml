@@ -1,0 +1,68 @@
+metadata:
+  name: Ocular
+  version: latest
+  description: Ocular is a self-hosted budget and finance app with dashboards, charts,
+    multi-year tracking, imports, and authentication. This template runs the official
+    container image, which bundles the static UI (Caddy) and the Genesis API backend,
+    with persistent data under /data/genesis.
+  category: finance
+  tags:
+  - Finance
+  - Budget
+  - Self-hosted
+  - PWA
+  - Analytics
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/simonwep/ocular:v2.3.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://simonwep.github.io/ocular/
+- label: Documentation
+  url: https://simonwep.github.io/ocular/pages/quickstart
+- label: Deploy guide
+  url: https://simonwep.github.io/ocular/pages/deploy.html
+- label: GitHub
+  url: https://github.com/simonwep/ocular
+- label: Container registry
+  url: https://github.com/simonwep/ocular/pkgs/container/ocular
+instructions: After deploy, open your domain and sign in using the initial user from
+  GENESIS_CREATE_USERS (default is admin with a random password set at deploy time;
+  copy it from the service environment if you did not set your own value). Use HTTPS
+  in production; only enable HTTP cookies if you access the app without TLS. Change
+  GENESIS_JWT_SECRET only if you understand that existing sessions will be invalidated.
+install:
+- docker:
+    image: $IMAGE
+    name: ocular
+    port: $PORT:80
+    volumes:
+    - /data/genesis
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After deploy, open your domain and sign in using the initial user from GENESIS_CREATE_USERS
+    (default is admin with a random password set at deploy time; copy it from the
+    service environment if you did not set your own value). Use HTTPS in production;
+    only enable HTTP cookies if you access the app without TLS. Change GENESIS_JWT_SECRET
+    only if you understand that existing sessions will be invalidated.

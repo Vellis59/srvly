@@ -1,0 +1,96 @@
+metadata:
+  name: Calcom
+  version: latest
+  description: Cal.com is a versatile scheduling app designed to streamline the process
+    of setting up meetings, appointments, and events. It allows users to set their
+    availability, connect their existing calendars, and share a personal link for
+    others to book a meeting at a time that works for both parties. The app ensures
+    you never get double booked by checking for conflicts across all your calendars.
+    It also offers workflow automation, enabling you to build processes around your
+    events with automatic notifications, reminders, and follow-ups. With features
+    like round-robin scheduling, routing forms, and meeting overload prevention, Cal.com
+    adapts to any business, making it an ideal solution for doctors, companies, teachers,
+    and experts. The app is available in over 26 languages and can be embedded anywhere
+    for easy access. It also offers simple rescheduling and requires confirmation
+    to ensure smooth scheduling.
+  category: calendars
+  tags:
+  - Calendars
+  - Scheduling
+  - Productivity
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: calcom/cal.com:v6.2.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://cal.com
+- label: Github
+  url: https://github.com/calcom/cal.com
+- label: Docker
+  url: https://hub.docker.com/r/calcom/cal.com
+instructions: 'After deployment, open the app URL and complete the onboarding wizard
+  to
+
+  create your admin account. SMTP credentials are required for booking
+
+  confirmation and reminder emails — set them in the form before deploying.
+
+  For Gmail, use an App Password (not your account password) and set the
+
+  SMTP host to smtp.gmail.com, port 587. For other providers check their
+
+  SMTP documentation. The Prisma Studio option exposes a database browser
+
+  on a separate domain — only enable it in trusted environments.
+
+  '
+install:
+- docker:
+    image: $IMAGE
+    name: calcom
+    port: $PORT:3000
+    volumes: []
+    extra_ports:
+    - 5555:5555
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: 'After deployment, open the app URL and complete the onboarding wizard to
+
+    create your admin account. SMTP credentials are required for booking
+
+    confirmation and reminder emails — set them in the form before deploying.
+
+    For Gmail, use an App Password (not your account password) and set the
+
+    SMTP host to smtp.gmail.com, port 587. For other providers check their
+
+    SMTP documentation. The Prisma Studio option exposes a database browser
+
+    on a separate domain — only enable it in trusted environments.
+
+    '
+services:
+  postgres:
+    type: postgres
+    version: latest

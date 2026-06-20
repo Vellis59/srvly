@@ -1,0 +1,65 @@
+metadata:
+  name: Lynx
+  version: latest
+  description: Lynx is a robust URL shortener application designed to simplify and
+    streamline your web browsing experience. Built using the MEVN stack, Lynx offers
+    a user-friendly interface and the ability to redirect the root path for a more
+    personalized touch. The app also features a unique admin interface, providing
+    you with full control over your shortened URLs. With Lynx, you can easily manage
+    and customize your links, each of which includes a slug, destination, and id.
+    The app also supports multiple users, integrates with ShareX, and offers two-factor
+    authentication for enhanced security. Lynx is the sleek, powerful URL shortener
+    you've been looking for.
+  category: url-shortener
+  tags:
+  - URL Shortener
+  - Web Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: jackbailey/lynx:1.10.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Demo
+  url: https://demo.getlynx.dev/
+- label: Github
+  url: https://github.com/Lynx-Shortener/Lynx/
+- label: Website
+  url: https://getlynx.dev
+- label: Docs
+  url: https://docs.getlynx.dev
+instructions: Registration is disabled by default, but the first registration will
+  always be allowed.
+install:
+- docker:
+    image: $IMAGE
+    name: lynx
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Registration is disabled by default, but the first registration will always
+    be allowed.

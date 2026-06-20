@@ -1,0 +1,57 @@
+metadata:
+  name: Trudesk
+  version: latest
+  description: Trudesk is a self-hosted, open-source help desk and ticketing system
+    designed for businesses and teams to efficiently manage customer support inquiries.
+    It provides a modern and user-friendly web interface for tracking, organizing,
+    and resolving support tickets. Trudesk includes role-based user management, real-time
+    notifications, reporting tools, and an API for integration with other services.
+    It supports multiple authentication methods, including OAuth and LDAP, making
+    it suitable for enterprise environments. Additionally, Trudesk offers email integration,
+    enabling automatic ticket creation from emails. With its containerized deployment,
+    it ensures scalability and ease of management.
+  category: help-desk
+  tags:
+  - Help Desk
+  - Customer Support
+  - Ticketing System
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: polonel/trudesk:1.2.11
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8118
+links:
+- label: Documentation
+  url: https://docs.trudesk.io
+- label: Github
+  url: https://github.com/polonel/trudesk
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: trudesk
+    port: $PORT:8118
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

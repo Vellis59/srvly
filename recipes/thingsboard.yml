@@ -1,0 +1,60 @@
+metadata:
+  name: Thingsboard
+  version: latest
+  description: ThingsBoard is an open-source IoT platform designed to simplify the
+    process of collecting, processing, and visualizing data from IoT devices. It provides
+    features like real-time device management, telemetry data visualization, and rule
+    engine workflows to automate tasks and actions.
+  category: iot
+  tags:
+  - IoT
+  - Device Management
+  - Data Visualization
+  - Automation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: thingsboard/tb-postgres:4.2.1.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 9090
+links:
+- label: Documentation
+  url: https://thingsboard.io/docs/
+- label: Docker Guide
+  url: https://thingsboard.io/docs/user-guide/install/docker/
+- label: Github
+  url: https://github.com/thingsboard/thingsboard
+instructions: Copy the email and passwords. sysadmin@thingsboard.org / sysadmin, tenant@thingsboard.org
+  / tenant, customer@thingsboard.org / customer. Expose the ports mentioned inside
+  the documentation based on your requirements.
+install:
+- docker:
+    image: $IMAGE
+    name: thingsboard
+    port: $PORT:9090
+    volumes:
+    - /var/log/thingsboard
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Copy the email and passwords. sysadmin@thingsboard.org / sysadmin, tenant@thingsboard.org
+    / tenant, customer@thingsboard.org / customer. Expose the ports mentioned inside
+    the documentation based on your requirements.

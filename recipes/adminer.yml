@@ -1,0 +1,58 @@
+metadata:
+  name: Adminer
+  version: latest
+  description: Adminer is a comprehensive database management tool, designed to simplify
+    and streamline your database operations. Written in PHP, it is a lightweight yet
+    powerful tool that supports a wide range of databases including MySQL, MariaDB,
+    PostgreSQL, SQLite, MS SQL, Oracle, Elasticsearch, MongoDB and others. With Adminer,
+    you can easily connect to a database server using a username and password, select
+    an existing database or create a new one, and manage all aspects of your database
+    including tables, columns, indexes, foreign keys, triggers, views, stored procedures,
+    and functions. It also allows you to execute any SQL command from a text field
+    or a file, and export your database structure, data, views, routines, and databases
+    to SQL or CSV. Adminer prioritizes security, user experience, performance, feature
+    set, and size, making it a reliable and efficient tool for all your database management
+    needs.
+  category: databases
+  tags:
+  - Databases
+  - Developer Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: adminer:5.4.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://www.adminer.org/
+- label: Github
+  url: https://github.com/vrana/adminer/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: adminer
+    port: $PORT:8080
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

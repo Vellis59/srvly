@@ -1,0 +1,63 @@
+metadata:
+  name: GoToSocial
+  version: latest
+  description: GoToSocial is a lightweight, customizable, and safety-focused social
+    network server that provides a fun and fast entryway into the Fediverse. It is
+    written in Golang and allows you to keep in touch with friends, post, read, and
+    share images and articles without being tracked or advertised to. If you've used
+    platforms like Twitter or Tumblr, GoToSocial will feel familiar. You can follow
+    people, have followers, make posts that others can favorite, reply to, and share,
+    and scroll through posts from people you follow using a timeline. You can write
+    long or short posts, post images, and even block people or limit unwanted interactions
+    by posting just to your friends. GoToSocial is not designed for influencers with
+    tens of thousands of followers, nor is it designed to be addictive. Your timeline
+    and experience are shaped by who you follow and how you interact with people,
+    not by engagement metrics. GoToSocial is ideal for small or single-user instances
+    running on low-powered devices, like single-board computers or old laptops repurposed
+    as home servers. It is simple to install and maintain, and prioritizes good security
+    and sensible defaults.
+  category: social-networking
+  tags:
+  - Social Networking
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: superseriousbusiness/gotosocial:0.21.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://gotosocial.org/
+- label: Documentation
+  url: https://docs.gotosocial.org/en/latest/
+- label: Github
+  url: https://github.com/superseriousbusiness/gotosocial/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: gotosocial
+    port: $PORT:8080
+    volumes:
+    - /gotosocial/storage
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

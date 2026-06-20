@@ -1,0 +1,66 @@
+metadata:
+  name: Answer
+  version: latest
+  description: Answer is an open-source knowledge-based software designed to facilitate
+    a Q&A environment for your products, customers, teams, and more. It allows users
+    to ask questions and get answers, fostering a dynamic exchange of information.
+    The app features a modern and responsive UI, and it's extensible with plugins.
+    It also offers content organization capabilities, allowing you to categorize and
+    tag your content for easy navigation. Additionally, Answer integrates with your
+    existing tools and services to streamline your workflow. The app also incorporates
+    gamification elements, rewarding users for their contributions, making the process
+    of knowledge sharing more engaging. It's a powerful tool for product technical
+    support, customer support, and user communication.
+  category: community
+  tags:
+  - Community
+  - Q&A
+  - Knowledge Base
+  - Support
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: answerdev/answer:1.2.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://answer.dev/docs
+- label: Github
+  url: https://github.com/answerdev/answer
+- label: Website
+  url: https://answer.dev/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: answer
+    port: $PORT:80
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

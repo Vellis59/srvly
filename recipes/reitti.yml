@@ -1,0 +1,76 @@
+metadata:
+  name: Reitti
+  version: latest
+  description: Reitti is a self-hosted journey planning and route optimization application
+    designed for public transportation, cycling, and walking routes. Built on OpenStreetMap
+    data, it provides intelligent route calculations using the Photon geocoding engine
+    for address lookups and PostGIS for spatial data processing. The application features
+    a web-based interface for planning multi-modal journeys, real-time route optimization,
+    and comprehensive mapping capabilities. With RabbitMQ for task queuing and Redis
+    for high-performance caching, Reitti delivers fast and responsive route calculations
+    even with complex multi-leg journeys. The system can be configured for specific
+    regions to optimize data storage and performance, making it suitable for cities,
+    regions, or entire countries depending on your needs. Perfect for organizations
+    wanting to provide their own journey planning services, transportation agencies
+    developing custom routing solutions, smart city initiatives requiring private
+    routing infrastructure, or developers building location-based applications with
+    routing capabilities without relying on commercial APIs or sharing user data with
+    third-party services.
+  category: route-planning
+  tags:
+  - Route Planning
+  - Journey Planner
+  - Navigation
+  - OpenStreetMap
+  - Geocoding
+  - Transportation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: dedicatedcode/reitti:4.0.5
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Docker Hub
+  url: https://hub.docker.com/r/dedicatedcode/reitti
+- label: Github
+  url: https://github.com/dedicatedcode/reitti
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: reitti
+    port: $PORT:8080
+    volumes:
+    - /var/lib/rabbitmq
+    - /photon/data
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

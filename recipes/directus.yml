@@ -1,0 +1,73 @@
+metadata:
+  name: Directus
+  version: latest
+  description: Directus is a modern, open-source data platform that instantly transforms
+    any SQL database into an API and a beautiful no-code app. It is designed to work
+    with any SQL database, allowing you to maintain complete control over your new
+    or existing database without the need for migration to a proprietary data model.
+    The Directus API layers on top of your database, providing both REST and GraphQL
+    APIs for your data. The Directus App enables your entire team to safely and intuitively
+    browse, manage, and visualize data. It is a flexible platform that can be used
+    as a Backend-as-a-Service, a Headless CMS, an Internal Tool Builder, and for Data
+    Management & Analytics. With Directus, you can connect external digital experiences,
+    design APIs, control data flows, build internal tools, and much more.
+  category: developer-tools
+  tags:
+  - Developer Tools
+  - CMS
+  - Databases
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: directus/directus:11.17.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8055
+links:
+- label: Website
+  url: https://directus.io/
+- label: Documentation
+  url: https://docs.directus.io/
+- label: Github
+  url: https://github.com/directus/docs
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: directus
+    port: $PORT:8055
+    volumes:
+    - /directus/uploads
+    - /directus/extensions
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest
+  mysql:
+    type: mysql
+    version: latest
+  redis:
+    type: redis
+    version: '7'

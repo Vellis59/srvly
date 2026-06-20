@@ -1,0 +1,56 @@
+metadata:
+  name: AdGuard Home Sync
+  version: latest
+  description: AdGuard Home Sync is a tool designed to synchronize filters, blocklists,
+    and configuration between multiple AdGuard Home instances. It allows you to maintain
+    consistent filtering across different AdGuard Home deployments by synchronizing
+    configuration from an origin instance to one or more replica instances.
+  category: adguard-home
+  tags:
+  - AdGuard Home
+  - DNS
+  - Ad-blocking
+  - Synchronization
+  - Configuration Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/adguardhome-sync:0.9.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Documentation
+  url: https://github.com/bakito/adguardhome-sync/wiki/FAQ
+- label: Github
+  url: https://github.com/bakito/adguardhome-sync
+instructions: Modify the config file to add your own AdGuard Home instances and cron
+  schedule.
+install:
+- docker:
+    image: $IMAGE
+    name: adguardhome-sync
+    port: $PORT:8080
+    volumes:
+    - /config
+    - /config/adguardhome-sync.yaml
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Modify the config file to add your own AdGuard Home instances and cron schedule.

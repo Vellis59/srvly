@@ -1,0 +1,71 @@
+metadata:
+  name: Netbox
+  version: latest
+  description: NetBox is a comprehensive solution designed to be the single source
+    of truth for everything on your network. It provides a detailed overview of both
+    physical and virtual assets, including power systems, cabling, IP addresses, and
+    VLANs. The app is designed to facilitate network automation and monitoring, drawing
+    from an authoritative plan to push out configurations and monitor changes across
+    the enterprise. It offers a complete DCIM solution, providing visibility and control
+    across the entire enterprise. NetBox also features efficient IP Address Management,
+    ensuring the safe and efficient management of IP assets across the enterprise,
+    thereby minimizing the risk of data entry errors. The app is customizable and
+    can be integrated to extend its functionality to fit your specific needs.
+  category: network-tools
+  tags:
+  - Network Tools
+  - Documentation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/netbox:4.5.9
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://netbox.dev
+- label: Documentation
+  url: https://docs.netbox.dev/
+- label: Github
+  url: https://github.com/netbox-community/netbox
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: netbox
+    port: $PORT:8000
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

@@ -1,0 +1,60 @@
+metadata:
+  name: Glances
+  version: latest
+  description: Glances is a cross-platform, real-time system monitoring tool designed
+    to offer a unified view of your system's performance and health. It provides an
+    intuitive interface that displays critical information, including CPU usage, memory,
+    disk I/O, network activity, and more. Built to work seamlessly on Linux, macOS,
+    Windows, and ARM-based systems, Glances is highly extensible with plugins and
+    supports remote monitoring via a web-based UI or API. With its open-source foundation,
+    Glances ensures transparency and flexibility, making it a perfect choice for individuals
+    and teams looking for a lightweight yet powerful monitoring solution.
+  category: system-monitoring
+  tags:
+  - System Monitoring
+  - Real-Time Metrics
+  - Open Source
+  - Cross-Platform
+  - Extensible
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: nicolargo/glances:4.5.0.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 61208
+links:
+- label: Website
+  url: https://nicolargo.github.io/glances/
+- label: Documentation
+  url: https://glances.readthedocs.io/en/stable/
+- label: GitHub
+  url: https://github.com/nicolargo/glances
+instructions: To use Glances with Podman, you can mount a bind volume "/run/user/1000/podman/podman.sock:/run/user/1000/podman/podman.sock".
+install:
+- docker:
+    image: $IMAGE
+    name: glances
+    port: $PORT:61208
+    volumes:
+    - /var/run/docker.sock
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: To use Glances with Podman, you can mount a bind volume "/run/user/1000/podman/podman.sock:/run/user/1000/podman/podman.sock".

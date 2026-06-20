@@ -1,0 +1,57 @@
+metadata:
+  name: Palmr
+  version: latest
+  description: Palmr is a self-hosted file management and download application that
+    provides a comprehensive solution for managing files and downloads. It features
+    a modern web interface for file operations, download management, and file organization.
+    Palmr supports various file operations including uploading, downloading, organizing,
+    and managing your files in a centralized location.
+  category: file-management
+  tags:
+  - File Management
+  - Download Manager
+  - Self-Hosted
+  - Web Interface
+  - File Storage
+  - Download Queue
+  - Memory Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: kyantech/palmr:v3.1.1-rc.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5487
+links:
+- label: Github
+  url: https://github.com/kyantech/palmr
+- label: Documentation
+  url: https://palmr.kyantech.com.br/docs/2.0.0-beta
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: palmr
+    port: $PORT:5487
+    volumes:
+    - /app/server
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

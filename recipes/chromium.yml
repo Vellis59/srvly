@@ -1,0 +1,56 @@
+metadata:
+  name: Chromium
+  version: latest
+  description: Chromium is an open-source browser project that is designed to provide
+    a safer, faster, and more stable way for all users to experience the web. This
+    app is a Docker containerized version of Chromium, allowing you to deploy and
+    run the Chromium browser in a Docker environment. The app supports multiple architectures,
+    including x86-64 and arm64, and can be accessed via HTTP or HTTPS. It offers additional
+    environment variables and run configurations to enable or disable specific functionality.
+    The app also allows you to specify one or multiple Chromium CLI flags, which will
+    be passed to the application in full. This containerized version of Chromium is
+    designed to function efficiently with modern websites, and includes options for
+    GPU acceleration and Docker in Docker (DinD) setup.
+  category: developer-tools
+  tags:
+  - Developer Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/chromium:version-1aac4eaa
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Documentation
+  url: https://docs.linuxserver.io/images/docker-chromium
+- label: Github
+  url: https://github.com/linuxserver/docker-chromium
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: chromium
+    port: $PORT:3000
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

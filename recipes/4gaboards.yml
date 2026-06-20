@@ -1,0 +1,74 @@
+metadata:
+  name: 4ga Boards
+  version: latest
+  description: 4ga Boards is a modern, open-source project management and collaboration
+    platform inspired by Trello. It provides a powerful Kanban-style board system
+    for organizing tasks, projects, and workflows. With its intuitive drag-and-drop
+    interface, 4ga Boards makes it easy to visualize work, track progress, and collaborate
+    with teams. The application features customizable boards, lists, and cards, along
+    with support for attachments, user avatars, and project backgrounds. Built with
+    modern web technologies, 4ga Boards offers a seamless experience for managing
+    projects of any size. It's perfect for teams looking for a self-hosted alternative
+    to commercial project management tools, providing full control over your data
+    and workflows. Whether you're managing software development sprints, marketing
+    campaigns, or personal todo lists, 4ga Boards provides the flexibility and features
+    you need.
+  category: project-management
+  tags:
+  - Project Management
+  - Kanban
+  - Productivity
+  - Collaboration
+  - Task Management
+  - Self-Hosted
+  - Team Tools
+  - Workflow
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/rargames/4gaboards:3.3.6
+  port:
+    type: integer
+    title: Port HTTP
+    default: 1337
+links:
+- label: Website
+  url: https://4gaboards.com/#home
+- label: Documentation
+  url: https://docs.4gaboards.com
+- label: GitHub
+  url: https://github.com/RARgames/4gaboards
+instructions: Default credentials are demo/demo. Change the password after first login.
+install:
+- docker:
+    image: $IMAGE
+    name: 4gaboards
+    port: $PORT:1337
+    volumes:
+    - /app/public/user-avatars
+    - /app/public/project-background-images
+    - /app/private/attachments
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Default credentials are demo/demo. Change the password after first login.
+services:
+  postgres:
+    type: postgres
+    version: latest

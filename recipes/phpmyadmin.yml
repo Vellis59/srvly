@@ -1,0 +1,60 @@
+metadata:
+  name: phpMyAdmin
+  version: latest
+  description: phpMyAdmin is a free software tool designed to manage MySQL over the
+    web. This powerful tool supports a broad spectrum of operations on MySQL and MariaDB.
+    It allows you to perform frequently used operations such as managing databases,
+    tables, columns, relations, indexes, users, permissions, and more through its
+    user-friendly interface. Additionally, it provides the flexibility to directly
+    execute any SQL statement. phpMyAdmin also features an intuitive web interface
+    and supports most MySQL features. You can browse and drop databases, tables, views,
+    fields, and indexes; create, copy, drop, rename, and alter databases, tables,
+    fields, and indexes; manage MySQL user accounts and privileges; and much more.
+    It also allows you to import data from CSV and SQL, export data to various formats,
+    administer multiple servers, create graphics of your database layout in various
+    formats, and create complex queries using Query-by-example (QBE).
+  category: databases
+  tags:
+  - Databases
+  - Developer Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: phpmyadmin:5.2.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://www.phpmyadmin.net/
+- label: Documentation
+  url: https://www.phpmyadmin.net/docs/
+- label: Github
+  url: https://github.com/phpmyadmin/phpmyadmin
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: phpmyadmin
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

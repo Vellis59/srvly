@@ -1,0 +1,56 @@
+metadata:
+  name: Redis Insight
+  version: latest
+  description: Redis Insight is an ideal tool for developers who build with any Redis
+    deployments and who want to optimize their development process. Redis Insight
+    lets you visually browse and interact with data, take advantage of the advanced
+    command line interface and diagnostic tools, and so much more.
+  category: redis
+  tags:
+  - Redis
+  - Database Management
+  - Data Visualization
+  - Performance Monitoring
+  - Developer Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: redis/redisinsight:2.70.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5540
+links:
+- label: Website
+  url: https://redis.io/insight
+- label: Docker Hub
+  url: https://hub.docker.com/r/redis/redisinsight
+- label: Configuration
+  url: https://redis.io/docs/latest/operate/redisinsight/configuration
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: redisinsight
+    port: $PORT:5540
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

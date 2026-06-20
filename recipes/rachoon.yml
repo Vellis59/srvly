@@ -1,0 +1,64 @@
+metadata:
+  name: Rachoon
+  version: latest
+  description: Rachoon is a self-hosted invoicing platform for creating and tracking
+    invoices, managing clients, and exporting professional PDFs. This template deploys
+    Rachoon with PostgreSQL and Gotenberg as required dependencies.
+  category: invoicing
+  tags:
+  - Invoicing
+  - Billing
+  - Finance
+  - PostgreSQL
+  - Gotenberg
+  - Self-hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/ad-on-is/rachoon:v1.3.7
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Documentation
+  url: https://github.com/ad-on-is/rachoon#readme
+- label: GitHub
+  url: https://github.com/ad-on-is/rachoon
+- label: Container registry
+  url: https://github.com/ad-on-is/rachoon/pkgs/container/rachoon
+instructions: After deployment, open your domain and create your account in the Rachoon
+  UI. The APP_KEY is generated automatically unless you provide one. Database values
+  are wired automatically to the bundled PostgreSQL service.
+install:
+- docker:
+    image: $IMAGE
+    name: rachoon
+    port: $PORT:8080
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After deployment, open your domain and create your account in the Rachoon
+    UI. The APP_KEY is generated automatically unless you provide one. Database values
+    are wired automatically to the bundled PostgreSQL service.
+services:
+  postgres:
+    type: postgres
+    version: latest

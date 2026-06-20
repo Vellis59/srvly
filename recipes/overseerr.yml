@@ -1,0 +1,59 @@
+metadata:
+  name: Overseerr
+  version: latest
+  description: Overseerr is a request management and media discovery tool for the
+    Plex ecosystem. It provides a clean, modern interface for users to browse and
+    request content for Plex, seamlessly integrating with services like Sonarr, Radarr,
+    and Jellyfin.
+  category: media
+  tags:
+  - Media
+  - Plex
+  - Requests
+  - Content Management
+  - Sonarr
+  - Radarr
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/overseerr:develop-7f868f38e6f2f1834ea12dc8f5c095000c7a3c09-ls368
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5055
+links:
+- label: Website
+  url: https://overseerr.dev
+- label: Documentation
+  url: https://docs.overseerr.dev
+- label: GitHub
+  url: https://github.com/sct/overseerr
+- label: Docker Hub
+  url: https://hub.docker.com/r/linuxserver/overseerr
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: overseerr
+    port: $PORT:5055
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

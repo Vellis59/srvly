@@ -1,0 +1,60 @@
+metadata:
+  name: Vitess
+  version: latest
+  description: Vitess is a database clustering system for horizontal scaling of MySQL.
+    It is designed to make it easier to scale and manage large deployments of MySQL
+    databases. Vitess helps handle sharding, connection pooling, and query routing
+    efficiently, making it a great choice for cloud-native applications and high-traffic
+    websites. It is used by companies like YouTube and Slack to manage massive database
+    workloads. Vitess provides built-in automation, strong consistency, and MySQL
+    compatibility while being resilient to failures and easy to operate at scale.
+  category: database
+  tags:
+  - Database
+  - Scalability
+  - Cloud-Native
+  - MySQL
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: vitess/vttestserver:mysql84
+  port:
+    type: integer
+    title: Port HTTP
+    default: 33574
+links:
+- label: Documentation
+  url: https://vitess.io/docs/
+- label: Github
+  url: https://github.com/vitessio/vitess
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: vitess
+    port: $PORT:33574
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

@@ -1,0 +1,55 @@
+metadata:
+  name: Snappymail
+  version: latest
+  description: SnappyMail is a lightweight, fast, and self-hosted webmail client designed
+    for efficient email management. Built with a focus on speed and security, SnappyMail
+    offers a clean user interface, seamless IMAP integration, and multi-account support.
+    It is optimized for both desktop and mobile use, providing a smooth and responsive
+    email experience. SnappyMail supports advanced email features such as PGP encryption,
+    custom folders, and customizable themes. With its self-hosted nature, users maintain
+    full control over their emails, ensuring privacy and security.
+  category: email
+  tags:
+  - Email
+  - Webmail
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: djmaze/snappymail:v2.38.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8888
+links:
+- label: Documentation
+  url: https://github.com/the-djmaze/snappymail/wiki
+- label: Github
+  url: https://github.com/the-djmaze/snappymail
+instructions: Configure SnappyMail with your IMAP server settings for full functionality.
+install:
+- docker:
+    image: $IMAGE
+    name: snappymail
+    port: $PORT:8888
+    volumes:
+    - /snappymail/data/
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Configure SnappyMail with your IMAP server settings for full functionality.

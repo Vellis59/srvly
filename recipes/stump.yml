@@ -1,0 +1,59 @@
+metadata:
+  name: Stump
+  version: latest
+  description: Stump is a fast, free and open source audiobook and e-book server.
+    It provides a web interface for accessing and managing your digital book collection,
+    supporting various formats including audiobooks and e-books. Stump offers streaming
+    capabilities, library management, and a modern responsive interface for reading
+    and listening to your books from any device.
+  category: audiobook-server
+  tags:
+  - Audiobook Server
+  - E-book Reader
+  - Digital Library
+  - Self-Hosted
+  - Web Interface
+  - Books
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: aaronleopold/stump:0.1.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 10801
+links:
+- label: Website
+  url: https://www.stumpapp.dev
+- label: Documentation
+  url: https://www.stumpapp.dev/installation/docker
+- label: Github
+  url: https://github.com/aaronleopold/stump
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: stump
+    port: $PORT:10801
+    volumes:
+    - /config
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

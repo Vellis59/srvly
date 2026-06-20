@@ -1,0 +1,63 @@
+metadata:
+  name: OpenVPN Access Server
+  version: latest
+  description: OpenVPN Access Server is a full-featured SSL VPN software solution
+    that integrates OpenVPN server capabilities, enterprise-grade user management,
+    granular access controls, and an easy-to-use web interface for administration.
+  category: network-tools
+  tags:
+  - Network Tools
+  - Security
+  - VPN
+  - OpenVPN
+  - Remote Access
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: openvpn/openvpn-as:3.1.0-e22fe316-Ubuntu24
+  port:
+    type: integer
+    title: Port HTTP
+    default: 443
+links:
+- label: Website
+  url: https://openvpn.net/access-server/
+- label: Documentation
+  url: https://openvpn.net/vpn-server-resources/access-server-manager/
+- label: Docker Hub
+  url: https://hub.docker.com/r/openvpn/openvpn-as
+- label: Guide
+  url: https://openvpn.net/as-docs/docker.html#run-the-docker-container
+instructions: Please use the Guide given below to get the password and access the
+  portal. For admin portal access, use the following URL; https://$(EASYPANEL_HOST_IP):$(mgmtServicePort)/admin.
+  User is openvpn and the password can be searched in logs as "Auto-Generated pass"
+install:
+- docker:
+    image: $IMAGE
+    name: openvpn
+    port: $PORT:443
+    volumes:
+    - /openvpn
+    extra_ports:
+    - 943:943
+    - 1194:1194
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Please use the Guide given below to get the password and access the portal.
+    For admin portal access, use the following URL; https://$(EASYPANEL_HOST_IP):$(mgmtServicePort)/admin.
+    User is openvpn and the password can be searched in logs as "Auto-Generated pass"

@@ -1,0 +1,69 @@
+metadata:
+  name: Ubooquity
+  version: latest
+  description: Ubooquity is a free, lightweight and easy-to-use home server for your
+    comics and ebooks. It provides a clean web interface to browse, read, and organize
+    your digital library from any device. Ubooquity supports various formats including
+    CBZ, CBR, CB7, PDF, EPUB, and many more. It features user management, reading
+    progress tracking, and can serve your media collection to multiple users simultaneously.
+    The server includes both a library interface for browsing and an admin interface
+    for configuration, making it perfect for managing your digital book and comic
+    collection at home.
+  category: books
+  tags:
+  - Books
+  - Comics
+  - Digital Library
+  - Media Server
+  - Reading
+  - Home Server
+  - Web Interface
+  - Library Management
+  - PDF Reader
+  - Comic Reader
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/ubooquity:2.1.5
+  port:
+    type: integer
+    title: Port HTTP
+    default: 2202
+links:
+- label: Website
+  url: https://vaemendis.net/ubooquity/
+- label: Documentation
+  url: https://vaemendis.github.io/ubooquity-doc/pages/installation-guide.html
+- label: GitHub
+  url: https://github.com/vaemendis/ubooquity-doc
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: ubooquity
+    port: $PORT:2202
+    volumes:
+    - /config
+    - /books
+    - /comics
+    - /files
+    extra_ports:
+    - 2203:2203
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

@@ -1,0 +1,61 @@
+metadata:
+  name: Grav
+  version: latest
+  description: Grav is an award-winning, open-source, flat-file content management
+    system (CMS) designed to help you build faster websites. It's been voted 'Best
+    Open Source CMS' in 2016 and 'Best Flat File CMS' in 2017, 2019, 2020, and 2021.
+    Grav is known for its fast performance, extensibility, and user-friendly interface.
+    With Grav, you can easily modify flexible configuration settings, edit content
+    with a powerful markdown editor, and install a wide range of modern themes with
+    one click. It also offers a built-in package manager for easy plugin installation.
+    Grav is packed with features and tools that make content creation enjoyable. It
+    supports one-click installs, powerful content filtering, dynamic content types,
+    multi-language support, simple backups and restores, image media processing, and
+    easy theme customization. Whether you're creating landing pages, portfolios, product
+    sites, personal resumes, e-commerce sites, blogs, business sites, or documentation,
+    Grav provides the flexibility and power you need.
+  category: cms
+  tags:
+  - CMS
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: linuxserver/grav:1.7.52
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://getgrav.org
+- label: Documentation
+  url: https://learn.getgrav.org
+- label: Github
+  url: https://github.com/getgrav/grav
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: grav
+    port: $PORT:80
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

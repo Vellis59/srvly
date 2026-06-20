@@ -1,0 +1,56 @@
+metadata:
+  name: TubeSync
+  version: latest
+  description: TubeSync is a powerful self-hosted application designed to automatically
+    sync and download YouTube videos from subscriptions or playlists. It provides
+    an intuitive web interface to manage downloads, supports filtering by keywords,
+    and integrates with various media management systems. TubeSync allows users to
+    schedule automatic downloads, ensuring they never miss new content from their
+    favorite channels. It is built for efficiency, offering high-speed downloads and
+    optimized storage handling. The application runs as a lightweight container, making
+    it easy to deploy and manage.
+  category: youtube
+  tags:
+  - YouTube
+  - Video Management
+  - Automation
+  - Media
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/meeb/tubesync:v0.17.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 4848
+links:
+- label: Github
+  url: https://github.com/meeb/tubesync
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: tubesync
+    port: $PORT:4848
+    volumes:
+    - /config
+    - /downloads
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

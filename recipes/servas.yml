@@ -1,0 +1,59 @@
+metadata:
+  name: Servas
+  version: latest
+  description: Servas is a self-hosted bookmark management tool that allows you to
+    organize and access your bookmarks in a more efficient and streamlined manner.
+    With Servas, you can categorize your bookmarks using tags and groups, which can
+    also be nested for better organization. The app also features a 'Later List' where
+    you can add bookmarks that you wish to access at a later time. Servas also comes
+    with a Chrome browser extension, allowing you to add sites to your bookmark list
+    directly from your browser. The app supports multiple user accounts and boasts
+    a responsive design that ensures it looks good on all your devices. For added
+    security, Servas also offers Two Factor Authentication.
+  category: bookmarks
+  tags:
+  - Bookmarks
+  - Productivity
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: beromir/servas:1.1.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Github
+  url: https://github.com/beromir/Servas
+instructions: Visit /register to create an account
+install:
+- docker:
+    image: $IMAGE
+    name: servas
+    port: $PORT:80
+    volumes:
+    - /var/www/html
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Visit /register to create an account
+services:
+  mysql:
+    type: mysql
+    version: latest

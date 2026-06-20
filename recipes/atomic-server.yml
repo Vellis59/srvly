@@ -1,0 +1,53 @@
+metadata:
+  name: Atomic Server
+  version: latest
+  description: Atomic Server is a powerful and flexible server for managing and serving
+    atomic data. It provides a robust platform for data management with support for
+    various protocols and formats.
+  category: atomic
+  tags:
+  - Atomic
+  - Server
+  - Data Management
+  - API
+  - Web Interface
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: joepmeneer/atomic-server:v0.38.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Github
+  url: https://github.com/joepmeneer/atomic-server
+- label: Documentation
+  url: https://docs.atomicdata.dev
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: atomic-server
+    port: $PORT:80
+    volumes:
+    - /atomic-storage
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

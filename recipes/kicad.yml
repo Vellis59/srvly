@@ -1,0 +1,67 @@
+metadata:
+  name: KiCad
+  version: latest
+  description: KiCad is an open-source software suite for electronic design automation
+    (EDA), enabling the design and simulation of electronic circuits and printed circuit
+    boards (PCBs). It provides a comprehensive set of tools for schematic capture,
+    PCB layout, and 3D visualization. KiCad supports extensive libraries of components
+    and footprints, allowing designers to create custom designs with ease. Its robust
+    features, such as design rule checking, netlist generation, and Gerber export,
+    make it a preferred choice for professionals and hobbyists alike. With a focus
+    on flexibility and open-source principles, KiCad empowers users to bring their
+    electronic design projects to life.
+  category: electronic-design-automation
+  tags:
+  - Electronic Design Automation
+  - PCB Design
+  - Schematic Capture
+  - 3D Visualization
+  - Open-Source
+  - Component Libraries
+  - Gerber Export
+  - Design Rule Checking
+  - Multi-Layer Boards
+  - Circuit Simulation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: linuxserver/kicad:8.0.7
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://www.kicad.org
+- label: Documentation
+  url: https://docs.kicad.org
+- label: Github
+  url: https://github.com/KiCad/kicad-source-mirror
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: kicad
+    port: $PORT:3000
+    volumes:
+    - /config
+    extra_ports:
+    - 3001:3001
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

@@ -1,0 +1,54 @@
+metadata:
+  name: Paisa
+  version: latest
+  description: Paisa is a personal finance manager and expense tracker that helps
+    you manage your finances, track expenses, and visualize your financial data.
+  category: finance
+  tags:
+  - Finance
+  - Budgeting
+  - Expense Tracker
+  - Self-Hosted
+  - Personal Finance
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ananthakumaran/paisa:v0.7.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 7500
+links:
+- label: Website
+  url: https://paisa.fyi
+- label: GitHub
+  url: https://github.com/ananthakumaran/paisa
+- label: Documentation
+  url: https://paisa.fyi/reference/accounts/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: paisa
+    port: $PORT:7500
+    volumes:
+    - /root/Documents/paisa/
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

@@ -1,0 +1,63 @@
+metadata:
+  name: Databasus
+  version: latest
+  description: Databasus is a free, open source, self-hosted backup platform focused
+    on PostgreSQL with support for MySQL, MariaDB, and MongoDB. It helps you schedule
+    backups, apply retention policies, store backups in multiple destinations, and
+    receive notifications about backup progress.
+  category: backup
+  tags:
+  - Backup
+  - Database
+  - PostgreSQL
+  - MySQL
+  - MongoDB
+  - DevOps
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: databasus/databasus:v3.33.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 4005
+links:
+- label: Website
+  url: https://databasus.com
+- label: Documentation
+  url: https://databasus.com/installation
+- label: GitHub
+  url: https://github.com/databasus/databasus
+- label: Container registry
+  url: https://hub.docker.com/r/databasus/databasus
+instructions: After deployment, open your domain and complete the initial setup in
+  the Databasus UI. The template already mounts persistent storage at /databasus-data
+  so configuration and backup metadata survive restarts.
+install:
+- docker:
+    image: $IMAGE
+    name: databasus
+    port: $PORT:4005
+    volumes:
+    - /databasus-data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After deployment, open your domain and complete the initial setup in the
+    Databasus UI. The template already mounts persistent storage at /databasus-data
+    so configuration and backup metadata survive restarts.

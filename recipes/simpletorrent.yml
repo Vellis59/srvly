@@ -1,0 +1,58 @@
+metadata:
+  name: SimpleTorrent
+  version: latest
+  description: SimpleTorrent is a self-hosted remote torrent client that allows you
+    to manage your torrents remotely. Written in Go (golang), it enables you to start
+    torrents remotely and download sets of files on the local disk of the server.
+    These files are then retrievable or streamable via HTTP. The app offers individual
+    file download control, the ability to run an external program on task completion,
+    and a seeding ratio to stop tasks when reached. It also provides a download/upload
+    speed limiter and detailed transfer stats in the web UI. SimpleTorrent supports
+    real-time updates, is mobile-friendly, and offers a fast content server. It also
+    supports IPv6 out of the box and has an updated torrent engine from anacrolix/torrent.
+    Additional features include a torrent watcher, K8s/docker health-check endpoint,
+    extra trackers from an external source, and a protocol handler to magnet.
+  category: file-management
+  tags:
+  - File Management
+  - Media
+  - Productivity
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: boypt/cloud-torrent:1.3.9
+  port:
+    type: integer
+    title: Port HTTP
+    default: 81
+links:
+- label: Documentation
+  url: https://github.com/boypt/simple-torrent/wiki
+- label: Github
+  url: https://github.com/boypt/simple-torrent
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: simpletorrent
+    port: $PORT:81
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

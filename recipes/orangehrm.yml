@@ -1,0 +1,57 @@
+metadata:
+  name: OrangeHRM
+  version: latest
+  description: OrangeHRM is a comprehensive, open-source Human Resource Management
+    (HRM) solution designed to streamline HR processes and manage employee information.
+    It provides modules for employee management, leave tracking, time management,
+    recruitment, and performance reviews. With an intuitive interface and customizable
+    features, OrangeHRM is a great choice for organizations of all sizes.
+  category: human-resource-management
+  tags:
+  - Human Resource Management
+  - Open Source
+  - Employee Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: orangehrm/orangehrm:5.8.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://www.orangehrm.com/
+- label: Github
+  url: https://github.com/orangehrm/orangehrm
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: orangehrm
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

@@ -1,0 +1,58 @@
+metadata:
+  name: Firebird
+  version: latest
+  description: Firebird is a powerful, open-source relational database management
+    system (RDBMS) that offers high performance, scalability, and SQL compliance.
+    It is designed for both small and large-scale applications, providing robust multi-user
+    support, stored procedures, triggers, and full ACID compliance. Firebird is lightweight,
+    requiring minimal configuration while delivering strong reliability and security.
+    It supports multiple authentication methods and integrates seamlessly with various
+    programming languages and frameworks. With its containerized deployment, Firebird
+    ensures easy scalability and simplified management.
+  category: database
+  tags:
+  - Database
+  - SQL
+  - Relational Database
+  - Open Source
+  - FirebirdDB
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: firebirdsql/firebird:5.0.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3050
+links:
+- label: Documentation
+  url: https://firebirdsql.org/manual/
+- label: Github
+  url: https://github.com/FirebirdSQL/firebird
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: firebird
+    port: $PORT:3050
+    volumes:
+    - /var/lib/firebird/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

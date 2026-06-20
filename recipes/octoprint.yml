@@ -1,0 +1,62 @@
+metadata:
+  name: OctoPrint
+  version: latest
+  description: OctoPrint is a comprehensive web interface designed to provide full
+    remote control and monitoring of your 3D printer. It allows you to manage every
+    aspect of your 3D printing jobs directly from your browser. With OctoPrint, you
+    can access the embedded webcam feed to watch your printer in action, receive constant
+    feedback on the progress of your print job, and even view a rendition of the GCODE
+    you are currently printing. The app also enables you to monitor and adjust the
+    temperatures of your hotends and print bed on the fly, move the print head along
+    all axes, and start, stop, or pause your print job at any time. OctoPrint is compatible
+    with most consumer 3D printers and its powerful plugin system allows for functionality
+    extension. It is 100% open source, allowing everyone to modify it to their own
+    needs. Additional features include creating timelapse recordings of your prints,
+    slicing your STL files directly within the app, built-in access controls, and
+    the ability to add system commands to the menu for easy shutdown or reboot of
+    your OctoPrint server or printer.
+  category: developer-tools
+  tags:
+  - Developer Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: octoprint/octoprint:1.11.7
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://octoprint.org
+- label: Docs
+  url: https://docs.octoprint.org
+- label: Github
+  url: https://github.com/OctoPrint/OctoPrint
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: octoprint
+    port: $PORT:80
+    volumes:
+    - /octoprint
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

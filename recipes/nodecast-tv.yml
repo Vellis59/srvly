@@ -1,0 +1,62 @@
+metadata:
+  name: NodeCast TV
+  version: latest
+  description: NodeCast TV is a self-hosted media casting and streaming application
+    that allows you to cast and stream media content to various devices. Built with
+    Node.js, NodeCast TV provides a simple and efficient way to manage and stream
+    your media library. It features a web-based interface accessible on port 3000
+    and stores application data in a persistent volume for reliable operation. Perfect
+    for home media servers and self-hosting enthusiasts looking for a lightweight
+    media casting solution.
+  category: media
+  tags:
+  - Media
+  - Streaming
+  - Casting
+  - Self-Hosted
+  - Node.js
+  - Media Server
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/technomancer702/nodecast-tv:2.1.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: GitHub
+  url: https://github.com/technomancer702/nodecast-tv
+- label: Container
+  url: https://github.com/technomancer702/nodecast-tv/pkgs/container/nodecast-tv
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: nodecast-tv
+    port: $PORT:3000
+    volumes:
+    - /app/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

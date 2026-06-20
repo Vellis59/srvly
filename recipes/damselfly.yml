@@ -1,0 +1,58 @@
+metadata:
+  name: Damselfly
+  version: latest
+  description: Damselfly is a modern, self-hosted photo management system that helps
+    you organize, search, and share your photo collection. It uses AI-powered image
+    recognition to automatically tag and categorize your photos, making it easy to
+    find specific images in your collection.
+  category: photo-management
+  tags:
+  - Photo Management
+  - AI
+  - Image Recognition
+  - Self-hosted
+  - Photography
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: webreaper/damselfly:4.5.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 6363
+links:
+- label: GitHub
+  url: https://github.com/Webreaper/Damselfly
+- label: Docker Hub
+  url: https://hub.docker.com/r/webreaper/damselfly
+instructions: Add your photos and libraries in the respected volumes or change them
+  to bind volumes as per your need.
+install:
+- docker:
+    image: $IMAGE
+    name: damselfly
+    port: $PORT:6363
+    volumes:
+    - /config
+    - /thumbs
+    - /pictures
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Add your photos and libraries in the respected volumes or change them to
+    bind volumes as per your need.

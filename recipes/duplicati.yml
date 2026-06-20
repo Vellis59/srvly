@@ -1,0 +1,65 @@
+metadata:
+  name: Duplicati
+  version: latest
+  description: Duplicati is a free, open-source backup software designed to store
+    encrypted backups online. It is compatible with Windows, macOS, and Linux. The
+    software works with standard protocols like FTP, SSH, WebDAV, and popular services
+    such as Backblaze B2, Tardigrade, Microsoft OneDrive, Amazon S3, Google Drive,
+    box.com, Mega, hubiC, and many others. Duplicati allows you to backup files and
+    folders with strong AES-256 encryption, saving space with incremental backups
+    and data deduplication. It can run backups on any machine through a web-based
+    interface or via command line interface. Duplicati has a built-in scheduler and
+    auto-updater, ensuring your backups are always up-to-date. It is designed for
+    online backups from scratch, handling network issues efficiently. For instance,
+    interrupted backups can be resumed, and Duplicati regularly tests the content
+    of backups, detecting broken backups on corrupt storage systems before it’s too
+    late. The software is configured by a web interface that runs in any browser and
+    can be accessed from anywhere.
+  category: backup
+  tags:
+  - Backup
+  - Data Security
+  - Cloud Storage
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/duplicati:2.2.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8200
+links:
+- label: Website
+  url: https://www.duplicati.com/
+- label: Documentation
+  url: https://duplicati.readthedocs.io/en/latest/
+- label: Github
+  url: https://github.com/duplicati/duplicati
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: duplicati
+    port: $PORT:8200
+    volumes:
+    - /host
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

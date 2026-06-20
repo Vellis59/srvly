@@ -1,0 +1,62 @@
+metadata:
+  name: DailyTxT
+  version: latest
+  description: DailyTxT is a secure, encrypted personal diary web application that
+    allows users to write and manage daily entries with end-to-end encryption. It
+    provides a user-friendly interface for journaling with features like file uploads,
+    search functionality, and multi-language support. All data is encrypted locally,
+    ensuring complete privacy and security for personal thoughts and memories.
+  category: diary
+  tags:
+  - Diary
+  - Journal
+  - Encryption
+  - Privacy
+  - Personal
+  - Web App
+  - File Storage
+  - Self-hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: phitux/dailytxt:2.6.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Demo
+  url: https://dailytxt.phitux.de
+- label: Documentation
+  url: https://github.com/PhiTux/DailyTxT#readme
+- label: GitHub
+  url: https://github.com/PhiTux/DailyTxT
+instructions: After deployment, open DailyTxT from your app domain and create your
+  first account (if allow registration is enabled).
+install:
+- docker:
+    image: $IMAGE
+    name: dailytxt
+    port: $PORT:80
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After deployment, open DailyTxT from your app domain and create your first
+    account (if allow registration is enabled).

@@ -1,0 +1,60 @@
+metadata:
+  name: Logto
+  version: latest
+  description: Logto is an Auth0 alternative designed for modern apps and SaaS products.
+    It offers a seamless developer experience and is well-suited for individuals and
+    growing companies.
+  category: identity-management
+  tags:
+  - Identity Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: svhd/logto:1.39.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://logto.io/
+- label: Documentation
+  url: https://docs.logto.io/
+- label: Github
+  url: https://github.com/logto-io/logto
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: logto
+    port: $PORT:80
+    volumes: []
+    extra_ports:
+    - 3002:3002
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

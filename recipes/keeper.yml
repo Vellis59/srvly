@@ -1,0 +1,66 @@
+metadata:
+  name: Keeper
+  version: latest
+  description: Keeper is a simple and open-source calendar synchronization and booking
+    tool that allows you to pull events from remotely hosted iCal or ICS links and
+    push them to one or many calendars. Built with modern architecture using Next.js
+    and Bun, Keeper provides a comprehensive solution for calendar management and
+    synchronization. The standalone version includes all services (web, API, cron)
+    in a single container, making it easy to deploy. Keeper supports multiple calendar
+    providers including Google Calendar, iCloud, Outlook, CalDAV, and Fastmail. Perfect
+    for individuals and organizations looking to synchronize calendars across different
+    platforms with a self-hosted solution.
+  category: calendar
+  tags:
+  - Calendar
+  - Synchronization
+  - Self-Hosted
+  - iCal
+  - ICS
+  - Booking
+  - Docker
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/ridafkih/keeper-standalone:1.11.5
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://keeper.sh
+- label: GitHub
+  url: https://github.com/ridafkih/keeper.sh
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: keeper
+    port: $PORT:80
+    volumes:
+    - /var/lib/postgresql/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

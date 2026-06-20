@@ -1,0 +1,68 @@
+metadata:
+  name: slskd
+  version: latest
+  description: slskd is a modern, web-based client for the Soulseek peer-to-peer file
+    sharing network. It provides a clean, intuitive web interface for browsing, searching,
+    and downloading files from the Soulseek network. Unlike traditional desktop clients,
+    slskd runs as a daemon service that you can access from any device with a web
+    browser. The application supports all core Soulseek features including user searches,
+    room browsing, private messaging, and file sharing. With its containerized deployment,
+    slskd makes it easy to run a persistent Soulseek client on a server or NAS device.
+    It's perfect for music enthusiasts, collectors, and anyone who wants to participate
+    in the Soulseek community without running a desktop application. The daemon continues
+    to operate even when you're not actively using the web interface, ensuring you
+    never miss downloads or messages.
+  category: file-sharing
+  tags:
+  - File Sharing
+  - P2P
+  - Media
+  - Music
+  - Self-Hosted
+  - Download Manager
+  - Soulseek
+  - Community
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: slskd/slskd:0.25.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5030
+links:
+- label: Website
+  url: https://slskd.org
+- label: Documentation
+  url: https://github.com/slskd/slskd/tree/master/docs
+- label: GitHub
+  url: https://github.com/slskd/slskd
+instructions: Default credentials are slskd/slskd.
+install:
+- docker:
+    image: $IMAGE
+    name: slskd
+    port: $PORT:5030
+    volumes:
+    - /app
+    extra_ports:
+    - 5031:5031
+    - 50300:50300
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Default credentials are slskd/slskd.

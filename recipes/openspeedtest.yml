@@ -1,0 +1,56 @@
+metadata:
+  name: OpenSpeedTest
+  version: latest
+  description: OpenSpeedTest is a powerful and accurate online bandwidth test application
+    that works on any web browser without the need for Flash or Java. It is designed
+    to replicate your real-world connection speed and is capable of testing any connection,
+    from 1 Kbps to 1 Gbps+. The application uses the latest technology to automatically
+    detect your stable download and upload speed from our servers. It also provides
+    a guide on how to increase your internet speed and get more out of your connection.
+    You can create your own network speed test without any client-side software or
+    plugin. The application can also be embedded to your website or application, allowing
+    your users to test their internet speed without leaving your page. It is also
+    available as a standalone application for home or small office LAN and can be
+    used for large-scale deployments as a self-hosted/on-premise network speed test.
+  category: network-tools
+  tags:
+  - Network Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: openspeedtest/latest:v2.0.6
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://openspeedtest.com/
+- label: Github
+  url: https://github.com/openspeedtest/Speed-Test
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: openspeedtest
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

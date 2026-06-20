@@ -1,0 +1,66 @@
+metadata:
+  name: Unleash
+  version: latest
+  description: Unleash is an open-source feature management software designed to cater
+    to the needs of large enterprises. It provides a private, secure, and scalable
+    platform that is ready to handle complex setups right out of the box. Unleash
+    allows you to code freely, release confidently, and then scale your software.
+    It offers a 'buy, then build' solution that is flexible, multilingual, and scales
+    along with your business processes. This results in reduced costs, efficient hours,
+    and less technical debt. Unleash also allows for progressive, targeted feature
+    rollouts, enabling you to release features to selected users the moment you're
+    ready. It supports change requests and approvals, and provides resilience during
+    service outages. With Unleash, you can easily customize the software to your specific
+    use cases, build multiple environments on separate instances, and keep your user
+    data safe through privacy by design, data residency, and flexible hosting options.
+  category: developer-tools
+  tags:
+  - Developer Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: unleashorg/unleash-server:7.6.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 4242
+links:
+- label: Website
+  url: https://getunleash.io
+- label: Documentation
+  url: https://docs.getunleash.io
+- label: Github
+  url: https://github.com/Unleash/unleash
+- label: Demo
+  url: https://www.getunleash.io/interactive-demo
+instructions: Login with admin:unleash4all
+install:
+- docker:
+    image: $IMAGE
+    name: unleash
+    port: $PORT:4242
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Login with admin:unleash4all
+services:
+  postgres:
+    type: postgres
+    version: latest

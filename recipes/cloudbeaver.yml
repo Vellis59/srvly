@@ -1,0 +1,66 @@
+metadata:
+  name: CloudBeaver
+  version: latest
+  description: CloudBeaver is a web-based database management tool developed by DBeaver
+    team. It provides a modern, intuitive interface for managing databases through
+    your web browser. CloudBeaver supports multiple database types including PostgreSQL,
+    MySQL, MariaDB, SQLite, Oracle, SQL Server, and many others. Perfect for teams
+    who need collaborative database management without installing desktop software.
+  category: database
+  tags:
+  - Database
+  - SQL
+  - Management
+  - Web Interface
+  - PostgreSQL
+  - MySQL
+  - Oracle
+  - Development
+  - Analytics
+  - Team Collaboration
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: dbeaver/cloudbeaver:26.0.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8978
+links:
+- label: Website
+  url: https://cloudbeaver.io/
+- label: Documentation
+  url: https://github.com/dbeaver/cloudbeaver/wiki
+- label: GitHub
+  url: https://github.com/dbeaver/cloudbeaver
+instructions: On first launch, a setup wizard will guide you to create an administrator
+  account and configure the server. After completing the wizard, log in with the credentials
+  you created.
+install:
+- docker:
+    image: $IMAGE
+    name: cloudbeaver
+    port: $PORT:8978
+    volumes:
+    - /opt/cloudbeaver/workspace
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: On first launch, a setup wizard will guide you to create an administrator
+    account and configure the server. After completing the wizard, log in with the
+    credentials you created.

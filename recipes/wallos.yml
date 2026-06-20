@@ -1,0 +1,59 @@
+metadata:
+  name: Wallos
+  version: latest
+  description: Wallos is an open-source, self-hosted network monitoring and management
+    platform that provides comprehensive network visibility, device discovery, and
+    network analytics. It helps network administrators monitor network health, track
+    bandwidth usage, and manage network devices efficiently.
+  category: network-monitoring
+  tags:
+  - Network Monitoring
+  - Network Management
+  - Device Discovery
+  - Bandwidth Monitoring
+  - Network Analytics
+  - Infrastructure
+  - DevOps
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: bellamy/wallos:4.8.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://wallos.app/
+- label: Documentation
+  url: https://docs.wallos.app/
+- label: Github
+  url: https://github.com/ellite/Wallos
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: wallos
+    port: $PORT:80
+    volumes:
+    - /var/www/html/db
+    - /var/www/html/images/uploads/logos
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

@@ -1,0 +1,66 @@
+metadata:
+  name: DragonflyDB
+  version: latest
+  description: DragonflyDB is a modern, high-performance, Redis-compatible in-memory
+    datastore that's designed for cloud workloads. It offers superior performance
+    with up to 25x higher throughput than Redis while using fewer resources. DragonflyDB
+    is fully compatible with Redis APIs and commands, making it a drop-in replacement
+    that doesn't require code changes. It features automatic snapshots, optional persistence
+    to disk, built-in replication, and efficient memory management. Perfect for caching,
+    session storage, real-time analytics, and any use case that requires blazing-fast
+    data access with lower operational costs.
+  category: database
+  tags:
+  - Database
+  - Cache
+  - In-Memory
+  - Redis
+  - Performance
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: docker.dragonflydb.io/dragonflydb/dragonfly:v1.38.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 6379
+links:
+- label: Website
+  url: https://www.dragonflydb.io/
+- label: Documentation
+  url: https://www.dragonflydb.io/docs
+- label: Docker Hub
+  url: https://hub.docker.com/r/dragonflydb/dragonfly
+- label: Github
+  url: https://github.com/dragonflydb/dragonfly
+instructions: After deployment, you can connect to DragonflyDB using any Redis client
+  on port 6379. Make sure to use the password you configured for secure access. Data
+  is automatically persisted to the mounted volume based on the snapshot schedule.
+install:
+- docker:
+    image: $IMAGE
+    name: dragonfly
+    port: $PORT:6379
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After deployment, you can connect to DragonflyDB using any Redis client on
+    port 6379. Make sure to use the password you configured for secure access. Data
+    is automatically persisted to the mounted volume based on the snapshot schedule.

@@ -1,0 +1,60 @@
+metadata:
+  name: Gotify
+  version: latest
+  description: Gotify is a simple, self-hosted server for sending and receiving messages.
+    It is designed with a user-friendly interface and a straightforward API, making
+    it easy to use across different platforms. The core of Gotify is the server, which
+    features a WebUI and functionality for sending messages via a REST-API, subscribing/receiving
+    messages via a web socket connection, and managing users, clients, and applications.
+    Gotify also includes an Android client for subscribing to the message stream of
+    the server, creating push notifications for newly received messages. Additionally,
+    there is a command line client for pushing messages to the server. All these features
+    make Gotify a versatile tool for managing and exchanging messages while maintaining
+    control over your data.
+  category: communication
+  tags:
+  - Communication
+  - Push Notifications
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: gotify/server:2.9.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://gotify.net/
+- label: Documentation
+  url: https://gotify.net/docs/
+- label: Github
+  url: https://github.com/gotify
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: gotify
+    port: $PORT:80
+    volumes:
+    - /app/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

@@ -1,0 +1,61 @@
+metadata:
+  name: Elasticsearch
+  version: latest
+  description: Elasticsearch is a dynamic search and analytics engine designed for
+    seamless handling of extensive data across various formats. With a user-friendly
+    interface and a robust query language, it enables effortless advanced searches
+    and data analysis. Boasting high performance and scalability, Elasticsearch ensures
+    rapid search responses and efficient data retrieval, making it suitable for diverse
+    applications. The platform prioritizes security with features like role-based
+    access control and encryption, while its real-time indexing and distributed architecture
+    support resilience and reliability. Whether you're a developer or IT professional,
+    Elasticsearch provides a centralized solution for managing and extracting valuable
+    insights from your data, offering a powerful search and analytics experience.
+  category: data-analytics
+  tags:
+  - Data Analytics
+  - Search Engine
+  - Security
+  - Scalability
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: docker.elastic.co/elasticsearch/elasticsearch:9.2.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 9200
+links:
+- label: Website
+  url: https://www.elastic.co
+- label: Documentation
+  url: https://www.elastic.co/guide/index.html
+- label: Github
+  url: https://github.com/elastic/elasticsearch
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: elasticsearch
+    port: $PORT:9200
+    volumes:
+    - /usr/share/elasticsearch/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

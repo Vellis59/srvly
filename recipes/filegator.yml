@@ -1,0 +1,59 @@
+metadata:
+  name: Filegator
+  version: latest
+  description: Filegator is a free, open-source, self-hosted web application for managing
+    files and folders. It provides a user-friendly interface for organizing, uploading,
+    downloading, and sharing files with comprehensive file management capabilities.
+    Built with PHP, it offers multi-user support with different access permissions,
+    roles, and home folders. All basic file operations are supported including copy,
+    move, rename, edit, create, delete, preview, zip, unzip, download, and upload.
+    The file upload feature supports drag & drop, progress bar, pause and resume functionality
+    with chunked uploads for large files. Perfect for teams, students, field workers,
+    and anyone needing a simple yet powerful file sharing and management solution.
+  category: file-management
+  tags:
+  - File Management
+  - Storage
+  - Collaboration
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: filegator/filegator:v7.14.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Github
+  url: https://github.com/filegator/filegator
+- label: Documentation
+  url: https://docs.filegator.io
+- label: Website
+  url: https://filegator.io
+instructions: Login using credentials - admin/admin123
+install:
+- docker:
+    image: $IMAGE
+    name: filegator
+    port: $PORT:8080
+    volumes:
+    - /var/www/filegator/repository
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Login using credentials - admin/admin123

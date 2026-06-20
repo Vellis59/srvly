@@ -1,0 +1,59 @@
+metadata:
+  name: Heimdall
+  version: latest
+  description: Heimdall Application Dashboard is a versatile and visually pleasing
+    dashboard for all your web applications. It provides a simple and elegant interface
+    where you can add links to any web application or site you frequently use. The
+    app is designed with simplicity in mind, avoiding the trap of over-complication
+    that many projects fall into. With Heimdall, you can add a link to anything, whether
+    it's intrinsically supported or not, by simply filling in the name, background
+    color, and the link URL. The app also supports Foundation and Enhanced apps. Foundation
+    apps are those supported by Heimdall, and Enhanced apps are like Foundation apps
+    but with the added feature of displaying extra information automatically by entering
+    API credentials. Heimdall is all about making your web application experience
+    smooth, simple, and enjoyable.
+  category: dashboard
+  tags:
+  - Dashboard
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: linuxserver/heimdall:2.7.6
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://heimdall.site/
+- label: Documentation
+  url: https://heimdall.site/
+- label: Github
+  url: https://github.com/linuxserver/Heimdall
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: heimdall
+    port: $PORT:80
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

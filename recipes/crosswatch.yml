@@ -1,0 +1,62 @@
+metadata:
+  name: Crosswatch
+  version: latest
+  description: CrossWatch is a self-hosted synchronization engine that keeps Plex,
+    Jellyfin, Emby, SIMKL, Trakt, AniList, TMDb, MDBList, and Tautulli aligned. It
+    runs locally with a web UI on port 8787 where you link accounts, define sync pairs,
+    run them manually or on a schedule, and review stats and history. It includes
+    a built-in tracker with snapshots, profiles for separate setups (e.g. family or
+    different servers), watchlist and progress sync, scrobbling and webhooks to trackers,
+    and tools like Analyzer, Editor, and Captures for stuck or inconsistent items.
+    Configuration persists under /config; set TZ for your timezone.
+  category: media
+  tags:
+  - Media
+  - Sync
+  - Plex
+  - Jellyfin
+  - Emby
+  - Trakt
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/cenodude/crosswatch:0.9.18
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8787
+links:
+- label: Website
+  url: https://crosswatch.app
+- label: Documentation
+  url: https://wiki.crosswatch.app
+- label: GitHub
+  url: https://github.com/cenodude/CrossWatch
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: crosswatch
+    port: $PORT:8787
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

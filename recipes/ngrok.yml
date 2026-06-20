@@ -1,0 +1,60 @@
+metadata:
+  name: ngrok
+  version: latest
+  description: ngrok is a secure tunneling service that creates secure tunnels from
+    a public endpoint to a locally running web service. It's perfect for exposing
+    local development servers, testing webhooks, and sharing your work with others.
+    This template provides easy deployment of ngrok with configurable authentication,
+    regions, and target services.
+  category: tunneling
+  tags:
+  - Tunneling
+  - Development
+  - Webhooks
+  - Testing
+  - Networking
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ngrok/ngrok:3.39.1-alpine
+  port:
+    type: integer
+    title: Port HTTP
+    default: 4040
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://ngrok.com
+- label: Documentation
+  url: https://ngrok.com/docs
+- label: GitHub
+  url: https://github.com/ngrok/ngrok
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: ngrok
+    port: $PORT:4040
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

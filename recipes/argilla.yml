@@ -1,0 +1,68 @@
+metadata:
+  name: Argilla
+  version: latest
+  description: Argilla is a robust platform designed to help engineers and data scientists
+    streamline the management of machine learning data workflows. It simplifies tasks
+    like data labeling, annotation, and quality control, making it easier for businesses
+    to build and maintain high-quality datasets for AI and machine learning projects.
+    Argilla supports efficient collaboration, integrates seamlessly with popular ML
+    frameworks, and provides a user-friendly interface for creating structured datasets.
+    Its open-source nature ensures transparency, flexibility, and the ability to self-host
+    for maximum control over your data and workflows.
+  category: machine-learning
+  tags:
+  - Machine Learning
+  - Data Labeling
+  - AI Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: argilla/argilla-server:v2.8.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 6900
+links:
+- label: Website
+  url: https://www.argilla.io/
+- label: Documentation
+  url: https://docs.argilla.io/
+- label: Github
+  url: https://github.com/argilla-io/argilla
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: argilla
+    port: $PORT:6900
+    volumes:
+    - /var/lib/argilla
+    - /var/lib/argilla
+    - /usr/share/elasticsearch/data/
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

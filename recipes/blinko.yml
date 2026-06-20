@@ -1,0 +1,63 @@
+metadata:
+  name: Blinko
+  version: latest
+  description: Blinko (space) is an open-source, self-hosted “idea hub” that rolls
+    notes, micro-blog posts, paste-bins and lightweight tasks into one minimalist,
+    card-style interface. You jot down thoughts in plain text or Markdown; behind
+    the scenes Blinko indexes every word with an AI-powered RAG engine (works with
+    OpenAI or a local Ollama model), so you can later retrieve anything with natural-language
+    search instead of keywords
+  category: collaboration
+  tags:
+  - Collaboration
+  - Team Management
+  - Document Sharing
+  - Project Management
+  - Real-time
+  - Workspace
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: blinkospace/blinko:1.8.7
+  port:
+    type: integer
+    title: Port HTTP
+    default: 1111
+links:
+- label: Website
+  url: https://blinko.space/
+- label: Documentation
+  url: https://docs.blinko.space/
+- label: Github
+  url: https://github.com/blinkospace/blinko
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: blinko
+    port: $PORT:1111
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

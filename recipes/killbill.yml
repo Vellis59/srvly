@@ -1,0 +1,75 @@
+metadata:
+  name: KillBill
+  version: latest
+  description: KillBill is an open-source subscription billing and payment platform
+    designed to simplify complex billing workflows for SaaS and other businesses.
+    It provides robust support for recurring billing, invoicing, and payment management
+    while offering flexibility for customization. KillBill ensures seamless integration
+    with third-party payment gateways, making it adaptable for global payment needs.
+    It supports multiple plugins to extend functionality, enabling businesses to manage
+    tax compliance, analytics, notifications, and more. The platform's Kaui UI offers
+    an intuitive administrative console for managing subscriptions, invoices, payments,
+    and tenants. KillBill's API-driven design allows developers to customize and automate
+    every aspect of the billing process. Its modular architecture ensures it can scale
+    with the growing needs of businesses, providing robust tools for revenue management.
+  category: subscription-management
+  tags:
+  - Subscription Management
+  - Recurring Billing
+  - Invoicing
+  - Payment Management
+  - API-Driven
+  - Extensible Plugins
+  - Multi-Tenancy
+  - Kaui Admin Console
+  - Revenue Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: killbill/killbill:0.24.17
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://killbill.io
+- label: Documentation
+  url: https://docs.killbill.io
+- label: GitHub
+  url: https://github.com/killbill/killbill
+instructions: You have to configure the KillBill URL in your Kaui Environment Section.
+  Then access the Kaui App Service to access KillBill. Default credentials username;
+  admin, password; password.
+install:
+- docker:
+    image: $IMAGE
+    name: killbill
+    port: $PORT:8080
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: You have to configure the KillBill URL in your Kaui Environment Section.
+    Then access the Kaui App Service to access KillBill. Default credentials username;
+    admin, password; password.
+services:
+  mysql:
+    type: mysql
+    version: latest

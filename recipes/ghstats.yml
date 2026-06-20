@@ -1,0 +1,77 @@
+metadata:
+  name: GHStats
+  version: latest
+  description: GHStats is a self-hosted GitHub statistics and analytics tool that
+    helps you track and visualize your GitHub repository metrics. Monitor stars, traffic,
+    clones, views, and other important repository statistics over time with an intuitive
+    web interface. The application collects and stores historical data from your GitHub
+    repositories, allowing you to analyze trends and growth patterns that would otherwise
+    be lost after GitHub's 14-day statistics retention period. Perfect for developers,
+    project maintainers, and organizations who want to maintain long-term analytics
+    of their GitHub presence. GHStats requires a GitHub personal access token to fetch
+    repository statistics and stores all collected data persistently for historical
+    analysis and visualization.
+  category: github
+  tags:
+  - GitHub
+  - Analytics
+  - Statistics
+  - Monitoring
+  - Self-Hosted
+  - Repository
+  - Tracking
+  - Metrics
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/vladkens/ghstats:v0.8.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Documentation
+  url: https://github.com/vladkens/ghstats/blob/main/readme.md
+- label: GitHub
+  url: https://github.com/vladkens/ghstats
+instructions: Create a GitHub personal access token before deploying. Open https://github.com/settings/tokens
+  and generate a classic token with at least the public_repo scope so GHStats can
+  collect repository traffic data. If you want private repositories included, use
+  repo scope and set GHS_INCLUDE_PRIVATE=true in a custom environment override. Paste
+  the token into the GitHub Token field in this template. The app reads it as GITHUB_TOKEN
+  and starts collecting metrics into /app/data. After deployment, open the assigned
+  domain on port 8080. The first sync may take a little time depending on repository
+  count, then dashboard history updates on the hourly scheduler.
+install:
+- docker:
+    image: $IMAGE
+    name: ghstats
+    port: $PORT:8080
+    volumes:
+    - /app/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Create a GitHub personal access token before deploying. Open https://github.com/settings/tokens
+    and generate a classic token with at least the public_repo scope so GHStats can
+    collect repository traffic data. If you want private repositories included, use
+    repo scope and set GHS_INCLUDE_PRIVATE=true in a custom environment override.
+    Paste the token into the GitHub Token field in this template. The app reads it
+    as GITHUB_TOKEN and starts collecting metrics into /app/data. After deployment,
+    open the assigned domain on port 8080. The first sync may take a little time depending
+    on repository count, then dashboard history updates on the hourly scheduler.

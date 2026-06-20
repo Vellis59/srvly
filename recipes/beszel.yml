@@ -1,0 +1,54 @@
+metadata:
+  name: Beszel
+  version: latest
+  description: Beszel is a lightweight server monitoring platform that includes Docker
+    statistics, historical data, and alert functions. It has a friendly web interface,
+    simple configuration, and is ready to use out of the box. It supports automatic
+    backup, multi-user, OAuth authentication, and API access.
+  category: server-monitoring
+  tags:
+  - Server Monitoring
+  - Docker Statistics
+  - Historical Data
+  - Alerts
+  - OAuth
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: henrygd/beszel:0.18.7
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8090
+links:
+- label: Documentation
+  url: https://github.com/henrygd/beszel/blob/main/readme.md
+- label: Github
+  url: https://github.com/henrygd/beszel
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: beszel
+    port: $PORT:8090
+    volumes:
+    - /beszel_data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

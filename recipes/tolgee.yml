@@ -1,0 +1,69 @@
+metadata:
+  name: Tolgee
+  version: latest
+  description: Tolgee is a revolutionary localization platform designed to simplify
+    and speed up the translation process of your application. With Tolgee, you can
+    translate your app into any language without modifying your code. It offers a
+    range of features including in-context translating, translation memory, machine
+    translations, auto translation, and activity log. The in-context translating feature
+    allows you to translate strings directly in the app you develop, even in production.
+    Translation memory ensures you don't translate the same string twice by reusing
+    strings you've already translated. Machine translations let you leverage the power
+    of DeepL, Google Translate, and AWS translate. Auto translation delivers your
+    translations instantly right after you add them. The activity log feature helps
+    you monitor the translation activities. Tolgee also allows users to add screenshots
+    with a single click, providing context for translations. It is designed to be
+    developer-friendly with easy integration with all major JS frameworks. Tolgee
+    is not only easy to use for developers but also for translators, making the localization
+    process seamless and efficient.
+  category: developer-tools
+  tags:
+  - Developer Tools
+  - Localization
+  - Translation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: tolgee/tolgee:v3.184.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://tolgee.io
+- label: Documentation
+  url: https://tolgee.io/platform
+- label: Github
+  url: https://github.com/tolgee/tolgee-platform
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: tolgee
+    port: $PORT:8080
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

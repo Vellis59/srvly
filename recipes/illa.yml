@@ -1,0 +1,60 @@
+metadata:
+  name: Illa
+  version: latest
+  description: Illa Cloud is a revolutionary browser-based code editor designed to
+    streamline and modernize the process of website development. It allows you to
+    code directly within your web browser, either online or offline, eliminating the
+    need for multiple programs. With Illa Cloud, you can test your sites on actual
+    web servers and maintain them with ease after development, making for a fast and
+    intelligent development process. It's not just limited to online use - you can
+    also use it as a desktop code editor, provided you have PHP 7.0+. It comes packed
+    with a multitude of features and plugins to enhance your coding experience, including
+    multiple cursors, 80+ highlighting themes, a find & replace builder, login security,
+    coding assistance, visual code difference display, and database management with
+    the Adminer plugin. The latest version, Illa Cloud 8.1, introduces regex search
+    on find and replace, double click tab to collapse file manager, active line number
+    highlighting, and many more improvements and bug fixes.
+  category: cloud-ide
+  tags:
+  - Cloud IDE
+  - Developer Tools
+  - Web Development
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: illasoft/illa-builder:v4.8.5
+  port:
+    type: integer
+    title: Port HTTP
+    default: 2022
+links:
+- label: Website
+  url: https://illacloud.com/
+- label: Documentation
+  url: https://docs.illacloud.com/
+instructions: Defualt username; root and password; password
+install:
+- docker:
+    image: $IMAGE
+    name: illa
+    port: $PORT:2022
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Defualt username; root and password; password

@@ -1,0 +1,54 @@
+metadata:
+  name: SteamCMD
+  version: latest
+  description: SteamCMD is a command-line version of the Steam client for installing
+    and updating Steam games and dedicated servers. It's perfect for managing game
+    servers and game installations.
+  category: steam
+  tags:
+  - Steam
+  - Game Server
+  - Self-hosted
+  - Gaming
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: steamcmd/steamcmd:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://developer.valvesoftware.com/wiki/SteamCMD
+- label: Docker Hub
+  url: https://hub.docker.com/r/steamcmd/steamcmd
+instructions: After installation, you can use SteamCMD to install and update games.
+  The installation directory can be configured in the settings.
+install:
+- docker:
+    image: $IMAGE
+    name: steamcmd
+    port: $PORT:80
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After installation, you can use SteamCMD to install and update games. The
+    installation directory can be configured in the settings.

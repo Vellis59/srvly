@@ -1,0 +1,63 @@
+metadata:
+  name: Lowcoder
+  version: latest
+  description: Open-source low-code platform to build internal tools with minimal
+    effort.
+  category: low-code
+  tags:
+  - Low-Code
+  - Internal Tools
+  - Application Builder
+  - Automation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ''
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://lowcoder.org/
+- label: Documentation
+  url: https://docs.lowcoder.org/
+- label: Github
+  url: https://github.com/lowcoder-org/lowcoder
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: lowcoder
+    port: $PORT:3000
+    volumes:
+    - /lowcoder-stacks
+    - /lowcoder/assets
+    - /lowcoder/assets
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  redis:
+    type: redis
+    version: '7'

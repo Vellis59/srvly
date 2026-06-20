@@ -1,0 +1,54 @@
+metadata:
+  name: Freshrss
+  version: latest
+  description: FreshRSS is a free, self-hostable aggregator for RSS feeds. It allows
+    you to gather and read your favorite news sources in one place, providing a streamlined
+    and efficient way to stay informed. The app supports multiple platforms and can
+    be easily accessed through a web user interface. FreshRSS also offers the ability
+    to use external databases, enabling users to create a user and database in their
+    MySQL/MariaDB server. Additional extensions can be added to enhance the functionality
+    of the app. FreshRSS is designed to be simple to use, yet powerful, providing
+    a comprehensive solution for RSS feed aggregation.
+  category: rss
+  tags:
+  - RSS
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/freshrss:1.28.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://docs.linuxserver.io/images/docker-freshrss
+- label: Github
+  url: https://github.com/linuxserver/docker-freshrss
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: freshrss
+    port: $PORT:80
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

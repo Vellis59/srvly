@@ -1,0 +1,59 @@
+metadata:
+  name: Droppy
+  version: latest
+  description: Droppy is a self-hosted file storage and sharing server with a modern,
+    web-based interface. It allows you to securely upload, manage, and share files
+    and folders from any device with a browser. Droppy supports drag-and-drop uploads,
+    real-time updates, and previews for a variety of file types including images,
+    videos, and documents. With its user-friendly interface and robust feature set,
+    Droppy is ideal for personal or team file management. It is lightweight, written
+    in Node.js, and supports customization through environment variables and themes.
+  category: file-sharing
+  tags:
+  - File Sharing
+  - Storage
+  - Productivity
+  - Collaboration
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: silverwind/droppy:12.2.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8989
+links:
+- label: Documentation
+  url: https://github.com/silverwind/droppy/wiki
+- label: Github
+  url: https://github.com/silverwind/droppy
+- label: Website
+  url: https://www.droppyjs.com/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: droppy
+    port: $PORT:8989
+    volumes:
+    - /config
+    - /files
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

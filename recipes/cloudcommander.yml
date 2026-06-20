@@ -1,0 +1,50 @@
+metadata:
+  name: Cloud Commander
+  version: latest
+  description: Cloud Commander is a file manager for the web. It includes a command-line
+    console and a text editor. Cloud Commander helps you manage your server and work
+    with files, directories and programs in a web browser from any computer, mobile
+    or tablet.
+  category: self-hosted
+  tags: []
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: coderaiser/cloudcmd:19.15.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://cloudcmd.io
+- label: Github
+  url: https://github.com/coderaiser/cloudcmd
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: cloudcommander
+    port: $PORT:80
+    volumes:
+    - /root
+    - /mnt/fs
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

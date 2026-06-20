@@ -1,0 +1,55 @@
+metadata:
+  name: Squidex
+  version: latest
+  description: Squidex is an open-source, headless CMS designed for seamless content
+    management across multiple platforms. It provides a real-time GraphQL API, fine-grained
+    permissions, and a flexible workflow for content collaboration. Squidex supports
+    event sourcing and integrates well with modern applications, ensuring a structured
+    and efficient content distribution.
+  category: headless-cms
+  tags:
+  - Headless CMS
+  - API-Driven
+  - Content Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: squidex/squidex:7.23.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://docs.squidex.io/
+- label: Github
+  url: https://github.com/Squidex/squidex
+instructions: If you do not choose any identity provider, you can register a user
+  when you go to the browser.
+install:
+- docker:
+    image: $IMAGE
+    name: squidex
+    port: $PORT:80
+    volumes:
+    - /app/Assets
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: If you do not choose any identity provider, you can register a user when
+    you go to the browser.

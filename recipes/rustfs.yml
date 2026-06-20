@@ -1,0 +1,67 @@
+metadata:
+  name: RustFS
+  version: latest
+  description: RustFS is a high-performance, S3-compatible object storage system built
+    in Rust. It is 2.3x faster than MinIO for small object payloads and offers full
+    S3 API compatibility, a built-in web management console, erasure coding with Reed-Solomon
+    for data protection, bitrot detection via HighwayHash, and server-side encryption
+    with AES-256-GCM and ChaCha20-Poly1305. RustFS supports event notifications, bucket
+    versioning, object lifecycle management, bucket replication, and CORS configuration.
+    Licensed under the permissive Apache 2.0 license, it is designed for data lakes,
+    AI workloads, and large-scale storage with a user-friendly deployment experience.
+  category: object-storage
+  tags:
+  - Object Storage
+  - S3
+  - Self-Hosted
+  - Rust
+  - Cloud Storage
+  - MinIO Alternative
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: rustfs/rustfs:1.0.0-alpha.99
+  port:
+    type: integer
+    title: Port HTTP
+    default: 9001
+links:
+- label: GitHub
+  url: https://github.com/rustfs/rustfs
+- label: Documentation
+  url: https://docs.rustfs.com
+- label: Website
+  url: https://rustfs.com
+instructions: Login to the web console using the Access Key and Secret Key configured
+  during setup. The console is available on the default domain.
+install:
+- docker:
+    image: $IMAGE
+    name: rustfs
+    port: $PORT:9001
+    volumes:
+    - /data/rustfs0
+    - /data/rustfs1
+    - /data/rustfs2
+    - /data/rustfs3
+    - /app/logs
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Login to the web console using the Access Key and Secret Key configured during
+    setup. The console is available on the default domain.

@@ -1,0 +1,63 @@
+metadata:
+  name: StirlingPDF
+  version: latest
+  description: StirlingPDF is an open-source PDF management tool designed to streamline
+    PDF handling tasks for both individual users and businesses. It enables users
+    to create, merge, split, compress, and convert PDF documents with ease. Built
+    to support a wide range of platforms, including Linux, Windows, and macOS, StirlingPDF
+    ensures flexibility and resilience for everyday PDF management. Its user-friendly
+    interface and powerful backend make it suitable for both simple and complex PDF
+    workflows. StirlingPDF can run on personal computers or be deployed on servers,
+    offering seamless API access for integration into larger systems. Lightweight
+    and efficient, StirlingPDF is ideal for individual users, small businesses, and
+    large enterprises alike, ensuring reliable PDF manipulation without the need for
+    costly subscriptions. It supports MySQL, PostgreSQL, or SQLite databases, providing
+    robust data handling across various infrastructures.
+  category: pdf
+  tags:
+  - PDF
+  - Document Management
+  - Open Source
+  - API Integration
+  - PDF Conversion
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: frooodle/s-pdf:2.10.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://stirlingpdf.io/
+- label: Documentation
+  url: https://stirlingpdf.io/
+- label: Github
+  url: https://github.com/Stirling-Tools/Stirling-PDF
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: stirlingpdf
+    port: $PORT:8080
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

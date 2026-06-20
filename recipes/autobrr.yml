@@ -1,0 +1,62 @@
+metadata:
+  name: Autobrr
+  version: latest
+  description: Autobrr is a modern download automation tool for torrent indexers and
+    trackers. It monitors IRC announce channels and RSS feeds from various torrent
+    trackers, automatically downloading torrents that match your custom filters and
+    rules. Autobrr acts as a bridge between torrent indexers and your download clients,
+    enabling advanced automation workflows. It supports numerous torrent clients including
+    qBittorrent, Deluge, Transmission, and rTorrent, and integrates with media management
+    tools like Sonarr, Radarr, and Lidarr. With powerful filtering capabilities based
+    on resolution, codec, release group, and custom regex patterns, Autobrr ensures
+    you only download exactly what you want. Perfect for automating private tracker
+    workflows, racing releases, and maintaining ratio requirements.
+  category: automation
+  tags:
+  - Automation
+  - Torrent
+  - Download Manager
+  - Private Tracker
+  - Media Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/autobrr/autobrr:v1.75
+  port:
+    type: integer
+    title: Port HTTP
+    default: 7474
+links:
+- label: Website
+  url: https://autobrr.com/
+- label: Documentation
+  url: https://autobrr.com/introduction
+- label: Github
+  url: https://github.com/autobrr/autobrr
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: autobrr
+    port: $PORT:7474
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

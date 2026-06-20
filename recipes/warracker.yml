@@ -1,0 +1,60 @@
+metadata:
+  name: Warracker
+  version: latest
+  description: Warracker is a self-hosted warranty tracking application that helps
+    you manage and track warranties for your products and assets. It provides a comprehensive
+    solution for storing warranty information, tracking expiration dates, managing
+    documentation, and receiving notifications about upcoming warranty expirations.
+    Built with a modern web interface and PostgreSQL database for reliable data storage.
+  category: warranty-tracking
+  tags:
+  - Warranty Tracking
+  - Asset Management
+  - Self-Hosted
+  - Web Interface
+  - PostgreSQL
+  - Email Notifications
+  - Document Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/sassanix/warracker/main:0.10.1.14
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Github
+  url: https://github.com/sassanix/warracker
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: warracker
+    port: $PORT:80
+    volumes:
+    - /data/uploads
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

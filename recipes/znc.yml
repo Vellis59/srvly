@@ -1,0 +1,50 @@
+metadata:
+  name: ZNC
+  version: latest
+  description: ZNC is an IRC bouncer that is designed to stay connected to IRC servers
+    and channels, allowing you to access them at any time.
+  category: chat
+  tags:
+  - Chat
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/znc:1.10.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 6501
+links:
+- label: Website
+  url: https://github.com/linuxserver
+- label: Documentation
+  url: https://hub.docker.com/r/linuxserver/znc
+- label: Github
+  url: https://github.com/linuxserver/docker-znc/
+instructions: default login is admin/admin
+install:
+- docker:
+    image: $IMAGE
+    name: znc
+    port: $PORT:6501
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: default login is admin/admin

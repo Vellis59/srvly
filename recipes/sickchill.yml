@@ -1,0 +1,58 @@
+metadata:
+  name: Sickchill
+  version: latest
+  description: SickChill is a self-hosted personal video recorder (PVR) application
+    designed to automate the process of downloading and managing TV shows. It supports
+    a wide range of sources to download content, including torrents and Usenet. With
+    its intuitive interface, you can search for and schedule episodes, track your
+    show library, and get detailed information about your favorite series. SickChill
+    integrates with various media players and tools to organize and play content seamlessly.
+    It also includes features like automatic quality selection, subtitles, and episode
+    renaming for a streamlined viewing experience.
+  category: tv-shows
+  tags:
+  - TV Shows
+  - Media
+  - Automation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: linuxserver/sickchill:2024.3.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8081
+links:
+- label: Documentation
+  url: https://github.com/SickChill/SickChill/wiki
+- label: Github
+  url: https://github.com/SickChill/SickChill
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: sickchill
+    port: $PORT:8081
+    volumes:
+    - /config
+    - /downloads
+    - /tv
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

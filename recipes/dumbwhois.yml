@@ -1,0 +1,55 @@
+metadata:
+  name: DumbWhois
+  version: latest
+  description: DumbWhois is a simple WHOIS lookup service for domain information queries.
+    It provides both a web interface and API endpoint for retrieving domain registration
+    details, nameserver information, and other domain-related data. Perfect for developers
+    and system administrators who need quick domain lookups.
+  category: whois
+  tags:
+  - WHOIS
+  - Domain
+  - Lookup
+  - API
+  - Developer Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: dumbwareio/dumbwhois:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: hhttps://www.dumbware.io/DumbWhoIs
+- label: Documentation
+  url: https://github.com/dumbwareio/dumbwhois#readme
+- label: GitHub
+  url: https://github.com/dumbwareio/dumbwhois
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: dumbwhois
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

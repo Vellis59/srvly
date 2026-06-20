@@ -1,0 +1,54 @@
+metadata:
+  name: Homebox
+  version: latest
+  description: Homebox is an inventory management system that helps you keep track
+    of your belongings, their location, and other details to simplify home organization.
+  category: inventory
+  tags:
+  - Inventory
+  - Organization
+  - Home Management
+  - Self-Hosted
+  - Personal
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/sysadminsmedia/homebox:0.25.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 7745
+links:
+- label: Website
+  url: https://homebox.software/en/
+- label: GitHub
+  url: https://github.com/sysadminsmedia/homebox
+- label: Documentation
+  url: https://homebox.software/en/quick-start/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: homebox
+    port: $PORT:7745
+    volumes:
+    - /data/
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

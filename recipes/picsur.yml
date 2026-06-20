@@ -1,0 +1,56 @@
+metadata:
+  name: Picsur
+  version: latest
+  description: Picsur is a simple and fast image hosting service. It provides a user-friendly
+    interface for uploading, managing, and sharing images with support for various
+    image formats and features.
+  category: image-hosting
+  tags:
+  - Image Hosting
+  - File Sharing
+  - PostgreSQL
+  - Web Interface
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/caramelfur/picsur:0.5.6
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Github
+  url: https://github.com/caramelfur/picsur
+- label: Documentation
+  url: https://github.com/caramelfur/picsur#readme
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: picsur
+    port: $PORT:8080
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

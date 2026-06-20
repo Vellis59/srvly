@@ -1,0 +1,52 @@
+metadata:
+  name: Request Baskets
+  version: latest
+  description: Request Baskets is a lightweight application designed for developers
+    to capture and inspect HTTP requests. It allows creating disposable endpoints
+    to test webhooks, APIs, or any HTTP-based interaction. The application provides
+    an intuitive web interface for monitoring and debugging incoming requests in real
+    time.
+  category: http-requests
+  tags:
+  - HTTP Requests
+  - API Testing
+  - Webhooks
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: darklynx/request-baskets:v1.2.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Demo
+  url: https://rbaskets.in/web
+- label: Github
+  url: https://github.com/darklynx/request-baskets
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: request-baskets
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

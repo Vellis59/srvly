@@ -1,0 +1,57 @@
+metadata:
+  name: EvoBot
+  version: latest
+  description: EvoBot is a music bot designed for Discord, a popular communication
+    platform. It's built with TypeScript and discord.js, and it uses a Command Handler
+    from discordjs.guide. The bot allows users to play music directly from YouTube
+    either by using a URL or a search query. It also supports playing YouTube playlists.
+    In addition to playing music, EvoBot offers a variety of commands for managing
+    the playback. Users can control the volume, pause and resume playback, skip songs,
+    and even move songs within the queue. The bot also provides lyrics for songs and
+    can show its uptime. EvoBot supports multiple languages, making it accessible
+    to users around the world.
+  category: chat
+  tags:
+  - Chat
+  - Media
+  - Music
+  - Discord
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: eritislami/evobot:2.9.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Github
+  url: https://github.com/eritislami/evobot
+- label: Documentation
+  url: https://github.com/eritislami/evobot#%EF%B8%8F-configuration
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: evobot
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

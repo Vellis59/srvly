@@ -1,0 +1,61 @@
+metadata:
+  name: Teable
+  version: latest
+  description: Teable is a powerful, self-hosted service designed for managing team
+    collaboration and projects efficiently. It offers a clean and user-friendly interface,
+    supports plugins for extended functionality, and provides detailed analytics on
+    team activities. With Teable, you can maintain full control over your data and
+    workflows.
+  category: project-management
+  tags:
+  - Project Management
+  - Self-Hosted
+  - Team Collaboration
+  - Analytics
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/teableio/teable:bfd290f274cf8b0cc1defe9e1e6fd2b6826fed6b
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Documentation
+  url: https://teable.io/docs
+- label: Github
+  url: https://github.com/teableio/teable
+instructions: Wait for the migration to complete, then start using Teable for managing
+  your projects.
+install:
+- docker:
+    image: $IMAGE
+    name: teable
+    port: $PORT:3000
+    volumes:
+    - /app/.assets
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Wait for the migration to complete, then start using Teable for managing
+    your projects.
+services:
+  postgres:
+    type: postgres
+    version: latest

@@ -1,0 +1,61 @@
+metadata:
+  name: OpenHAB
+  version: latest
+  description: OpenHAB is an open-source automation software designed to integrate
+    and control smart home devices from various manufacturers. Written in Java, it
+    enables you to create rules, manage devices, and automate processes within your
+    smart home ecosystem. The platform provides a flexible and modular approach, allowing
+    integration with hundreds of devices and technologies through add-ons. OpenHAB
+    features a powerful rule engine, a unified user interface, and supports various
+    communication protocols such as Z-Wave, Zigbee, and MQTT. It is highly customizable,
+    secure, and community-driven, offering extensive documentation and support. OpenHAB
+    supports real-time updates, is mobile-friendly, and can be deployed on multiple
+    platforms including Docker and Kubernetes. Additional features include voice control
+    integration, presence detection, and support for custom scripts.
+  category: smart-home
+  tags:
+  - Smart Home
+  - Automation
+  - Productivity
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: openhab/openhab:5.0.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Documentation
+  url: https://www.openhab.org/docs/
+- label: Github
+  url: https://github.com/openhab/openhab-addons
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: openhab
+    port: $PORT:8080
+    volumes:
+    - /openhab/addons
+    - /openhab/conf
+    - /openhab/userdata
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

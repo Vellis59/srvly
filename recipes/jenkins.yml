@@ -1,0 +1,56 @@
+metadata:
+  name: Jenkins
+  version: latest
+  description: Jenkins is an open source automation server. It helps automate the
+    parts of software development related to building, testing, and deploying, facilitating
+    continuous integration, and continuous delivery. It is a server-based system that
+    runs in servlet containers such as Apache Tomcat.
+  category: automation
+  tags:
+  - Automation
+  - CI/CD
+  - DevOps
+  - Jenkins
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: jenkins/jenkins:2.562
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://www.jenkins.io/
+- label: Documentation
+  url: https://www.jenkins.io/doc/book/
+- label: Github
+  url: https://github.com/jenkinsci/jenkins
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: jenkins
+    port: $PORT:8080
+    volumes:
+    - /var/jenkins_home
+    - /var/run/docker.sock
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

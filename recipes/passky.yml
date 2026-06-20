@@ -1,0 +1,65 @@
+metadata:
+  name: Passky Server
+  version: latest
+  description: Passky is a simple, modern, lightweight, open source and secure password
+    manager. It allows you to securely store and manage your passwords, ensuring your
+    sensitive credentials remain protected. This self-hosted server component works
+    with the Passky clients (web, desktop, and mobile apps) to provide a complete
+    password management solution that puts you in control of your data.
+  category: password-manager
+  tags:
+  - Password Manager
+  - Security
+  - Authentication
+  - Self-Hosted
+  - Privacy
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: rabbitcompany/passky-server:8.1.8
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://passky.org
+- label: GitHub
+  url: https://github.com/Rabbit-Company/Passky-Server
+- label: Docker Hub
+  url: https://hub.docker.com/r/rabbitcompany/passky-server
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: passky
+    port: $PORT:80
+    volumes:
+    - /var/www/html/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest
+  redis:
+    type: redis
+    version: '7'

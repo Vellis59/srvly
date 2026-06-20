@@ -1,0 +1,63 @@
+metadata:
+  name: Akaunting
+  version: latest
+  description: "Akaunting is a powerful online accounting software designed for small\
+    \ businesses, \nfreelancers, and entrepreneurs. This free and open-source solution\
+    \ provides \ncomprehensive financial management tools with a modern, user-friendly\
+    \ interface. \nBuilt on Laravel, it offers robust double-entry bookkeeping, real-time\
+    \ financial \ntracking, and automated features to streamline your accounting processes.\
+    \ With \nmulti-user support, document management, and detailed reporting capabilities,\
+    \ \nAkaunting helps you maintain professional financial records while saving time\
+    \ \nand resources."
+  category: finance
+  tags:
+  - Finance
+  - Accounting
+  - Business
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: docker.io/akaunting/akaunting:3.1.21-v
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Github
+  url: https://github.com/akaunting/akaunting
+- label: Documentation
+  url: https://akaunting.com/docs
+- label: Website
+  url: https://akaunting.com
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: akaunting
+    port: $PORT:80
+    volumes:
+    - /var/www/html
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

@@ -1,0 +1,64 @@
+metadata:
+  name: iTop
+  version: latest
+  description: iTop is a self-hosted, open-source IT service management (ITSM) solution
+    designed for businesses and organizations to manage their IT assets, incidents,
+    and workflows efficiently. It provides a modern web interface for tracking and
+    organizing IT infrastructure, support tickets, change requests, and service catalogs.
+    iTop includes role-based user management, real-time notifications, and detailed
+    reporting tools to help IT teams maintain operational efficiency. It supports
+    multiple authentication methods, including LDAP and SAML, making it suitable for
+    enterprise environments. Additionally, iTop offers API access for integration
+    with third-party tools and automation of IT processes. Its containerized deployment
+    ensures scalability and easy management.
+  category: itsm
+  tags:
+  - ITSM
+  - IT Asset Management
+  - Help Desk
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: vbkunin/itop:3.2.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://www.itophub.io/wiki/page
+- label: Github
+  url: https://github.com/Combodo/iTop
+instructions: On the installation wizard, please connect to the DB.
+install:
+- docker:
+    image: $IMAGE
+    name: itop
+    port: $PORT:80
+    volumes:
+    - /var/www/html/
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: On the installation wizard, please connect to the DB.
+services:
+  mysql:
+    type: mysql
+    version: latest

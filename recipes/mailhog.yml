@@ -1,0 +1,56 @@
+metadata:
+  name: Mailhog
+  version: latest
+  description: MailHog is an intuitive email testing tool designed for developers.
+    It allows you to configure your application to use MailHog for SMTP delivery,
+    enabling you to view your outgoing emails in a user-friendly web UI. The app also
+    offers the option to release messages to real SMTP servers for delivery. With
+    MailHog, you can view messages in the web UI or retrieve them using the JSON API.
+    It supports SMTP AUTH and PIPELINING, and provides real-time updates using EventSource.
+    MailHog also includes a Chaos Monkey for failure testing and HTTP basic authentication
+    for its UI and API. It's lightweight, portable, and requires no installation.
+  category: email
+  tags:
+  - Email
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: mailhog/mailhog:v1.0.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 1025
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Github
+  url: https://github.com/mailhog/MailHog/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: mailhog
+    port: $PORT:1025
+    volumes: []
+    extra_ports:
+    - 8025:8025
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

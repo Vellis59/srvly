@@ -1,0 +1,71 @@
+metadata:
+  name: Monetr
+  version: latest
+  description: Monetr is a self-hosted personal finance management application that
+    helps you track your spending, manage budgets, and gain insights into your financial
+    habits. Built with modern architecture, Monetr provides a comprehensive solution
+    for managing your personal finances with features like transaction tracking, budget
+    management, spending analysis, and financial goal setting. The system uses PostgreSQL
+    for data persistence and Valkey (Redis-compatible) for caching and session management.
+    Perfect for individuals looking for a self-hosted alternative to commercial personal
+    finance applications.
+  category: finance
+  tags:
+  - Finance
+  - Personal Finance
+  - Budgeting
+  - Self-Hosted
+  - PostgreSQL
+  - Valkey
+  - Docker
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/monetr/monetr:1.13.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 4000
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: GitHub
+  url: https://github.com/monetr/monetr
+- label: Website
+  url: https://monetr.app
+- label: Documentation
+  url: https://monetr.app/documentation/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: monetr
+    port: $PORT:4000
+    volumes:
+    - /etc/monetr
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

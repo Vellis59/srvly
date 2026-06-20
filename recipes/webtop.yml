@@ -1,0 +1,53 @@
+metadata:
+  name: WebTop
+  version: latest
+  description: WebTop is a browser-based Linux desktop environment, self-hosted using
+    Docker. It provides a full-featured desktop experience accessible from any device
+    with a modern web browser. WebTop supports multiple desktop environments and applications,
+    making it a versatile tool for productivity, remote work, and development.
+  category: browser-based
+  tags:
+  - Browser-Based
+  - Self-Hosted
+  - Productivity
+  - Remote Desktop
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/webtop:ubuntu-xfce-version-4e5d70f4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Documentation
+  url: https://docs.linuxserver.io/images/docker-webtop/
+- label: Github
+  url: https://github.com/linuxserver/docker-webtop
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: webtop
+    port: $PORT:3000
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

@@ -1,0 +1,55 @@
+metadata:
+  name: Centrifugo
+  version: latest
+  description: Centrifugo is a scalable real-time messaging server that can be used
+    to add real-time features to your applications. It supports WebSocket and SockJS
+    connections, providing a robust solution for real-time communication.
+  category: real-time
+  tags:
+  - Real-time
+  - WebSocket
+  - Messaging
+  - Communication
+  - Server
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: centrifugo/centrifugo:v6.7.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Website
+  url: https://centrifugal.dev/
+- label: Documentation
+  url: https://centrifugal.dev/docs/getting-started/introduction
+- label: GitHub
+  url: https://github.com/centrifugal/centrifugo
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: centrifugo
+    port: $PORT:8000
+    volumes:
+    - /centrifugo/config.json
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

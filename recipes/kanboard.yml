@@ -1,0 +1,61 @@
+metadata:
+  name: Kanboard
+  version: latest
+  description: Kanboard is a free and open-source project management software that
+    utilizes the Kanban methodology. It provides a visual and clear overview of your
+    tasks, allowing you to easily manage your projects by dragging and dropping tasks
+    between columns. The app is designed with simplicity and minimalism in mind, limiting
+    the number of features to maintain focus on your work. It also includes a search
+    and filter function, enabling you to quickly find tasks using a simple query language.
+    Tasks can be broken down into sub-tasks, with the ability to add comments, documents,
+    and change various aspects such as color, category, assignee, and due date. Kanboard
+    also offers automated actions to streamline your workflow, eliminating the need
+    for repetitive manual tasks. It supports multiple authentication backends and
+    is translated in over 30 languages.
+  category: project-management
+  tags:
+  - Project Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: kanboard/kanboard:v1.2.52
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://kanboard.org/
+- label: Documentation
+  url: https://docs.kanboard.org/en/latest/
+- label: Github
+  url: https://github.com/kanboard/kanboard
+instructions: 'Default login username: admin, password: admin'
+install:
+- docker:
+    image: $IMAGE
+    name: kanboard
+    port: $PORT:80
+    volumes:
+    - /var/www/app/data
+    - /var/www/app/plugins
+    - /etc/nginx/ssl
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: 'Default login username: admin, password: admin'

@@ -1,0 +1,56 @@
+metadata:
+  name: DocuSeal
+  version: latest
+  description: DocuSeal is an open source platform that provides secure and efficient
+    digital document signing and processing. Create PDF forms to have them filled
+    and signed online on any device with an easy-to-use, mobile-optimized web tool.
+  category: pdf
+  tags:
+  - PDF
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: docuseal/docuseal:2.5.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://www.docuseal.co/
+- label: Documentation
+  url: https://www.docuseal.co/docs
+- label: Github
+  url: https://github.com/docusealco/docuseal
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: docuseal
+    port: $PORT:3000
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

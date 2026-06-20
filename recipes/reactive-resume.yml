@@ -1,0 +1,75 @@
+metadata:
+  name: Reactive Resume
+  version: latest
+  description: Reactive Resume is a free and open-source resume builder that simplifies
+    the process of creating, updating, and sharing your resume. With zero user tracking
+    or advertising, your privacy is a top priority. The platform is extremely user-friendly
+    and can be self-hosted in less than 30 seconds if you wish to own your data completely.
+    It's available in multiple languages and comes packed with features such as real-time
+    editing, dozens of templates, drag-and-drop customisation, and integration with
+    OpenAI for enhancing your writing. You can share a personalised link of your resume
+    to potential employers, track its views or downloads, and customise your page
+    layout by dragging-and-dropping sections.
+  category: resume-builder
+  tags:
+  - Resume Builder
+  - CV
+  - Career
+  - PDF Generator
+  - Privacy
+  - Open Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: amruthpillai/reactive-resume:v4.4.5
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://rxresu.me/
+- label: Documentation
+  url: https://docs.rxresume.org/self-hosting/docker
+- label: GitHub
+  url: https://github.com/AmruthPillai/Reactive-Resume
+- label: Demo
+  url: https://rxresu.me/
+instructions: Deploy the stack and open the app on your domain then create the first
+  account and start building resumes, this template uses the Reactive Resume v4.4.5
+  legacy compatible environment schema with PostgreSQL printer.
+install:
+- docker:
+    image: $IMAGE
+    name: reactive-resume
+    port: $PORT:3000
+    volumes:
+    - /data
+    - /app/data
+    extra_ports:
+    - 9000:9000
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Deploy the stack and open the app on your domain then create the first account
+    and start building resumes, this template uses the Reactive Resume v4.4.5 legacy
+    compatible environment schema with PostgreSQL printer.
+services:
+  postgres:
+    type: postgres
+    version: latest

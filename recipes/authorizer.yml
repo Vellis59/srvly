@@ -1,0 +1,72 @@
+metadata:
+  name: Authorizer
+  version: latest
+  description: Authorizer is a powerful tool designed to simplify the process of user
+    authentication and authorization in your applications. It allows you to build
+    secure apps 10x faster with its low code tool and low-cost deployment. With Authorizer,
+    you have full control over your user data, which can be stored in your preferred
+    database. The app supports multiple authentication recipes and allows you to authorize
+    users based on your business roles. It is compatible with OAuth2 and OpenID APIs.
+    Authorizer also offers secure session management with the best services baked
+    in, including HTTP only cookies and Authorization Code flow for mobile-based authentication.
+    It supports a wide range of databases, including major SQL, NoSQL, and GraphDBs.
+    You can customize emails, configure webhooks for various events, and add an extra
+    layer of security with email-based OTP for basic authentication. With Authorizer,
+    you can deploy your authentication and authorization service anywhere with multiple
+    deployment options. It is a comprehensive solution for all your authentication
+    and authorization needs.
+  category: authentication
+  tags:
+  - Authentication
+  - Authorization
+  - Security
+  - Developer Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lakhansamani/authorizer:2.2.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://authorizer.dev
+- label: Documentation
+  url: https://docs.authorizer.dev/
+- label: Github
+  url: https://github.com/authorizerdev/authorizer
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: authorizer
+    port: $PORT:8080
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

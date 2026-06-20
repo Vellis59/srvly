@@ -1,0 +1,62 @@
+metadata:
+  name: Formbricks
+  version: latest
+  description: Formbricks provides a free and open source surveying platform. Gather
+    feedback at every point in the user journey with beautiful in-app, website, link
+    and email surveys. Build on top of Formbricks or leverage prebuilt data analysis
+    capabilities.
+  category: survey
+  tags:
+  - Survey
+  - Forms
+  - Experience Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/formbricks/formbricks:4.9.5
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://formbricks.com
+- label: Github
+  url: https://github.com/formbricks/formbricks
+- label: Docker
+  url: https://ghcr.io/formbricks/formbricks
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: formbricks
+    port: $PORT:3000
+    volumes:
+    - /home/nextjs/apps/web/uploads/
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

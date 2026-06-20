@@ -1,0 +1,72 @@
+metadata:
+  name: OpenPanel
+  version: latest
+  description: OpenPanel is a powerful open-source product analytics platform that
+    helps you track and analyze user behavior. Built with modern technologies, it
+    provides real-time insights, custom event tracking, and intuitive dashboards.
+    Features include user segmentation, funnel analysis, retention metrics, and comprehensive
+    reporting capabilities. Self-hosted solution that gives you full control over
+    your data while maintaining privacy and security.
+  category: analytics
+  tags:
+  - Analytics
+  - Self-Hosted
+  - Product Analytics
+  - User Tracking
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ''
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://openpanel.dev/
+- label: GitHub
+  url: https://github.com/Openpanel-dev/openpanel
+instructions: You have to provide the domain name in order to access the OpenPanel
+  dashboard successfully and use the Caddy service to access the OpenPanel.
+install:
+- docker:
+    image: $IMAGE
+    name: openpanel
+    port: $PORT:80
+    volumes:
+    - /etc/caddy/Caddyfile
+    - /data
+    - /config
+    - /var/lib/clickhouse
+    - /var/log/clickhouse-server
+    - /etc/clickhouse-server/config.d
+    - /etc/clickhouse-server/users.d
+    - /docker-entrypoint-initdb.d
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: You have to provide the domain name in order to access the OpenPanel dashboard
+    successfully and use the Caddy service to access the OpenPanel.
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

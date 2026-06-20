@@ -1,0 +1,68 @@
+metadata:
+  name: Dolphin
+  version: latest
+  description: Dolphin is a powerful GameCube and Wii emulator that allows you to
+    play your favorite Nintendo games on modern hardware. With support for high-definition
+    graphics, save states, and enhanced controls, Dolphin brings classic gaming to
+    life with improved performance and visual quality. This browser-accessible version
+    provides the full Dolphin emulator through a web interface, enabling you to play
+    retro games from anywhere without local installation.
+  category: gaming
+  tags:
+  - Gaming
+  - Emulator
+  - GameCube
+  - Wii
+  - Nintendo
+  - Desktop
+  - Browser
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/dolphin:40d9d3af-ls61
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://dolphin-emu.org/
+- label: Documentation
+  url: https://dolphin-emu.org/docs/guides/
+- label: GitHub
+  url: https://github.com/dolphin-emu/dolphin
+instructions: Open Dolphin in your browser and complete the first-run wizard. Add
+  your game files under `/config` (for example in `/config/roms`) so they persist
+  across updates/redeploys, then configure that path in Dolphin's game directories.
+  For best performance, run this template on a host with hardware acceleration enabled
+  and use a gamepad when possible.
+install:
+- docker:
+    image: $IMAGE
+    name: dolphin
+    port: $PORT:3000
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Open Dolphin in your browser and complete the first-run wizard. Add your
+    game files under `/config` (for example in `/config/roms`) so they persist across
+    updates/redeploys, then configure that path in Dolphin's game directories. For
+    best performance, run this template on a host with hardware acceleration enabled
+    and use a gamepad when possible.

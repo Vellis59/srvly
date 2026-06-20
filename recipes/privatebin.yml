@@ -1,0 +1,60 @@
+metadata:
+  name: PrivateBin
+  version: latest
+  description: PrivateBin is a minimalist, open-source, self-hosted pastebin solution
+    designed for secure and private data sharing. It features end-to-end encryption,
+    ensuring that your shared content remains confidential. With its simple interface
+    and focus on privacy, PrivateBin is an excellent tool for individuals and teams
+    who value secure communication.
+  category: secure-sharing
+  tags:
+  - Secure Sharing
+  - Self-Hosted
+  - Privacy
+  - Pastebin
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: privatebin/nginx-fpm-alpine:2.0.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://privatebin.info/
+- label: Github
+  url: https://github.com/PrivateBin/PrivateBin
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: privatebin
+    port: $PORT:80
+    volumes:
+    - /srv/data
+    - /srv/cfg/conf.php
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

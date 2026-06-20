@@ -1,0 +1,61 @@
+metadata:
+  name: Satisfactory Server
+  version: latest
+  description: Satisfactory Server is a dedicated server for the popular factory building
+    game Satisfactory by Coffee Stain Studios. This containerized server allows you
+    to host your own multiplayer world for friends to join and collaborate on massive
+    factory projects. The server handles all game logic, world persistence, and player
+    connections, while requiring minimal setup and maintenance. Perfect for players
+    who want reliable, 24/7 access to their factory world without having to host the
+    game on their own computer.
+  category: gaming
+  tags:
+  - Gaming
+  - Game Server
+  - Multiplayer
+  - Factory Simulation
+  - Dedicated Server
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: wolveix/satisfactory-server:v1.9.10
+  port:
+    type: integer
+    title: Port HTTP
+    default: 7777
+links:
+- label: Docker Hub
+  url: https://hub.docker.com/r/wolveix/satisfactory-server
+- label: GitHub
+  url: https://github.com/wolveix/satisfactory-server
+- label: Game Website
+  url: https://www.satisfactorygame.com/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: satisfactory
+    port: $PORT:7777
+    volumes:
+    - /config
+    extra_ports:
+    - 15000:15000
+    - 15777:15777
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

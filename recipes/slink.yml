@@ -1,0 +1,57 @@
+metadata:
+  name: Slink
+  version: latest
+  description: Slink is a self-hosted image hosting service that provides secure image
+    upload, storage, and sharing capabilities. It features user management with approval
+    workflows, configurable password requirements, and image processing options. Perfect
+    for teams and organizations that need controlled image sharing.
+  category: image-hosting
+  tags:
+  - Image Hosting
+  - File Sharing
+  - User Management
+  - Image Processing
+  - Web Interface
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: anirdev/slink:v1.6.7
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: GitHub
+  url: https://github.com/anirdev/slink
+- label: Documentation
+  url: https://docs.slinkapp.io
+- label: DockerHub
+  url: https://hub.docker.com/r/anirdev/slink
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: slink
+    port: $PORT:3000
+    volumes:
+    - /app/var/data
+    - /app/slink/images
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

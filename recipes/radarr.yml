@@ -1,0 +1,59 @@
+metadata:
+  name: Radarr
+  version: latest
+  description: Radarr is a movie collection manager designed for Usenet and BitTorrent
+    users. It monitors multiple RSS feeds for new movies and interfaces with clients
+    and indexers to grab, sort, and rename them. Radarr also has the ability to automatically
+    upgrade the quality of existing files in your library when a better quality format
+    becomes available. The app features a calendar to see all your upcoming movies
+    in one place, manual search to find all the releases and choose the one you want,
+    and automatic handling of failed downloads. Radarr ensures you get the right release
+    every time with its custom formats feature, which allows fine control over release
+    prioritization and selection. It also supports major platforms like Windows, Linux,
+    macOS, and others.
+  category: media
+  tags:
+  - Media
+  - Download Manager
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: linuxserver/radarr:6.1.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 7878
+links:
+- label: Website
+  url: https://radarr.video/
+- label: Documentation
+  url: https://wiki.servarr.com/radarr
+- label: Github
+  url: https://github.com/Radarr/Radarr
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: radarr
+    port: $PORT:7878
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

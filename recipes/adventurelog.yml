@@ -1,0 +1,70 @@
+metadata:
+  name: AdventureLog
+  version: latest
+  description: AdventureLog is a comprehensive travel tracking and adventure logging
+    application that helps you document and organize your journeys around the world.
+    Built with modern web technologies and PostGIS for geographic data management,
+    it allows you to record your adventures, track visited locations, and create a
+    visual map of your travels. The application features a clean, intuitive interface
+    for logging trips, storing photos and memories, and analyzing your travel patterns.
+    With support for geographic data through PostGIS, you can visualize your adventures
+    on interactive maps and maintain a complete history of your explorations. Perfect
+    for travelers, adventurers, and anyone who wants to keep a detailed record of
+    their journeys.
+  category: travel
+  tags:
+  - Travel
+  - Logging
+  - Geographic
+  - Maps
+  - PostGIS
+  - Self-Hosted
+  - Adventure
+  - Documentation
+  - Media Storage
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/seanmorley15/adventurelog-frontend:v0.12.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5000
+links:
+- label: GitHub Frontend
+  url: https://github.com/seanmorley15/adventurelog-frontend
+- label: GitHub Backend
+  url: https://github.com/seanmorley15/adventurelog-backend
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: adventurelog
+    port: $PORT:5000
+    volumes:
+    - /code/media
+    extra_ports:
+    - 8080:8080
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

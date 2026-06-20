@@ -1,0 +1,67 @@
+metadata:
+  name: ElkarBackup
+  version: latest
+  description: ElkarBackup is a robust open-source backup management system designed
+    to streamline data protection and recovery for diverse environments. With an intuitive
+    web-based interface and extensive automation capabilities, it simplifies backup
+    scheduling and execution. ElkarBackup supports various storage backends and ensures
+    reliable backup operations with robust monitoring and reporting features. Whether
+    you're managing personal data or enterprise-scale systems, ElkarBackup offers
+    an efficient and user-friendly solution for safeguarding your critical information.
+  category: backup-management
+  tags:
+  - Backup Management
+  - Automation
+  - Data Recovery
+  - Open Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: elkarbackup/elkarbackup:2.3.9
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://elkarbackup.github.io
+- label: Documentation
+  url: https://elkarbackup.github.io/elkarbackup/
+- label: Github
+  url: https://github.com/elkarbackup/elkarbackup
+instructions: Login using root/root, custom settingss can be configured with the provided
+  envs.
+install:
+- docker:
+    image: $IMAGE
+    name: elkarbackup
+    port: $PORT:80
+    volumes:
+    - /app/backups
+    - /app/uploads
+    - /app/.ssh
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Login using root/root, custom settingss can be configured with the provided
+    envs.
+services:
+  mysql:
+    type: mysql
+    version: latest

@@ -1,0 +1,69 @@
+metadata:
+  name: Odoo
+  version: latest
+  description: Odoo is a comprehensive, integrated software platform designed to streamline
+    and automate your business operations. It offers a suite of open-source business
+    applications that cover all your company needs, from sales and services integration
+    to operations management, website building, financial management, and marketing.
+    Odoo's unique value proposition lies in its ease of use and full integration.
+    The apps are designed to work seamlessly together, allowing you to automate and
+    track everything you do in a centralized, online platform accessible from anywhere
+    with any device. With Odoo, you can replace multiple applications with a single,
+    cost-effective, and modular solution, eliminating the need for painful integrations
+    and providing a comprehensive overview of your business. The platform evolves
+    much faster than other solutions, with regular annual releases leveraging the
+    expertise of thousands of developers and business experts. Whether you need a
+    CRM, eCommerce, accounting, inventory, project management, or any other business
+    application, Odoo has got you covered.
+  category: erp
+  tags:
+  - ERP
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: odoo:19.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8069
+links:
+- label: Website
+  url: https://www.odoo.com
+- label: Github
+  url: https://github.com/odoo/odoo
+- label: Documentation
+  url: https://www.odoo.com/page/docs
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: odoo
+    port: $PORT:8069
+    volumes:
+    - /var/lib/odoo
+    - /etc/odoo
+    - /mnt/extra-addons
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

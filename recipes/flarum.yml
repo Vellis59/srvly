@@ -1,0 +1,64 @@
+metadata:
+  name: Flarum
+  version: latest
+  description: Experience a modern, fast, and free forum experience with our app.
+    Designed with an elegant UI, our app is mobile-first, easily stylable, and lightweight,
+    ensuring a seamless experience on any device. It prioritizes security and trust,
+    providing a safe environment for users. The app is also localised into many languages,
+    with 41 translation packs available, making it accessible to users worldwide.
+    Whether you're a leading telephone network serving millions of customers, an avid
+    adventurer sharing your experiences, or a provider of communication and entertainment,
+    our app is the perfect platform for you. It's not just a forum, it's a revolution
+    in community engagement.
+  category: forums
+  tags:
+  - Forums
+  - Communication
+  - Social Networking
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: crazymax/flarum:1.8.10
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Website
+  url: https://flarum.org/
+- label: Documentation
+  url: https://docs.flarum.org/
+- label: Github
+  url: https://github.com/flarum/flarum
+instructions: Please use the credentials flarum:flarum to login.
+install:
+- docker:
+    image: $IMAGE
+    name: flarum
+    port: $PORT:8000
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Please use the credentials flarum:flarum to login.
+services:
+  postgres:
+    type: postgres
+    version: latest

@@ -1,0 +1,68 @@
+metadata:
+  name: Drupal
+  version: latest
+  description: Drupal is a powerful open-source content management system (CMS) designed
+    to help you create and manage complex, dynamic websites with ease. Drupal is highly
+    customizable, offering robust tools for managing content, users, permissions,
+    and workflows. It supports custom themes, modules, and integrations, enabling
+    you to create tailored experiences for any type of website, from blogs and portfolios
+    to eCommerce platforms and enterprise-level solutions. Drupal prioritizes flexibility,
+    scalability, and security, making it a preferred choice for developers, businesses,
+    and organizations worldwide.
+  category: content-management
+  tags:
+  - Content Management
+  - Website Development
+  - Open Source
+  - Enterprise CMS
+  - Modular Architecture
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: drupal:11.2.11-apache
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://www.drupal.org/
+- label: Documentation
+  url: https://www.drupal.org/docs
+- label: Github
+  url: https://github.com/drupal/drupal
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: drupal
+    port: $PORT:80
+    volumes:
+    - /var/www/html/modules
+    - /var/www/html/profiles
+    - /var/www/html/themes
+    - /var/www/html/sites
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

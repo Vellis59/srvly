@@ -1,0 +1,55 @@
+metadata:
+  name: CookCLI
+  version: latest
+  description: CookCLI is a command line recipe manager for Cooklang files that can
+    also run a local web interface for browsing and working with recipe collections.
+    This template deploys the CookCLI server mode with persistent recipe storage.
+  category: recipes
+  tags:
+  - Recipes
+  - Cooklang
+  - CLI
+  - Productivity
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/cooklang/cookcli:0.29.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 9080
+links:
+- label: Website
+  url: https://cooklang.org/cli/
+- label: Documentation
+  url: https://cooklang.org/cli/help/
+- label: GitHub
+  url: https://github.com/cooklang/cookcli
+instructions: Deploy the template and open the app URL to access the CookCLI web interface.
+install:
+- docker:
+    image: $IMAGE
+    name: cookcli
+    port: $PORT:9080
+    volumes:
+    - /recipes
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Deploy the template and open the app URL to access the CookCLI web interface.

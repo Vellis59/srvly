@@ -1,0 +1,66 @@
+metadata:
+  name: LinkedOut
+  version: latest
+  description: A comprehensive LinkedIn automation platform that helps streamline
+    your LinkedIn outreach and engagement. The platform combines a modern Next.js
+    frontend for managing campaigns and contacts, a robust PocketBase backend for
+    secure data storage and user management, and powerful n8n workflow automation
+    for handling LinkedIn interactions and follow-ups. With optional ngrok tunneling
+    support for local development and testing, and easy deployment via Docker and
+    Easypanel, LinkedOut provides everything needed to automate and scale your LinkedIn
+    presence effectively.
+  category: linkedin
+  tags:
+  - LinkedIn
+  - Automation
+  - Workflow
+  - Social Media
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: dockeriddonuts/easypanel-linkedout-frontend:1.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Documentation
+  url: https://github.com/maxt-n8n/linkedout#readme
+- label: GitHub
+  url: https://github.com/maxt-n8n/linkedout
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: linkedout
+    port: $PORT:3000
+    volumes:
+    - /app/data
+    - /pb_data
+    - /home/node/.n8n
+    extra_ports:
+    - 4040:4040
+    - 5678:5678
+    - 8090:8090
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

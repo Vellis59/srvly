@@ -1,0 +1,54 @@
+metadata:
+  name: dPaste
+  version: latest
+  description: dPaste is a simple and lightweight pastebin service that allows you
+    to share text snippets, code, and other content quickly. It provides a clean interface
+    for creating, sharing, and managing pastes with support for syntax highlighting
+    and expiration times.
+  category: pastebin
+  tags:
+  - Pastebin
+  - Code Sharing
+  - Text Sharing
+  - Self-Hosted
+  - Development Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: darrenofficial/dpaste:64068f7a
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Github
+  url: https://github.com/DarrenOfficial/dpaste
+instructions: After installation, access the web interface through the provided domain
+  to start creating and sharing pastes.
+install:
+- docker:
+    image: $IMAGE
+    name: dpaste
+    port: $PORT:8000
+    volumes:
+    - /db
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After installation, access the web interface through the provided domain
+    to start creating and sharing pastes.

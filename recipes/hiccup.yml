@@ -1,0 +1,54 @@
+metadata:
+  name: Hiccup
+  version: latest
+  description: Hiccup is a static start page application designed to help you access
+    your most important links quickly and efficiently. It allows you to categorize
+    your links, add them via drag and drop, and even search for them using various
+    search providers. The app also supports multiple profiles, enabling you to switch
+    between different sets of links based on your needs. Hiccup also features a built-in
+    config manager for easy management of your link configurations. The app is designed
+    to be used anywhere you can serve a static webpage from, such as your home server
+    or a new browser tab. It also supports full keyboard navigation for quick and
+    easy access to your links.
+  category: productivity
+  tags:
+  - Productivity
+  - Bookmarks
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: bleckbeard/hiccup:v0.5.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Github
+  url: https://github.com/ashwin-pc/hiccup
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: hiccup
+    port: $PORT:80
+    volumes:
+    - /usr/share/nginx/html
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

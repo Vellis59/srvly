@@ -1,0 +1,66 @@
+metadata:
+  name: Zep
+  version: latest
+  description: Zep is a powerful, self-hosted AI platform designed for seamless integration
+    with large language models. It provides a clean and intuitive interface, supports
+    plugins for extended functionality, and offers detailed analytics to monitor and
+    optimize your AI workflows. With Zep, you maintain full control over your deployments
+    and configurations. The application is accessible via your host on designated
+    ports, ensuring secure and scalable operations. This container is based on Docker
+    Baseimage KasmVNC, providing additional environment variables and configurations
+    for enhanced flexibility. It also supports the docker manifest for multi-platform
+    awareness, ensuring the correct image for your architecture.
+  category: ai
+  tags:
+  - AI
+  - Self-Hosted
+  - API
+  - Automation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: zepai/zep:1.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5432
+links:
+- label: Documentation
+  url: https://www.getzep.com/
+- label: Github
+  url: https://github.com/getzep/zep
+instructions: Zep Community Edition can be used with any LLM provider that implements
+  the OpenAI API.
+install:
+- docker:
+    image: $IMAGE
+    name: zep
+    port: $PORT:5432
+    volumes:
+    - /app/zep.yaml
+    extra_ports:
+    - 8000:8000
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Zep Community Edition can be used with any LLM provider that implements the
+    OpenAI API.
+services:
+  postgres:
+    type: postgres
+    version: latest

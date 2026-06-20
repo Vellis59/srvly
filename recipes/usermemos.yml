@@ -1,0 +1,58 @@
+metadata:
+  name: Usermemos
+  version: latest
+  description: Usermemos is a lightweight, self-hosted note-taking application designed
+    for simplicity, accessibility, and efficiency. It provides an intuitive interface
+    for capturing and organizing memos with support for markdown formatting, tagging,
+    and searching. This app is a Docker containerized version of Usermemos, making
+    it easy to deploy and manage in various environments. The app supports multiple
+    architectures, including x86-64 and arm64, and can be accessed via HTTP or HTTPS.
+    It offers additional environment variables and configurations to enable customization.
+    Usermemos is designed for both personal and collaborative usage, ensuring that
+    users can manage their notes effectively.
+  category: productivity
+  tags:
+  - Productivity
+  - Note-Taking
+  - Self-Hosted
+  - Developer Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: neosmemo/memos:0.28.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5230
+links:
+- label: Documentation
+  url: https://www.usememos.com/docs
+- label: Github
+  url: https://github.com/usememos/memos
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: usermemos
+    port: $PORT:5230
+    volumes:
+    - /var/opt/memos
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

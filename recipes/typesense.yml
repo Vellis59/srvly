@@ -1,0 +1,64 @@
+metadata:
+  name: Typesense
+  version: latest
+  description: Typesense is a powerful, fast, and typo-tolerant search engine designed
+    to provide delightful search experiences. It is an open-source alternative to
+    Algolia and a more user-friendly alternative to ElasticSearch. Typesense is capable
+    of handling typographical errors gracefully, right out of the box. It is meticulously
+    architected for low-latency, instant searches, offering a response time of less
+    than 50ms. The app allows easy tailoring of search results, sorting of results
+    based on a particular field at query time, and refining of results through faceting
+    and filtering. It also supports grouping of similar results, federated search
+    across multiple collections, geographic location-based search and sorting, and
+    vector searching. Typesense also allows the generation of API keys for access
+    to specific records, making it suitable for multi-tenant applications. It is designed
+    to be simple to set up, integrate with, operate, and scale, making it a perfect
+    choice for building delightful search experiences.
+  category: documentation
+  tags:
+  - Documentation
+  - Developer Tools
+  - Data Science
+  - Search
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: typesense/typesense:30.2.rc4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8108
+links:
+- label: Documentation
+  url: https://typesense.org/docs/
+- label: Github
+  url: https://github.com/typesense/typesense
+- label: Website
+  url: https://typesense.org/
+instructions: Find your API key in the environment tab
+install:
+- docker:
+    image: $IMAGE
+    name: typesense
+    port: $PORT:8108
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Find your API key in the environment tab

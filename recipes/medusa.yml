@@ -1,0 +1,62 @@
+metadata:
+  name: Medusa
+  version: latest
+  description: Medusa is an automatic Video Library Manager for TV Shows. It continuously
+    monitors multiple sources for new episodes of your favorite TV shows and automatically
+    downloads, processes, and organizes them. Medusa fetches metadata, renames files,
+    and ensures your media library is structured and up-to-date. With a powerful and
+    customizable automation system, it supports multiple download clients, subtitle
+    providers, and metadata sources. Medusa integrates with popular media servers,
+    ensuring seamless media management.
+  category: tv-shows
+  tags:
+  - TV Shows
+  - Media Management
+  - Automation
+  - Productivity
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/medusa:1.0.25
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8081
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Documentation
+  url: https://github.com/pymedusa/Medusa/wiki
+- label: Github
+  url: https://github.com/pymedusa/Medusa
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: medusa
+    port: $PORT:8081
+    volumes:
+    - /config
+    - /downloads
+    - /tv
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

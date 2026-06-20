@@ -1,0 +1,89 @@
+metadata:
+  name: Tyk Gateway
+  version: latest
+  description: Tyk Gateway is an open-source API gateway for securing, scaling, and
+    observing APIs. It sits in front of your upstream services and handles rate limiting,
+    authentication, analytics, and transformations. This template runs the gateway
+    in standalone mode with Redis for storage.
+  category: api-gateway
+  tags:
+  - API Gateway
+  - API
+  - Redis
+  - Open Source
+  - Self-hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ''
+  port:
+    type: integer
+    title: Port HTTP
+    default: 6379
+links:
+- label: Website
+  url: https://tyk.io/
+- label: Documentation
+  url: https://tyk.io/docs/
+- label: GitHub
+  url: https://github.com/TykTechnologies/tyk
+- label: Docker examples
+  url: https://github.com/TykTechnologies/tyk-gateway-docker
+instructions: 'After deployment, access Tyk Gateway on the main domain (port 8080).
+  Add API
+
+  definitions by placing JSON files in the apps volume (mounted at
+
+  /opt/tyk-gateway/apps). Configure policies in the policies volume and
+
+  middleware in the middleware volume. TYK_GW_SECRET is auto-generated; use it
+
+  when calling the Gateway API or with the Dashboard.
+
+  '
+install:
+- docker:
+    image: $IMAGE
+    name: tyk-gateway
+    port: $PORT:6379
+    volumes:
+    - /opt/tyk-gateway/tyk.conf
+    - /opt/tyk-gateway/apps
+    - /opt/tyk-gateway/middleware
+    - /opt/tyk-gateway/certs
+    - /opt/tyk-gateway/policies
+    extra_ports:
+    - 8080:8080
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: 'After deployment, access Tyk Gateway on the main domain (port 8080). Add
+    API
+
+    definitions by placing JSON files in the apps volume (mounted at
+
+    /opt/tyk-gateway/apps). Configure policies in the policies volume and
+
+    middleware in the middleware volume. TYK_GW_SECRET is auto-generated; use it
+
+    when calling the Gateway API or with the Dashboard.
+
+    '
+services:
+  redis:
+    type: redis
+    version: '7'

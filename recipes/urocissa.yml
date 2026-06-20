@@ -1,0 +1,62 @@
+metadata:
+  name: Urocissa
+  version: latest
+  description: Urocissa is a self-hosted photo and video gallery designed to serve
+    massive collections, capable of handling millions of images and videos. Built
+    with Rust and Vue, it features blazing fast performance with an in-memory cached
+    database that can instantly serve, search, and filter one million photos in under
+    a second. It runs on as little as 4 GB of RAM even with a million photos, offers
+    infinite scrolling without pagination using advanced virtual scrolling, and supports
+    instant boolean search (and, or, not) across your entire library. Features include
+    upload support, auto-sync from local folders, EXIF data extraction, user-defined
+    tags, duplicate handling, shareable albums, and read-only mode.
+  category: photos
+  tags:
+  - Photos
+  - Gallery
+  - Self-Hosted
+  - Media
+  - Images
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: hsa00000/urocissa:2.0.14
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5673
+links:
+- label: Website
+  url: https://hsa00000.github.io/urocissa/
+- label: GitHub
+  url: https://github.com/hsa00000/Urocissa
+- label: Documentation
+  url: https://github.com/hsa00000/Urocissa/blob/main/docs/CONFIG.md
+- label: Demo
+  url: https://demo.photoserver.tw
+instructions: Default password is generated automatically.
+install:
+- docker:
+    image: $IMAGE
+    name: urocissa
+    port: $PORT:5673
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Default password is generated automatically.

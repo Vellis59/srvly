@@ -1,0 +1,65 @@
+metadata:
+  name: Memos
+  version: latest
+  description: Memos is a privacy-first, lightweight note-taking service designed
+    to easily capture and share your great thoughts. With its focus on privacy, all
+    data generated is saved in the SQLite database file, ensuring that you keep your
+    own data by yourself. The app supports plain text with markdown, allowing you
+    to save all content as plain text, not HTML, while also supporting a variety of
+    useful markdown syntax. Despite being lightweight, Memos is powerful, utilizing
+    a Go + React.js + SQLite architecture. The app is customizable, allowing you to
+    modify the server name, icon, description, system style, and execution script.
+    Memos is open source and free forever, embodying the belief that open source is
+    the future. It offers a RESTful API for third-party services, enabling integration
+    and new possibilities. With Memos, you can embrace a future where creativity knows
+    no boundaries.
+  category: notes
+  tags:
+  - Notes
+  - Privacy
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: neosmemo/memos:0.28
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5230
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://usememos.com/
+- label: Documentation
+  url: https://github.com/usememos/memos#deploy-with-docker-in-seconds
+- label: Github
+  url: https://github.com/usememos/memos
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: memos
+    port: $PORT:5230
+    volumes:
+    - /var/opt/memos
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

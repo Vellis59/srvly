@@ -1,0 +1,63 @@
+metadata:
+  name: Rallly
+  version: latest
+  description: Rallly is a free, open-source tool designed to simplify your scheduling
+    process. It allows you to create meeting polls in seconds, helping you find a
+    time that works for everyone. With Rallly, you can ditch the back-and-forth emails
+    and streamline your scheduling tasks for a more organized and less stressful workday.
+    The app supports multiple languages and has been used to create over 100k+ polls
+    by 45k+ registered users. Whether you're an executive assistant at a large organization
+    or simply trying to coordinate a group event, Rallly is the perfect tool to keep
+    your RSVPs simple and your scheduling process efficient.
+  category: calendars
+  tags:
+  - Calendars
+  - Productivity
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lukevella/rallly:4.10.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://rallly.co
+- label: Documentation
+  url: https://support.rallly.co/
+- label: Selfhosting Instructions
+  url: https://github.com/lukevella/rallly-selfhosted
+- label: Github
+  url: https://github.com/lukevella/rallly
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: rallly
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

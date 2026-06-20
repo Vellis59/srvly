@@ -1,0 +1,64 @@
+metadata:
+  name: LiteCart
+  version: latest
+  description: LiteCart is a free and open-source e-commerce platform that provides
+    a complete solution for creating and managing online stores. It features a user-friendly
+    interface, customizable themes, and essential e-commerce functionality including
+    product management, order processing, and customer management. LiteCart is built
+    with PHP and MySQL, making it easy to deploy and maintain.
+  category: e-commerce
+  tags:
+  - E-commerce
+  - Online Store
+  - Shopping Cart
+  - PHP
+  - MySQL
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: shurco/litecart:v0.2.6
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://www.litecart.net/
+- label: Documentation
+  url: https://www.litecart.net/en/wiki/
+- label: Github
+  url: https://github.com/litecart/litecart
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: litecart
+    port: $PORT:8080
+    volumes:
+    - /lc_base
+    - /lc_digitals
+    - /lc_uploads
+    - /site
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

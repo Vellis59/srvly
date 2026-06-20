@@ -1,0 +1,51 @@
+metadata:
+  name: Transmission
+  version: latest
+  description: Transmission is designed for easy, powerful use. Transmission has the
+    features you want from a BitTorrent client, encryption, a web interface, peer
+    exchange, magnet links, DHT, µTP, UPnP and NAT-PMP port forwarding, webseed support,
+    watch directories, tracker editing, global and per-torrent speed limits, and more.
+  category: torrent
+  tags:
+  - Torrent
+  - BitTorrent Client
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: linuxserver/transmission:4.1.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 9091
+links:
+- label: Documentation
+  url: https://docs.linuxserver.io/images/docker-transmission/
+- label: Github
+  url: https://github.com/linuxserver/docker-transmission
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: transmission
+    port: $PORT:9091
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

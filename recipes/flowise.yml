@@ -1,0 +1,57 @@
+metadata:
+  name: Flowise
+  version: latest
+  description: Flowise is an open-source UI visual tool that allows you to build your
+    own customized LLM (Language Learning Model) flow with ease. It is built on top
+    of LangChainJS and is written in Node Typescript/Javascript. With Flowise, you
+    can see your LLM apps running live, making the process of building and testing
+    faster and more efficient. The app is extensible, allowing for custom component
+    integrations. It offers a variety of features such as QnA retrieval chain, language
+    translation chain, and a conversational agent with memory for chat models. Flowise
+    is designed to make the process of visualizing and building LLM apps simple and
+    accessible.
+  category: developer-tools
+  tags:
+  - Developer Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: flowiseai/flowise:3.1.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://flowiseai.com
+- label: Documentation
+  url: https://docs.flowiseai.com
+- label: Github
+  url: https://github.com/FlowiseAI/Flowise
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: flowise
+    port: $PORT:80
+    volumes:
+    - /root/.flowise
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

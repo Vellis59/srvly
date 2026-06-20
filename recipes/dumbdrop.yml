@@ -1,0 +1,58 @@
+metadata:
+  name: DumbDrop
+  version: latest
+  description: DumbDrop is a simple file sharing service for quick file uploads and
+    downloads. It provides a clean web interface for sharing files with optional PIN
+    protection and configurable file size limits. Perfect for temporary file sharing
+    and quick document distribution.
+  category: file-sharing
+  tags:
+  - File Sharing
+  - Upload
+  - Download
+  - Simple
+  - Web Interface
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: dumbwareio/dumbdrop:sha-ff8f813f493e89c7da056e7a3101ce2ef48e3960
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://www.dumbware.io/DumbDrop
+- label: Documentation
+  url: https://github.com/dumbwareio/dumbdrop#readme
+- label: GitHub
+  url: https://github.com/dumbwareio/dumbdrop
+- label: Container Registry
+  url: https://hub.docker.com/r/dumbwareio/dumbdrop
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: dumbdrop
+    port: $PORT:3000
+    volumes:
+    - /app/uploads
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

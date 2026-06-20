@@ -1,0 +1,74 @@
+metadata:
+  name: Usesend
+  version: latest
+  description: Usesend is a self-hosted email marketing and transactional email platform
+    that gives you complete control over your email infrastructure. It provides a
+    modern, user-friendly interface for creating, sending, and tracking email campaigns,
+    newsletters, and transactional emails. Usesend features advanced segmentation,
+    email automation, template management, analytics, and subscriber management. Built
+    with Next.js and powered by PostgreSQL, Redis, and MinIO for reliable storage,
+    it offers enterprise-grade features without vendor lock-in or usage-based pricing.
+    Usesend supports GitHub OAuth for authentication and includes API rate limiting
+    and SMTP configuration for sending emails. Perfect for businesses and developers
+    who want full ownership of their email marketing infrastructure.
+  category: email-marketing
+  tags:
+  - Email Marketing
+  - Newsletter
+  - Transactional Email
+  - SMTP
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: usesend/usesend:v1.8.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://usesend.com/
+- label: Documentation
+  url: https://docs.usesend.com/
+- label: Github
+  url: https://github.com/usesend/usesend
+instructions: After deployment, configure your GitHub OAuth app credentials and AWS
+  Access Key and Secret Key.
+install:
+- docker:
+    image: $IMAGE
+    name: usesend
+    port: $PORT:3000
+    volumes:
+    - /data
+    extra_ports:
+    - 9001:9001
+    - 9002:9002
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After deployment, configure your GitHub OAuth app credentials and AWS Access
+    Key and Secret Key.
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

@@ -1,0 +1,59 @@
+metadata:
+  name: SQLChat
+  version: latest
+  description: SQLChat is a chat-based SQL client powered by ChatGPT that allows you
+    to interact with your databases using natural language. It provides an intuitive
+    interface for querying databases, exploring data, and learning SQL through conversational
+    interactions. SQLChat supports multiple database types and integrates with OpenAI's
+    GPT models to translate natural language queries into SQL statements, making database
+    interactions more accessible for both beginners and experienced developers.
+  category: database
+  tags:
+  - Database
+  - SQL
+  - AI
+  - ChatGPT
+  - Query Tool
+  - Natural Language
+  - Next.js
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: sqlchat/sqlchat:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: GitHub
+  url: https://github.com/sqlchat/sqlchat
+- label: Documentation
+  url: https://github.com/sqlchat/sqlchat#readme
+- label: Demo
+  url: https://sqlchat.ai
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: sqlchat
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

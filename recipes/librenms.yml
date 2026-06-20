@@ -1,0 +1,70 @@
+metadata:
+  name: LibreNMS
+  version: latest
+  description: LibreNMS is a fully featured network monitoring system that provides
+    a wealth of features and device support. It includes support for multiple authentication
+    methods, API access, alerting, and automatic discovery.
+  category: network-monitoring
+  tags:
+  - Network Monitoring
+  - SNMP
+  - Syslog
+  - Self-Hosted
+  - Network Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: librenms/librenms:25.3.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 162
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://www.librenms.org
+- label: Documentation
+  url: https://docs.librenms.org
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: librenms
+    port: $PORT:162
+    volumes:
+    - /data
+    - /data
+    - /data
+    - /data
+    extra_ports:
+    - 514:514
+    - 8000:8000
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest
+  redis:
+    type: redis
+    version: '7'

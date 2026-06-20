@@ -1,0 +1,57 @@
+metadata:
+  name: ChatGPT Next Web
+  version: latest
+  description: ChatGPT Next Web is a well-designed, feature-rich web interface for
+    ChatGPT and other LLMs. It provides a clean and intuitive interface for interacting
+    with OpenAI's ChatGPT, with support for multiple conversation modes, custom prompts,
+    and various AI models. The application is self-hosted, allowing you to maintain
+    control over your conversations and API usage while providing a superior user
+    experience compared to the official ChatGPT web interface.
+  category: chatgpt
+  tags:
+  - ChatGPT
+  - AI
+  - OpenAI
+  - LLM
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: yidadaa/chatgpt-next-web:v2.16.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Documentation
+  url: https://github.com/ChatGPTNextWeb/ChatGPT-Next-Web#readme
+- label: GitHub
+  url: https://github.com/ChatGPTNextWeb/ChatGPT-Next-Web
+- label: Website
+  url: https://nextchat.club/login
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: chatgpt-next-web
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

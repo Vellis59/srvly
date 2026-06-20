@@ -1,0 +1,59 @@
+metadata:
+  name: ArangoDB
+  version: latest
+  description: ArangoDB is a multi-model NoSQL database system that supports graph,
+    document, and key-value data models. It is designed for scalability, high availability,
+    and flexibility, making it suitable for a wide range of applications, from simple
+    document storage to complex graph processing. ArangoDB offers a native query language
+    (AQL), full-text search capabilities, a built-in HTTP API, and a web-based UI
+    for management. It also provides features like replication, sharding, and ACID
+    transactions to ensure data integrity and performance. With its integrated search
+    engine and support for multi-tenancy, ArangoDB is an ideal choice for both small
+    projects and enterprise-level applications.
+  category: database
+  tags:
+  - Database
+  - NoSQL
+  - Graph Database
+  - Document Store
+  - Key-Value Store
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: arangodb:3.12.9.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8529
+links:
+- label: Documentation
+  url: https://www.arangodb.com/docs/stable/
+- label: Github
+  url: https://github.com/arangodb/arangodb
+instructions: Login using username; root and password specified in the envs.
+install:
+- docker:
+    image: $IMAGE
+    name: arangodb
+    port: $PORT:8529
+    volumes:
+    - /var/lib/arangodb3
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Login using username; root and password specified in the envs.

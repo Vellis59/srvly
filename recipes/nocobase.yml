@@ -1,0 +1,71 @@
+metadata:
+  name: Nocobase
+  version: latest
+  description: NocoBase is an open-source, no-code development platform designed with
+    scalability in mind. It allows you to build your own collaboration platform or
+    management system without any programming required. With NocoBase, you can create
+    independent data models using a variety of field types and association relationships.
+    The platform also provides a free combination of block types for displaying and
+    manipulating data within a page. It supports various operations to process data,
+    including filtering, exporting, adding, deleting, modifying, and viewing. NocoBase
+    also features role-based control of user's system configuration rights, data action
+    rights, and menu access rights. It replaces repetitive tasks with automation to
+    increase efficiency and requires manual approval for important matters. NocoBase
+    is built for extended development with a microkernel architecture that is flexible
+    and easy to extend. It is Node.js-based and uses popular frameworks and technologies.
+  category: no-code
+  tags:
+  - No-Code
+  - Business Apps
+  - Data Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: nocobase/nocobase:2.0.48
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://www.nocobase.com/
+- label: Documentation
+  url: https://docs.nocobase.com
+- label: Github
+  url: https://github.com/nocobase/nocobase
+instructions: The initial account and password are admin@nocobase.com and admin123.
+install:
+- docker:
+    image: $IMAGE
+    name: nocobase
+    port: $PORT:80
+    volumes:
+    - /app/nocobase/storage
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: The initial account and password are admin@nocobase.com and admin123.
+services:
+  postgres:
+    type: postgres
+    version: latest

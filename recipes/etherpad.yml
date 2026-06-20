@@ -1,0 +1,61 @@
+metadata:
+  name: Etherpad
+  version: latest
+  description: Etherpad is an open-source online editor that enables real-time collaborative
+    editing directly in your browser. Users can simultaneously work on documents,
+    such as articles, press releases, or to-do lists, with all changes visible to
+    everyone in real time. It supports import/export to various data exchange formats
+    and can be customized with plugins to suit specific needs, making it a versatile
+    tool for a wide range of collaborative tasks.
+  category: collaboration
+  tags:
+  - Collaboration
+  - Communication
+  - Productivity
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: etherpad/etherpad:2.7.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 9001
+links:
+- label: Website
+  url: https://etherpad.org
+- label: Documentation
+  url: https://etherpad.org/doc/v1.8.18/
+- label: Github
+  url: https://github.com/ether/etherpad-lite
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: etherpad
+    port: $PORT:9001
+    volumes:
+    - /opt
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

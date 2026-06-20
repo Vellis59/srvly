@@ -1,0 +1,68 @@
+metadata:
+  name: Sure
+  version: latest
+  description: Sure is a self-hosted personal finance management application built
+    with Ruby on Rails. It helps individuals and families track expenses, manage budgets,
+    monitor income, and gain insights into their financial health. Sure features an
+    intuitive interface for recording transactions, categorizing expenses, creating
+    budgets, and generating financial reports. With real-time data processing via
+    Sidekiq background jobs and optional AI-powered features through OpenAI integration,
+    Sure provides intelligent financial insights, spending pattern analysis, and automated
+    categorization. Built for privacy-conscious users, Sure keeps all your financial
+    data on your own infrastructure without sharing sensitive information with third-party
+    services. Perfect for anyone seeking complete control over their personal finance
+    tracking and analysis.
+  category: finance
+  tags:
+  - Finance
+  - Personal Finance
+  - Budget
+  - Expense Tracker
+  - Money Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/we-promise/sure:0.7.1-alpha.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Github
+  url: https://github.com/we-promise/sure
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: sure
+    port: $PORT:3000
+    volumes:
+    - /rails/storage
+    - /rails/storage
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

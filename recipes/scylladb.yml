@@ -1,0 +1,67 @@
+metadata:
+  name: ScyllaDB
+  version: latest
+  description: ScyllaDB is a distributed NoSQL database that is compatible with Apache
+    Cassandra but offers superior performance and lower latency. It's designed to
+    handle high-throughput, low-latency workloads with linear scalability. ScyllaDB
+    is written in C++ and uses a shared-nothing architecture, making it highly efficient
+    for modern hardware. It's particularly well-suited for applications requiring
+    high availability, consistent performance, and massive scalability.
+  category: database
+  tags:
+  - Database
+  - NoSQL
+  - Distributed
+  - High Performance
+  - Scalable
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: scylladb/scylla:6.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 7000
+links:
+- label: Website
+  url: https://www.scylladb.com/
+- label: Documentation
+  url: https://docs.scylladb.com/
+- label: Docker Hub
+  url: https://hub.docker.com/r/scylladb/scylla
+instructions: Once the server is up, you can connect to ScyllaDB using the following
+  ports 9042 - Native transport (CQL) 9160 - Thrift transport 7000 - Inter-node communication
+  7001 - SSL inter-node communication 10000 - REST API
+install:
+- docker:
+    image: $IMAGE
+    name: scylladb
+    port: $PORT:7000
+    volumes:
+    - /var/lib/scylla/data
+    - /var/lib/scylla/commitlog
+    extra_ports:
+    - 7001:7001
+    - 9042:9042
+    - 9160:9160
+    - 10000:10000
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Once the server is up, you can connect to ScyllaDB using the following ports
+    9042 - Native transport (CQL) 9160 - Thrift transport 7000 - Inter-node communication
+    7001 - SSL inter-node communication 10000 - REST API

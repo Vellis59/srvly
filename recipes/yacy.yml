@@ -1,0 +1,60 @@
+metadata:
+  name: YaCy
+  version: latest
+  description: YaCy is a free distributed search engine built on principles of peer-to-peer
+    networks. Unlike traditional search engines that rely on centralized servers,
+    YaCy operates in a decentralized manner where each user can contribute to the
+    search index. It allows you to run your own search portal, create your own web
+    index, and be independent from commercial search engine providers. YaCy is perfect
+    for organizations that need private search capabilities, intranet search solutions,
+    or those who value privacy and freedom in their search experience.
+  category: search-engine
+  tags:
+  - Search Engine
+  - Decentralized
+  - P2P
+  - Privacy
+  - Indexing
+  - Web Crawler
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: yacy/yacy_search_server:sha-f4509ae25923cf99f1b88467d17fc221d5b8d94f-alpine
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8090
+links:
+- label: GitHub
+  url: https://github.com/yacy/yacy_search_server
+- label: Website
+  url: https://yacy.net/
+- label: Docker Hub
+  url: https://hub.docker.com/r/yacy/yacy_search_server
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: yacy
+    port: $PORT:8090
+    volumes:
+    - /opt/yacy_search_server/DATA
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

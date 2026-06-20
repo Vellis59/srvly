@@ -1,0 +1,54 @@
+metadata:
+  name: Linksnatch
+  version: latest
+  description: Linksnatch is a link management application that helps you organize
+    and track your bookmarks and URLs. It provides a simple interface for managing
+    and categorizing your links.
+  category: bookmark-manager
+  tags:
+  - Bookmark Manager
+  - Link Management
+  - Organization
+  - Self-Hosted
+  - Web Application
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: varunsridharan/linksnatch:1.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: GitHub
+  url: https://github.com/amitmerchant1990/linksnatch
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: linksnatch
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

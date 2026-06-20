@@ -1,0 +1,61 @@
+metadata:
+  name: Poznote
+  version: latest
+  description: Poznote is a lightweight, self-hosted note-taking application designed
+    for personal knowledge management and quick note capture. It provides a simple,
+    clean interface for creating, organizing, and managing notes without unnecessary
+    complexity. Poznote uses SQLite for data storage, making it easy to deploy without
+    requiring external database setup. The application features secure authentication,
+    markdown support, and fast search capabilities to help you find information quickly.
+    All your notes are stored locally in a SQLite database file, ensuring privacy
+    and complete control over your data. Perfect for individuals who want a straightforward,
+    fast, and private note-taking solution that can be accessed from any browser.
+  category: notes
+  tags:
+  - Notes
+  - Note Taking
+  - Knowledge Management
+  - Markdown
+  - SQLite
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/timothepoznanski/poznote:1.9.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://poznote.com
+- label: Documentation
+  url: https://github.com/timothepoznanski/poznote?tab=readme-ov-file#table-of-content
+- label: Github
+  url: https://github.com/TimothePoznanski/poznote
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: poznote
+    port: $PORT:80
+    volumes:
+    - /var/www/html/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

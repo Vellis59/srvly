@@ -1,0 +1,52 @@
+metadata:
+  name: pgweb
+  version: latest
+  description: Pgweb is a simple, web-based, cross-platform PostgreSQL database explorer.
+    It is designed to work seamlessly on Mac, Linux, and Windows machines. The app
+    is distributed as a single binary with zero dependencies, making it incredibly
+    easy to use. It supports PostgreSQL 9.1 and later versions, and allows for multiple
+    database sessions. With Pgweb, you can execute and analyze custom SQL queries,
+    export table and query data to CSV/JSON/XML, and keep track of your query history.
+    The app also supports native SSH tunnels and server bookmarks for easy navigation.
+  category: databases
+  tags:
+  - Databases
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: sosedoff/pgweb:0.17.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8081
+links:
+- label: Documentation
+  url: https://github.com/sosedoff/pgweb/wiki
+- label: Github
+  url: https://github.com/sosedoff/pgweb
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: pgweb
+    port: $PORT:8081
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

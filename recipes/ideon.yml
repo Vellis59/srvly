@@ -1,0 +1,64 @@
+metadata:
+  name: Ideon
+  version: latest
+  description: Ideon is a self-hosted visual workspace that lets teams organize repositories,
+    notes, links, and files on an infinite collaborative canvas. It combines spatial
+    organization with real-time sync so project context stays visible and connected.
+  category: workspace
+  tags:
+  - Workspace
+  - Collaboration
+  - Productivity
+  - Knowledge Management
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/3xpyth0n/ideon:v0.7.7
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://theideon.com/
+- label: Documentation
+  url: https://github.com/3xpyth0n/ideon#readme
+- label: GitHub
+  url: https://github.com/3xpyth0n/ideon
+instructions: Deploy the template and wait for the database and app services to start,
+  then open the app URL and create your account. Check the documentation for further
+  configurations
+install:
+- docker:
+    image: $IMAGE
+    name: ideon
+    port: $PORT:3000
+    volumes:
+    - /app/storage
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Deploy the template and wait for the database and app services to start,
+    then open the app URL and create your account. Check the documentation for further
+    configurations
+services:
+  postgres:
+    type: postgres
+    version: latest

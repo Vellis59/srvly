@@ -1,0 +1,66 @@
+metadata:
+  name: AutoCaliWeb
+  version: latest
+  description: AutoCaliWeb is a self-hosted web application for browsing, reading,
+    and managing your eBook, eComic, and PDF library through a clean, modern interface.
+    Built on Calibre-Web with automated enhancements, it provides automatic book ingestion
+    from a watch folder, multi-format conversion, metadata enforcement, and cover
+    generation. Features include an in-browser reader for EPUB, PDF, and CBR formats,
+    OPDS catalog for e-reader apps, Kobo and KOReader sync, Send-to-Kindle, multi-user
+    management with fine-grained permissions, OAuth/OIDC authentication, automatic
+    backups, and support for 20+ languages. It works with any existing Calibre database
+    or creates one automatically.
+  category: ebooks
+  tags:
+  - Ebooks
+  - Library
+  - Self-Hosted
+  - Calibre
+  - OPDS
+  - E-Reader
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: gelbphoenix/autocaliweb:v0.12.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8083
+links:
+- label: Codeberg
+  url: https://codeberg.org/gelbphoenix/autocaliweb
+- label: GitHub
+  url: https://github.com/gelbphoenix/autocaliweb
+- label: Docker Hub
+  url: https://hub.docker.com/r/gelbphoenix/autocaliweb
+- label: Wiki
+  url: https://codeberg.org/gelbphoenix/autocaliweb/wiki
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: autocaliweb
+    port: $PORT:8083
+    volumes:
+    - /config
+    - /acw-book-ingest
+    - /calibre-library
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

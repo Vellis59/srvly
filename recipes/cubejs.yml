@@ -1,0 +1,64 @@
+metadata:
+  name: CubeJS
+  version: latest
+  description: Cube is a Semantic Layer for every data app that aims to connect data
+    silos, drive consistent metrics, and power your AI and analytics with context.
+    It allows you to define and manage metrics upstream to consolidate your workflow,
+    centralize definitions, and create a single source of truth. The app also provides
+    granular access controls to grant column- and role-based operational and viewing
+    permissions upstream. Cube ensures your data is reliably performant with a powerful
+    caching layer and advanced preaggregation capabilities. Furthermore, it allows
+    you to connect your data to any front-end application to build beautiful custom
+    visualizations with Cube’s GraphQL, REST, and SQL APIs. Cube is an API-first,
+    four-part semantic layer that enables data engineers and developers to make their
+    data consistent, secure, performant, and accessible across every application.
+  category: analytics
+  tags:
+  - Analytics
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: cubejs/cube:v1.6.39
+  port:
+    type: integer
+    title: Port HTTP
+    default: 4000
+links:
+- label: Website
+  url: https://cube.dev
+- label: Documentation
+  url: https://cube.dev/docs
+- label: Github
+  url: https://github.com/cube-js/cube.js
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: cubejs
+    port: $PORT:4000
+    volumes:
+    - /cube/conf
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

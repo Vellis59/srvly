@@ -1,0 +1,77 @@
+metadata:
+  name: Soulbeet
+  version: latest
+  description: Soulbeet is a self-hosted music management and downloading application
+    that integrates with slskd (Soulseek daemon) and beets to create a seamless music
+    acquisition and organization workflow. The application provides a web interface
+    for searching and downloading music through the Soulseek peer-to-peer network,
+    then automatically organizing your downloads using beets' powerful music library
+    management capabilities. Soulbeet connects to your slskd instance to handle the
+    actual Soulseek network communication, allowing you to search for tracks, browse
+    user shares, and queue downloads. Once files are downloaded, beets integration
+    enables automatic tagging, metadata correction, album art fetching, and file organization
+    based on your configured rules. The application uses SQLite for lightweight data
+    persistence and supports custom beets configurations for advanced music library
+    management. Perfect for music enthusiasts who want to build and maintain a well-organized
+    digital music collection, users looking for a self-hosted alternative to music
+    streaming services, audiophiles who prefer to own their music with proper metadata
+    and organization, or anyone who wants to combine the power of Soulseek's peer-to-peer
+    network with beets' music library management in a single unified interface.
+  category: music
+  tags:
+  - Music
+  - Downloads
+  - Media
+  - Self-Hosted
+  - Soulseek
+  - Library Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: docker.io/docccccc/soulbeet:0.3.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5030
+links:
+- label: GitHub
+  url: https://github.com/terry90/soulbeet
+- label: Docker Hub
+  url: https://hub.docker.com/r/docccccc/soulbeet
+- label: Documentation
+  url: https://github.com/terry90/soulbeet#readme
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: soulbeet
+    port: $PORT:5030
+    volumes:
+    - /app
+    - /app/downloads
+    - /data
+    - /downloads
+    - /music
+    - /config
+    - /config/config.yaml
+    extra_ports:
+    - 9765:9765
+    - 50300:50300
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

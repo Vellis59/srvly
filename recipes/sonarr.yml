@@ -1,0 +1,60 @@
+metadata:
+  name: Sonarr
+  version: latest
+  description: Sonarr is a Personal Video Recorder (PVR) designed for Usenet and BitTorrent
+    users. It monitors multiple RSS feeds for new episodes of your favorite shows
+    and automatically grabs, sorts, and renames them. Sonarr can also be configured
+    to automatically upgrade the quality of files already downloaded when a better
+    quality format becomes available. It features a calendar to see all your upcoming
+    episodes in one convenient location, and a manual search to find all the releases
+    and choose the one you want. Sonarr also handles failed downloads, automatically
+    blocking the release and trying another one until it finds one that works. It
+    is fully integrated with SABnzbd, NZBGet, Kodi, and Plex, and supports major platforms
+    including Windows, Linux, macOS, and Raspberry Pi.
+  category: media
+  tags:
+  - Media
+  - Calendars
+  - Download
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: linuxserver/sonarr:4.0.16
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8989
+links:
+- label: Website
+  url: https://sonarr.tv/
+- label: Documentation
+  url: https://wiki.servarr.com/Sonarr
+- label: Github
+  url: https://github.com/Sonarr/Sonarr
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: sonarr
+    port: $PORT:8989
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

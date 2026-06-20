@@ -1,0 +1,59 @@
+metadata:
+  name: Weaviate
+  version: latest
+  description: Weaviate is an open-source vector database that allows you to store
+    and retrieve data objects based on their semantic properties by indexing them
+    with vectors. It can be used stand-alone or with a variety of modules that can
+    do the vectorization for you and extend the core capabilities. Weaviate provides
+    a lightning-fast pure vector similarity search over raw vectors or data objects,
+    even with filters. It combines keyword-based search with vector search techniques
+    for state-of-the-art results. You can also use any generative model in combination
+    with your data, for example to do Q&A over your dataset. Weaviate's next-gen vector
+    database can power a wide range of innovative apps.
+  category: developer-tools
+  tags:
+  - Developer Tools
+  - Data Science
+  - Databases
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: semitechnologies/weaviate:1.33.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://weaviate.io
+- label: Documentation
+  url: https://weaviate.io/developers/weaviate
+- label: Github
+  url: https://github.com/weaviate/weaviate
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: weaviate
+    port: $PORT:8080
+    volumes:
+    - /var/lib/weaviate
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

@@ -1,0 +1,67 @@
+metadata:
+  name: MediKeep
+  version: latest
+  description: MediKeep is a lightweight, self-hosted application for managing your
+    personal medical information. Keep your health records organized and accessible
+    while maintaining complete control over your data privacy. Built with React frontend
+    and FastAPI backend, MediKeep provides a secure platform for tracking medications,
+    generating health reports, and managing your medical records with ease.
+  category: medical-records
+  tags:
+  - Medical Records
+  - Health Management
+  - Self-Hosted
+  - Privacy
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/afairgiant/medikeep:v0.64.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://medikeeps.com
+- label: GitHub
+  url: https://github.com/afairgiant/MediKeep
+- label: Documentation
+  url: https://github.com/afairgiant/MediKeep/tree/main/docs
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: medikeep
+    port: $PORT:8000
+    volumes:
+    - /app/uploads
+    - /app/logs
+    - /app/backups
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

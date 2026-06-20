@@ -1,0 +1,58 @@
+metadata:
+  name: Whisparr
+  version: latest
+  description: Whisparr is an adult video collection manager designed for Usenet and
+    BitTorrent users. It monitors multiple RSS feeds for new adult content and interfaces
+    with clients and indexers to grab, sort, and rename them. Whisparr also features
+    automatic upgrades of existing files in your library to better quality formats
+    when available. It includes a calendar to track upcoming releases, manual search
+    for precise selection, and automatic handling of failed downloads. Whisparr ensures
+    optimal release selection with its custom formats feature, offering detailed control
+    over prioritization. It supports major platforms like Windows, Linux, macOS, and
+    others.
+  category: adult-media
+  tags:
+  - Adult Media
+  - Download Manager
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: hotio/whisparr:v3-41ddd1f
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://whisparr.com/
+- label: Documentation
+  url: https://wiki.servarr.com/whisparr
+- label: Github
+  url: https://github.com/Whisparr/Whisparr/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: whisparr
+    port: $PORT:80
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

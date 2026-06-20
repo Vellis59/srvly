@@ -1,0 +1,63 @@
+metadata:
+  name: Watchtower
+  version: latest
+  description: Watchtower is a process for automating Docker container base image
+    updates. It monitors running containers and automatically updates them when their
+    base image changes.
+  category: docker
+  tags:
+  - Docker
+  - Automation
+  - Container
+  - Self-hosted
+  - Open Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: containrrr/watchtower:1.7.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://containrrr.dev/watchtower
+- label: GitHub
+  url: https://github.com/containrrr/watchtower
+- label: Documentation
+  url: https://containrrr.dev/watchtower/
+instructions: Mount `/var/run/docker.sock` in the Watchtower service to let it inspect
+  and update running containers. Add the label `com.centurylinklabs.watchtower.enable=true`
+  to each container you want Watchtower to manage, then enable label filtering in
+  Watchtower. Set your preferred check interval or schedule, and add `--cleanup` to
+  remove old image layers after successful updates.
+install:
+- docker:
+    image: $IMAGE
+    name: watchtower
+    port: $PORT:80
+    volumes:
+    - /var/run/docker.sock
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Mount `/var/run/docker.sock` in the Watchtower service to let it inspect
+    and update running containers. Add the label `com.centurylinklabs.watchtower.enable=true`
+    to each container you want Watchtower to manage, then enable label filtering in
+    Watchtower. Set your preferred check interval or schedule, and add `--cleanup`
+    to remove old image layers after successful updates.

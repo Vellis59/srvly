@@ -1,0 +1,61 @@
+metadata:
+  name: HortusFox
+  version: latest
+  description: HortusFox is a free, open-source, self-hosted, collaborative plant
+    management system designed for individuals and groups to easily manage their plants,
+    tasks, calendar, inventory, and more, all within a user-friendly web application.
+  category: plant-management
+  tags:
+  - Plant Management
+  - Collaboration
+  - Self-Hosted
+  - Open Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/danielbrendel/hortusfox-web:v5.7
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://hortusfox.github.io/
+- label: Github
+  url: https://github.com/danielbrendel/hortusfox-web?tab=readme-ov-file#docker
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: hortusfox
+    port: $PORT:80
+    volumes:
+    - /var/www/html/public/img
+    - /var/www/html/app/logs
+    - /var/www/html/public/backup
+    - /var/www/html/public/themes
+    - /var/www/html/app/migrations
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

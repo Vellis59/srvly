@@ -1,0 +1,59 @@
+metadata:
+  name: Corsfix
+  version: latest
+  description: Corsfix is a CORS proxy that eliminates cross-origin errors and lets
+    you fetch any data for your website with zero hassle. It acts as an intermediary
+    between your applications and target servers, automatically adding the necessary
+    CORS headers to responses. Corsfix handles your requests securely while keeping
+    API keys and credentials safe.
+  category: proxy
+  tags:
+  - Proxy
+  - CORS
+  - Networking
+  - Developer Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/corsfix/corsfix-app:b464c8b69d10e035c416df4bbe082ae896090c67
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Corsfix CORS proxy
+  url: https://corsfix.com
+- label: Documentation
+  url: https://corsfix.com/docs
+- label: Github
+  url: https://github.com/corsfix/corsfix
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: corsfix
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  redis:
+    type: redis
+    version: '7'

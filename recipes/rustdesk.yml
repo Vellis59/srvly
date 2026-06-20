@@ -1,0 +1,55 @@
+metadata:
+  name: Rustdesk
+  version: latest
+  description: Rustdesk is a self-hosted remote desktop application that allows you
+    to access and control devices remotely. It provides an open-source alternative
+    to proprietary remote desktop software, offering full control over your own remote
+    access infrastructure. With Rustdesk, users can securely connect to their computers
+    from anywhere, manage remote desktops efficiently, and ensure privacy by hosting
+    their own Rustdesk relay and ID server. Rustdesk is built with high-performance
+    and encryption in mind, making it suitable for both personal and enterprise use.
+  category: remote-desktop
+  tags:
+  - Remote Desktop
+  - Productivity
+  - Security
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/rustdesk:1.4.6
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Documentation
+  url: https://rustdesk.com/docs/en/
+- label: Github
+  url: https://github.com/rustdesk/rustdesk
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: rustdesk
+    port: $PORT:3000
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

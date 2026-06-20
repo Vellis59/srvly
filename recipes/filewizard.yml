@@ -1,0 +1,59 @@
+metadata:
+  name: FileWizard
+  version: latest
+  description: FileWizard is a self hosted browser based utility for file conversion
+    OCR and audio transcription. It wraps FFmpeg LibreOffice Pandoc ImageMagick faster-whisper
+    Tesseract and more behind a FastAPI backend and a simple web UI.
+  category: files
+  tags:
+  - Files
+  - Conversion
+  - OCR
+  - Transcription
+  - FastAPI
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: loredcast/filewizard:0.4-latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Documentation
+  url: https://github.com/LoredCast/filewizard/wiki
+- label: GitHub
+  url: https://github.com/LoredCast/filewizard
+instructions: After deploy open your domain on port 8000. For local trusted use keep
+  Local only enabled. To use OIDC authentication set Local only to false then add
+  OAuth settings in settings.yml.
+install:
+- docker:
+    image: $IMAGE
+    name: filewizard
+    port: $PORT:8000
+    volumes:
+    - /app/config
+    - /app/uploads
+    - /app/processed
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After deploy open your domain on port 8000. For local trusted use keep Local
+    only enabled. To use OIDC authentication set Local only to false then add OAuth
+    settings in settings.yml.

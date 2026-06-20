@@ -1,0 +1,66 @@
+metadata:
+  name: InvoiceNinja
+  version: latest
+  description: Invoice Ninja is a powerful, open-source platform for managing invoices,
+    quotes, and payments, specifically designed for freelancers and small businesses.
+    It allows you to automate billing, track payments, and manage expenses effortlessly.
+    With a user-friendly interface and robust feature set, Invoice Ninja supports
+    multi-currency, recurring billing, and various payment gateways, providing a comprehensive
+    invoicing solution.
+  category: invoicing
+  tags:
+  - Invoicing
+  - Payments
+  - Billing
+  - Expense Management
+  - Open Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: invoiceninja/invoiceninja:5.13.19
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Github
+  url: https://github.com/invoiceninja/invoiceninja
+- label: Documentation
+  url: https://invoiceninja.github.io/docs/
+- label: Demo
+  url: https://demo.invoiceninja.com
+instructions: Open the nginx domain to access InvoiceNinja
+install:
+- docker:
+    image: $IMAGE
+    name: invoiceninja
+    port: $PORT:80
+    volumes:
+    - /var/www/app/storage
+    - /var/www/app/public
+    - /etc/nginx/conf.d/vhost.template
+    - /var/www/app/public
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Open the nginx domain to access InvoiceNinja
+services:
+  mysql:
+    type: mysql
+    version: latest

@@ -1,0 +1,69 @@
+metadata:
+  name: linkding
+  version: latest
+  description: Linkding is a self-hosted bookmark manager that allows you to efficiently
+    manage and organize your bookmarks. With a clean and optimized user interface,
+    you can easily add, share, and edit bookmarks. The app also allows you to add
+    notes to your bookmarks using Markdown and provides a 'read it later' functionality.
+    It automatically generates titles, descriptions, and icons for your bookmarked
+    websites and creates snapshots of them on the Internet Archive Wayback Machine.
+    You can also import and export bookmarks in Netscape HTML format. The app offers
+    light and dark themes for your convenience. It also provides a REST API for developing
+    third-party apps and an admin panel for user self-service and raw data access.
+  category: bookmarks
+  tags:
+  - Bookmarks
+  - Productivity
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: sissbruecker/linkding:1.45.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 9090
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Github
+  url: https://github.com/sissbruecker/linkding
+- label: Demo
+  url: https://demo.linkding.link/
+instructions: If the login fails with a error 500, please restart the "linkding" app
+  service. This can be caused by the database not being properly reachable at linkding's
+  first start.
+install:
+- docker:
+    image: $IMAGE
+    name: linkding
+    port: $PORT:9090
+    volumes:
+    - /etc/linkding/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: If the login fails with a error 500, please restart the "linkding" app service.
+    This can be caused by the database not being properly reachable at linkding's
+    first start.
+services:
+  postgres:
+    type: postgres
+    version: latest

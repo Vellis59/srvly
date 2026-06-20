@@ -1,0 +1,57 @@
+metadata:
+  name: OpenWebUI
+  version: latest
+  description: OpenWebUI is a self-hosted, open-source web-based UI for interacting
+    with various Large Language Models (LLMs). It allows users to chat with AI models,
+    manage API connections, and customize their experience through an intuitive interface.
+    OpenWebUI supports multiple backends such as Ollama, OpenAI-compatible APIs, and
+    local AI runners. It offers a sleek web-based UI, user authentication, and integration
+    with popular LLMs. The application is containerized and easy to deploy with Docker,
+    Kubernetes, or standalone installations. It provides real-time chat, conversation
+    history, and advanced configuration options for AI interactions.
+  category: ai
+  tags:
+  - AI
+  - Chatbot
+  - Productivity
+  - Self-Hosting
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/open-webui/open-webui:0.9.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://docs.openwebui.com/
+- label: Github
+  url: https://github.com/open-webui/open-webui
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: openwebui
+    port: $PORT:80
+    volumes:
+    - /app/backend/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

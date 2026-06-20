@@ -1,0 +1,75 @@
+metadata:
+  name: Ontime
+  version: latest
+  description: Ontime is free, open-source software for managing rundowns and event
+    timers. Real-time rundown and timer management for broadcast and live events.
+    Multi-device web access, delay workflow management, team collaboration, and automated
+    or operator-controlled playback. HTTP API, WebSockets, and OSC (Open Sound Control)
+    for integration with Qlab, OBS, disguise, and other tools.
+  category: broadcast
+  tags:
+  - Broadcast
+  - Timer
+  - Rundown
+  - Events
+  - Open Source
+  - OSC
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: getontime/ontime:v4.7.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 4001
+links:
+- label: Website
+  url: https://www.getontime.no/
+- label: GitHub
+  url: https://github.com/cpvalente/ontime
+- label: Documentation
+  url: https://docs.getontime.no/
+- label: Docker Hub
+  url: https://hub.docker.com/r/getontime/ontime
+instructions: 'After deployment, access the web UI on your assigned domain. Port 4001
+  serves
+
+  the web interface and WebSockets. Ports 8888 and 9999 (UDP) are for OSC input
+
+  and output—expose them if you need external control integration.
+
+  '
+install:
+- docker:
+    image: $IMAGE
+    name: ontime
+    port: $PORT:4001
+    volumes:
+    - /data
+    extra_ports:
+    - 8888:8888
+    - 9999:9999
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: 'After deployment, access the web UI on your assigned domain. Port 4001 serves
+
+    the web interface and WebSockets. Ports 8888 and 9999 (UDP) are for OSC input
+
+    and output—expose them if you need external control integration.
+
+    '

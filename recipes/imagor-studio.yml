@@ -1,0 +1,70 @@
+metadata:
+  name: Imagor Studio
+  version: latest
+  description: Imagor Studio is a self-hosted image gallery and live editing web application
+    designed for photographers, content creators, and digital artists. It provides
+    a modern web interface for browsing, organizing, and editing your image collections
+    with real-time image transformation capabilities. Built on top of the Imagor image
+    processing server, the studio interface offers intuitive tools for image manipulation
+    including resizing, cropping, filtering, and format conversion without modifying
+    original files. All edits are performed on-demand using URL-based parameters,
+    ensuring your source images remain untouched while generating optimized versions
+    for different use cases. The application features a responsive gallery view for
+    browsing images, a built-in editor with live preview, support for various image
+    formats, and SQLite database for managing metadata and user preferences. With
+    its lightweight architecture and flexible storage options, Imagor Studio enables
+    you to maintain a private image library with professional editing capabilities
+    accessible from any web browser. Perfect for photographers managing personal portfolios,
+    content creators organizing media assets, web developers optimizing images for
+    websites, or anyone needing a self-hosted alternative to cloud-based image management
+    services with built-in editing tools.
+  category: image-gallery
+  tags:
+  - Image Gallery
+  - Image Editor
+  - Photography
+  - Media Management
+  - Image Processing
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: shumc/imagor-studio:1.2.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://imagor.net/
+- label: Documentation
+  url: https://docs.studio.imagor.net/
+- label: Docker Hub
+  url: https://hub.docker.com/r/shumc/imagor-studio
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: imagor-studio
+    port: $PORT:8080
+    volumes:
+    - /app/data
+    - /app/gallery
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

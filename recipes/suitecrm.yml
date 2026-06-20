@@ -1,0 +1,68 @@
+metadata:
+  name: SuiteCRM
+  version: latest
+  description: SuiteCRM is the world's leading Open Source CRM, designed to help you
+    sell, market, and service smarter. This feature-rich, enterprise-ready alternative
+    to Salesforce offers all the benefits of CRM at a significantly lower cost, with
+    the freedom and flexibility of Open Source. With SuiteCRM, you can gain a 360-degree
+    view of your customers by creating a central repository for all your customer
+    data, enabling you to gain key insights to enhance and nurture your business relationships.
+    The platform is highly customizable and easy to use, with hundreds of extensions
+    and integrations. SuiteCRM 8, our most advanced upgrade to date, promises to give
+    you better control of your data and business solutions. The platform also allows
+    for seamless integration with core business systems using our open REST API, enhancing
+    productivity across your organization. With SuiteCRM, you can automate key actions,
+    improve efficiency, understand your customers' needs, convert more leads, and
+    engage your customers more effectively with personalized experiences and consistent
+    messaging. It also empowers your customer service team to service smarter, faster,
+    and more professionally.
+  category: crm
+  tags:
+  - CRM
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: bitnamilegacy/suitecrm:8.8.1-debian-12-r3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://suitecrm.com/
+- label: Documentation
+  url: https://docs.suitecrm.com/
+- label: Github
+  url: https://github.com/salesagility/SuiteCRM
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: suitecrm
+    port: $PORT:8080
+    volumes:
+    - /bitnami/suitecrm
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

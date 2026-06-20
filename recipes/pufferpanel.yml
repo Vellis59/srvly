@@ -1,0 +1,62 @@
+metadata:
+  name: Pufferpanel
+  version: latest
+  description: PufferPanel is a free, open-source game server management panel that
+    simplifies the management of your game servers. It supports a wide variety of
+    games including Minecraft, Forge, Spigot, Sponge, Source Dedicated Servers, BungeeCord,
+    PocketMine, and many more. With PufferPanel, you can easily manage multiple game
+    servers from one central location, providing a streamlined and efficient way to
+    control your gaming environment. Whether you're an individual user or a large
+    network, PufferPanel's user-friendly interface makes game server management a
+    breeze.
+  category: game-server-management
+  tags:
+  - Game Server Management
+  - Open Source
+  - Easy to Use
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: pufferpanel/pufferpanel:2.7.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 22
+links:
+- label: Website
+  url: https://pufferpanel.com/
+- label: Documentation
+  url: https://docs.pufferpanel.com/en/latest
+- label: Github
+  url: https://github.com/PufferPanel/PufferPanel
+instructions: Run "./pufferpanel user add" in the console to create a new user.
+install:
+- docker:
+    image: $IMAGE
+    name: pufferpanel
+    port: $PORT:22
+    volumes:
+    - /var/lib/pufferpanel
+    - /etc/pufferpanel
+    extra_ports:
+    - 2222:2222
+    - 5657:5657
+    - 8080:8080
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Run "./pufferpanel user add" in the console to create a new user.

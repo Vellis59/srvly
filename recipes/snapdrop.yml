@@ -1,0 +1,63 @@
+metadata:
+  name: SnapDrop
+  version: latest
+  description: Snapdrop is a self-hosted, browser-based file-sharing platform that
+    allows you to seamlessly transfer files between devices on the same local network.
+    Inspired by Apple's AirDrop, Snapdrop works across any device and browser without
+    requiring an account or installation. It provides fast, peer-to-peer file transfers
+    using WebRTC, ensuring privacy and efficiency. Snapdrop's lightweight design ensures
+    minimal resource usage while offering an intuitive user interface for easy file
+    sharing.
+  category: file-sharing
+  tags:
+  - File Sharing
+  - Peer-to-Peer
+  - Browser-Based
+  - Cross-Platform
+  - Productivity
+  - WebRTC
+  - Secure Transfers
+  - Local Network
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/snapdrop:version-b8b78cc2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://github.com/linuxserver/docker-snapdrop
+- label: GitHub
+  url: https://github.com/RobinLinus/snapdrop
+instructions: Access the Snapdrop service via your browser on devices connected to
+  the same network. Simply drag and drop files to transfer them to other devices detected
+  on the Snapdrop interface.
+install:
+- docker:
+    image: $IMAGE
+    name: snapdrop
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Access the Snapdrop service via your browser on devices connected to the
+    same network. Simply drag and drop files to transfer them to other devices detected
+    on the Snapdrop interface.

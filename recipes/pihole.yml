@@ -1,0 +1,73 @@
+metadata:
+  name: Pi-hole
+  version: latest
+  description: Pi-hole is a network-wide ad blocker that acts as a DNS sinkhole to
+    protect your devices from unwanted content without installing any client-side
+    software. It blocks ads at the DNS level, meaning ads are blocked before they
+    even reach your devices, resulting in faster browsing, reduced bandwidth usage,
+    and enhanced privacy. Pi-hole provides a powerful web interface for easy management
+    and detailed statistics about your network's DNS queries. It can block millions
+    of ad-serving domains and supports custom block lists. The application also includes
+    features like DHCP server capabilities, DNS-over-HTTPS (DoH) support, and comprehensive
+    query logging. With Pi-hole, you can monitor all DNS requests on your network,
+    see which domains are being blocked, and maintain complete control over your network's
+    DNS filtering.
+  category: privacy
+  tags:
+  - Privacy
+  - Security
+  - DNS
+  - Ad Blocker
+  - Network Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: pihole/pihole:2024.07.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 53
+links:
+- label: Website
+  url: https://pi-hole.net/
+- label: Documentation
+  url: https://docs.pi-hole.net/
+- label: GitHub
+  url: https://github.com/pi-hole/pi-hole
+- label: Docker
+  url: https://hub.docker.com/r/pihole/pihole
+instructions: After the deployment of the Pi-Hole Service, it might not start straight
+  away, you have to stop the systemd-resolved.service, or service which would be occupying
+  the DNS port 53, make sure you also disable that so it doesn't starts on boot.
+install:
+- docker:
+    image: $IMAGE
+    name: pihole
+    port: $PORT:53
+    volumes:
+    - /etc/dnsmasq.d
+    - /etc/pihole
+    extra_ports:
+    - 67:67
+    - 80:80
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After the deployment of the Pi-Hole Service, it might not start straight
+    away, you have to stop the systemd-resolved.service, or service which would be
+    occupying the DNS port 53, make sure you also disable that so it doesn't starts
+    on boot.

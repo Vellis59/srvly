@@ -1,0 +1,64 @@
+metadata:
+  name: LightDash
+  version: latest
+  description: LightDash is a modern, open-source business intelligence (BI) and data
+    exploration tool designed to help teams visualize and understand their data. It
+    connects directly to your existing data warehouse and provides an intuitive interface
+    for building and sharing dashboards. With LightDash, you can create actionable
+    insights from your data without needing advanced technical skills.
+  category: business-intelligence
+  tags:
+  - Business Intelligence
+  - Data Visualization
+  - Open Source
+  - Data Analytics
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lightdash/lightdash:0.2503.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Documentation
+  url: https://docs.lightdash.com/
+- label: Github
+  url: https://github.com/lightdash/lightdash
+instructions: Configure the Environmental Variables as per the requirements.
+install:
+- docker:
+    image: $IMAGE
+    name: lightdash
+    port: $PORT:3000
+    volumes:
+    - /usr/app/dbt
+    extra_ports:
+    - 8080:8080
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Configure the Environmental Variables as per the requirements.
+services:
+  postgres:
+    type: postgres
+    version: latest

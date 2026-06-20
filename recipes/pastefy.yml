@@ -1,0 +1,61 @@
+metadata:
+  name: Pastefy
+  version: latest
+  description: Pastefy is a feature-rich, open-source, self-hostable pastebin alternative
+    to GitHub Gist or Pastebin. Share code snippets with friends or save them for
+    yourself with syntax highlighting, file format previews, folder organization,
+    OAuth2 authentication, API access, and powerful features for developers. Upload
+    files via curl, integrate with VS Code, and enjoy extensive format support including
+    Markdown, Mermaid, CSV, GeoJSON, and more.
+  category: pastebin
+  tags:
+  - Pastebin
+  - Code Sharing
+  - API
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: interaapps/pastefy:7.2.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://pastefy.app/
+- label: Documentation
+  url: https://github.com/interaapps/pastefy/wiki
+- label: Github
+  url: https://github.com/interaapps/pastefy
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: pastefy
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

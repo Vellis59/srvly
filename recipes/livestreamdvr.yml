@@ -1,0 +1,57 @@
+metadata:
+  name: LiveStreamDVR
+  version: latest
+  description: LiveStreamDVR (formerly TwitchAutomator) is a powerful tool for automatically
+    recording and archiving live streams from Twitch. It provides a web interface
+    to manage recordings, schedule streams to record, and organize your VOD library.
+  category: twitch
+  tags:
+  - Twitch
+  - Streaming
+  - Recording
+  - VOD
+  - Archive
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: mrbrax/twitchautomator:master
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Github
+  url: https://github.com/MrBrax/LiveStreamDVR
+instructions: After installation, access the web interface through the provided domain
+  to start configuring your stream recordings.
+install:
+- docker:
+    image: $IMAGE
+    name: livestreamdvr
+    port: $PORT:8080
+    volumes:
+    - /usr/local/share/twitchautomator/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After installation, access the web interface through the provided domain
+    to start configuring your stream recordings.

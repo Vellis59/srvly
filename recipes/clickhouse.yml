@@ -1,0 +1,63 @@
+metadata:
+  name: Clickhouse
+  version: latest
+  description: ClickHouse is an open-source database designed for real-time apps and
+    analytics. It is renowned for its speed and resource efficiency, capable of querying
+    billions of rows in mere milliseconds. ClickHouse supports a wide range of data
+    sources, including databases, data warehouses, streams, logs, analytics, data
+    lake formats, and local files. It is built on a column-oriented database structure,
+    which is ideally suited to Online Analytical Processing (OLAP) scenarios, making
+    it significantly faster in processing most queries. ClickHouse utilizes all available
+    system resources to their full potential to process each analytical query as swiftly
+    as possible. It can be deployed in any environment, whether on your machine or
+    in the cloud, and offers the ability to run fast queries on local files without
+    a server. ClickHouse is trusted by developers working with data at scale, including
+    major companies like Disney+ and Uber.
+  category: databases
+  tags:
+  - Databases
+  - Analytics
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: clickhouse/clickhouse-server:26.3.9.8
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8123
+links:
+- label: Website
+  url: https://clickhouse.com/
+- label: Documentation
+  url: https://clickhouse.com/docs
+- label: Github
+  url: https://github.com/ClickHouse/ClickHouse
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: clickhouse
+    port: $PORT:8123
+    volumes:
+    - /var/lib/clickhouse
+    - /etc/clickhouse-server/users.d/logging.xml
+    - /etc/clickhouse-server/config.d/logging.xml
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

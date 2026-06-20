@@ -1,0 +1,61 @@
+metadata:
+  name: Kapowarr
+  version: latest
+  description: Kapowarr is a comic book management system that helps you organize
+    and manage your digital comic collection. It provides a user-friendly interface
+    for browsing, reading, and managing your comics.
+  category: comics
+  tags:
+  - Comics
+  - Manga
+  - Digital Library
+  - Reading
+  - Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: mrcas/kapowarr:v1.3.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5656
+links:
+- label: Github
+  url: https://github.com/Casvt/Kapowarr
+- label: Documentation
+  url: https://casvt.github.io/Kapowarr/
+instructions: Open Kapowarr on the given domain, then go to settings and confirm your
+  library path points to `/comics-1` and your temporary download path points to `/app/temp_downloads`.
+  Add your series and import existing files into the library, then configure metadata
+  and download preferences from the web UI.
+install:
+- docker:
+    image: $IMAGE
+    name: kapowarr
+    port: $PORT:5656
+    volumes:
+    - /app/db
+    - /app/temp_downloads
+    - /comics-1
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Open Kapowarr on the given domain, then go to settings and confirm your library
+    path points to `/comics-1` and your temporary download path points to `/app/temp_downloads`.
+    Add your series and import existing files into the library, then configure metadata
+    and download preferences from the web UI.

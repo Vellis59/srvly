@@ -1,0 +1,63 @@
+metadata:
+  name: Ollama
+  version: latest
+  description: Ollama is a powerful tool designed to simplify the deployment and interaction
+    with advanced AI models. It provides a streamlined solution for managing and hosting
+    large language models (LLMs) with an intuitive interface. Ollama allows users
+    to run queries and interact with models like OpenAI GPT and others in a secure
+    and efficient manner. The tool includes a web-based interface that makes managing
+    and testing models straightforward. Ollama is designed to support diverse use
+    cases, from research and development to deploying AI capabilities in production
+    systems. It offers flexible deployment options, powerful API integrations, and
+    role-based access control to ensure secure and scalable AI solutions.
+  category: ai
+  tags:
+  - AI
+  - LLM
+  - Machine Learning
+  - Custom Applications
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ollama/ollama:0.23.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 11434
+links:
+- label: Website
+  url: https://ollama.com
+- label: Docs
+  url: https://docs.ollama.com
+- label: Github
+  url: https://github.com/Ollama/Ollama
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: ollama
+    port: $PORT:11434
+    volumes:
+    - /data
+    - /root/.ollama
+    - /app/backend/data
+    extra_ports:
+    - 80:80
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

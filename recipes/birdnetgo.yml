@@ -1,0 +1,62 @@
+metadata:
+  name: BirdNET-Go
+  version: latest
+  description: BirdNET-Go is a real-time bird sound identification and monitoring
+    system that uses advanced AI and machine learning to recognize bird species from
+    audio recordings. It analyzes ambient sounds from microphones or audio files to
+    identify and catalog bird species in your area. BirdNET-Go features automatic
+    species detection with confidence scoring, location-based range filtering to show
+    only birds likely in your region, real-time audio streaming, and comprehensive
+    logging of all detected species. The application supports custom sensitivity settings,
+    overlap detection for better accuracy, and can utilize XNNPACK acceleration for
+    improved performance. Perfect for bird enthusiasts, ornithologists, researchers,
+    and anyone interested in monitoring local bird populations and creating automated
+    bird sound databases.
+  category: bird-watching
+  tags:
+  - Bird Watching
+  - Audio Recognition
+  - AI
+  - Wildlife Monitoring
+  - Ornithology
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/tphakala/birdnet-go:nightly-20260429
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Github
+  url: https://github.com/tphakala/birdnet-go
+- label: Docker Hub
+  url: https://github.com/tphakala/birdnet-go/pkgs/container/birdnet-go
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: birdnetgo
+    port: $PORT:8080
+    volumes:
+    - /config
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

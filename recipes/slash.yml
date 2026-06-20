@@ -1,0 +1,51 @@
+metadata:
+  name: Slash
+  version: latest
+  description: Slash is an open source, self-hosted platform designed to help you
+    organize, manage, and share your most important links. Easily create customizable,
+    human-readable shortcuts to streamline your link management. Use tags to categorize
+    your links and share them easily with your team or publicly.
+  category: link-management
+  tags:
+  - Link Management
+  - Self-Hosted
+  - Open Source
+  - Productivity
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: yourselfhosted/slash:1.0.0-rc.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5231
+links:
+- label: Github
+  url: https://github.com/yourselfhosted/slash
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: slash
+    port: $PORT:5231
+    volumes:
+    - /var/opt/slash
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

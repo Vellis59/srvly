@@ -1,0 +1,68 @@
+metadata:
+  name: Convex
+  version: latest
+  description: Convex is the open-source reactive database and backend platform designed
+    for modern app developers. It provides real-time data synchronization, TypeScript-first
+    development, and built-in features like authentication, file storage, and serverless
+    functions. The self-hosted version includes the main backend service, dashboard
+    for data management, and PostgreSQL database support. Perfect for building full-stack
+    applications with automatic caching, real-time updates, and strong consistency
+    guarantees.
+  category: database
+  tags:
+  - Database
+  - Backend
+  - Real-time
+  - TypeScript
+  - Serverless
+  - Full-stack
+  - Reactive
+  - WebSocket
+  - API
+  - Authentication
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/get-convex/convex-backend:e03b3a72dc412eeff4c1a6958ef1879712fb70e6
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3210
+links:
+- label: Website
+  url: https://www.convex.dev
+- label: Documentation
+  url: https://docs.convex.dev
+- label: GitHub
+  url: https://github.com/get-convex/convex-backend
+instructions: Click the "Generate Admin Key" script on the backend service, copy the
+  printed key, then use it to log into the Convex dashboard.
+install:
+- docker:
+    image: $IMAGE
+    name: convex
+    port: $PORT:3210
+    volumes:
+    - /convex/data
+    extra_ports:
+    - 3211:3211
+    - 6791:6791
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Click the "Generate Admin Key" script on the backend service, copy the printed
+    key, then use it to log into the Convex dashboard.

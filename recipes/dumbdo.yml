@@ -1,0 +1,62 @@
+metadata:
+  name: Dumbdo
+  version: latest
+  description: DumbDo is a stupidly simple todo list application that just works.
+    No complex database, no unnecessary features - just todos. It features a clean,
+    minimal interface with dark/light mode support, file-based storage, and PIN protection.
+    Built with the "Dumb" design system principles, it's fast, lightweight, and fully
+    responsive with PWA support.
+  category: todo-list
+  tags:
+  - Todo List
+  - Task Management
+  - Self-Hosted
+  - Lightweight
+  - PWA
+  - Dark Mode
+  - Simple
+  - Docker
+  - Fast
+  - Minimal
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: dumbwareio/dumbdo:d4dff81e4eab16de0974a94742e1cd3bc51a369a
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://www.dumbware.io/DumbDo
+- label: GitHub
+  url: https://github.com/dumbwareio/dumbdo
+- label: Docker Hub
+  url: https://hub.docker.com/r/dumbwareio/dumbdo
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: dumbdo
+    port: $PORT:3000
+    volumes:
+    - /app/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

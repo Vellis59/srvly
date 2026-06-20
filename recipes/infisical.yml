@@ -1,0 +1,63 @@
+metadata:
+  name: Infisical
+  version: latest
+  description: Infisical is a robust, self-hosted platform designed for securely managing
+    and accessing secrets, environment variables, and API keys. It provides a user-friendly
+    interface, seamless integration with popular development and CI/CD tools, and
+    advanced encryption to ensure the safety of sensitive data. With Infisical, you
+    maintain full control over your secrets infrastructure, providing enhanced security
+    and flexibility for your workflows.
+  category: secret-management
+  tags:
+  - Secret Management
+  - Self-Hosted
+  - Security
+  - Environment Variables
+  - Encryption
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: infisical/infisical:v0.159.27
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://infisical.com/docs
+- label: Github
+  url: https://github.com/Infisical/infisical
+instructions: You may delete the migration service once the migration is completed.
+install:
+- docker:
+    image: $IMAGE
+    name: infisical
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: You may delete the migration service once the migration is completed.
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

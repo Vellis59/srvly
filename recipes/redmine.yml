@@ -1,0 +1,67 @@
+metadata:
+  name: Redmine
+  version: latest
+  description: Redmine is an open-source project management and issue-tracking tool.
+    It provides a flexible framework for managing multiple projects and teams, offering
+    features such as Gantt charts, calendar views, and time tracking to keep your
+    projects organized. Redmine supports multiple databases and can be extended through
+    plugins for additional functionality, making it a highly customizable solution
+    for managing tasks, bugs, and collaboration among teams. The tool also includes
+    role-based access control, allowing administrators to assign different permissions
+    to users based on their responsibilities. Redmine integrates with version control
+    systems like Git, Subversion, and Mercurial, enabling developers to track code
+    changes directly from the platform. It supports major platforms including Windows,
+    Linux, and macOS, and can be accessed via a web browser.
+  category: project-management
+  tags:
+  - Project Management
+  - Issue Tracking
+  - Collaboration
+  - Time Tracking
+  - Open Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: redmine:6.1.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://www.redmine.org/
+- label: Documentation
+  url: https://www.redmine.org/guide
+- label: Github
+  url: https://github.com/redmine/redmine
+instructions: Default admin login; admin/admin
+install:
+- docker:
+    image: $IMAGE
+    name: redmine
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Default admin login; admin/admin
+services:
+  mysql:
+    type: mysql
+    version: latest

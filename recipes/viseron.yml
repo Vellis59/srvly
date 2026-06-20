@@ -1,0 +1,72 @@
+metadata:
+  name: Viseron
+  version: latest
+  description: Viseron is a self-hosted, local network video recorder (NVR) and AI-powered
+    video surveillance system designed for privacy-conscious users. It supports multiple
+    camera streams with advanced features like object detection, motion detection,
+    face recognition, and license plate recognition using machine learning models.
+    Viseron can record continuous video, create event-based clips, generate timelapses,
+    and send real-time notifications. It integrates seamlessly with Home Assistant
+    and supports various camera protocols including RTSP, HTTP, and USB cameras. The
+    system features a modern web interface for live viewing, playback, and configuration.
+    All processing happens locally on your hardware, ensuring your video data never
+    leaves your network. Perfect for home security, surveillance systems, and smart
+    home automation.
+  category: nvr
+  tags:
+  - NVR
+  - Video Surveillance
+  - AI
+  - Security Camera
+  - Home Assistant
+  - Object Detection
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: roflcoopter/viseron:3.5.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8888
+links:
+- label: Website
+  url: https://viseron.netlify.app/
+- label: Documentation
+  url: https://viseron.netlify.app/latest/
+- label: Github
+  url: https://github.com/roflcoopter/viseron
+- label: Docker Hub
+  url: https://hub.docker.com/r/roflcoopter/viseron
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: viseron
+    port: $PORT:8888
+    volumes:
+    - /segments
+    - /snapshots
+    - /thumbnails
+    - /event_clips
+    - /timelapse
+    - /config
+    - /etc/localtime
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

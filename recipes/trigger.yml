@@ -1,0 +1,65 @@
+metadata:
+  name: Trigger
+  version: latest
+  description: Trigger.dev is a free and open-source platform that simplifies building
+    workflows and automations directly within your codebase. It provides a powerful
+    way to connect your application to APIs, schedule tasks, and manage real-time
+    and delayed workflows with ease. By integrating seamlessly into your development
+    process, Trigger.dev allows developers to focus on delivering high-value features
+    instead of managing complex infrastructure. Its scalability and ease of use make
+    it a great fit for modern web applications and cloud-based systems.
+  category: workflow-automation
+  tags:
+  - Workflow Automation
+  - API Integration
+  - Real-Time
+  - Open Source
+  - Cloud-Based
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/triggerdotdev/trigger.dev:v3.3.18
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3030
+links:
+- label: Website
+  url: https://trigger.dev/
+- label: Documentation
+  url: https://docs.trigger.dev/
+- label: Github
+  url: https://github.com/triggerdotdev/trigger.dev
+instructions: You should connect your application to Trigger.dev using the provided
+  SDKs and API endpoints for effortless workflow automation.
+install:
+- docker:
+    image: $IMAGE
+    name: trigger
+    port: $PORT:3030
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: You should connect your application to Trigger.dev using the provided SDKs
+    and API endpoints for effortless workflow automation.
+services:
+  postgres:
+    type: postgres
+    version: latest

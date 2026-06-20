@@ -1,0 +1,62 @@
+metadata:
+  name: BentoPDF
+  version: latest
+  description: BentoPDF is a powerful self-hosted PDF manipulation and conversion
+    service that provides a comprehensive API for working with PDF documents. It enables
+    developers and teams to automate PDF operations including conversion, merging,
+    splitting, compression, watermarking, and more through a simple REST API. Built
+    with modern technologies, BentoPDF offers a web interface for manual operations
+    and programmatic access for integration into your applications and workflows.
+    The service supports converting various document formats to PDF, extracting text
+    and images, adding annotations, and manipulating PDF metadata. With no external
+    dependencies on third-party services, BentoPDF ensures your documents remain private
+    and secure on your own infrastructure. Perfect for document management systems,
+    automated report generation, form processing, digital archiving, and any application
+    that requires reliable PDF handling capabilities without the costs and privacy
+    concerns of cloud-based PDF services.
+  category: pdf
+  tags:
+  - PDF
+  - Document Processing
+  - Conversion
+  - API
+  - Automation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: bentopdfteam/bentopdf:sha-fb8c8c0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://bentopdf.com
+- label: GitHub
+  url: https://github.com/alam00000/bentopdf
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: bentopdf
+    port: $PORT:8080
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

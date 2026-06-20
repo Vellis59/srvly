@@ -1,0 +1,61 @@
+metadata:
+  name: LMS
+  version: latest
+  description: LMS (Lightweight Music Server) is a self-hosted music streaming software
+    that provides access to your music collection from anywhere using a web interface.
+    It features Subsonic/OpenSubsonic API support, multi-valued tags, artist relationships,
+    MusicBrainz integration, ListenBrainz support, recommendation engine, and comprehensive
+    music discovery features.
+  category: music-streaming
+  tags:
+  - Music Streaming
+  - Subsonic
+  - MusicBrainz
+  - ListenBrainz
+  - Self-Hosted
+  - Audio Streaming
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: epoupon/lms:3.76.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5082
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Demo
+  url: https://lms-demo.poupon.dev
+- label: Github
+  url: https://github.com/epoupon/lms
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: lms
+    port: $PORT:5082
+    volumes:
+    - /music
+    - /var/lms
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

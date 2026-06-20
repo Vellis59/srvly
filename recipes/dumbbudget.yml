@@ -1,0 +1,95 @@
+metadata:
+  name: DumbBudget
+  version: latest
+  description: DumbBudget is a simple, self-hosted personal budgeting app from DumbWare.io.
+    Track income and expenses with categories, PIN protection, multi-currency support,
+    CSV export, and a responsive PWA UI. Data persists under /app/data.
+  category: budget-management
+  tags:
+  - Budget Management
+  - Personal Finance
+  - Expense Tracking
+  - Financial Planning
+  - Web Interface
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: dumbwareio/dumbbudget:b9db5cb32d14b7b78675d8be054611d4829253ef
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://dumbware.io
+- label: Documentation
+  url: https://github.com/dumbwareio/dumbbudget/blob/main/README.md
+- label: GitHub
+  url: https://github.com/dumbwareio/dumbbudget
+- label: Docker Hub
+  url: https://hub.docker.com/r/dumbwareio/dumbbudget
+instructions: '**BASE_URL** is set to your primary HTTPS domain—required for correct
+  links and
+
+  auth behind a reverse proxy.
+
+  **DUMBBUDGET_PIN:** Leave the template default empty for open access (no PIN
+
+  gate), or set a PIN in the form / env to require it at login (see upstream
+
+  security notes on rate limits and lockouts).
+
+  **SITE_TITLE** appears in the UI header; **INSTANCE_NAME** is optional metadata
+
+  for multi-instance setups (matches upstream docker-compose).
+
+  **CURRENCY** must be a supported ISO code (see documentation link). After
+
+  deploy, open the app and complete any first-run prompts.
+
+  '
+install:
+- docker:
+    image: $IMAGE
+    name: dumbbudget
+    port: $PORT:3000
+    volumes:
+    - /app/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: '**BASE_URL** is set to your primary HTTPS domain—required for correct links
+    and
+
+    auth behind a reverse proxy.
+
+    **DUMBBUDGET_PIN:** Leave the template default empty for open access (no PIN
+
+    gate), or set a PIN in the form / env to require it at login (see upstream
+
+    security notes on rate limits and lockouts).
+
+    **SITE_TITLE** appears in the UI header; **INSTANCE_NAME** is optional metadata
+
+    for multi-instance setups (matches upstream docker-compose).
+
+    **CURRENCY** must be a supported ISO code (see documentation link). After
+
+    deploy, open the app and complete any first-run prompts.
+
+    '

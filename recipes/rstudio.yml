@@ -1,0 +1,59 @@
+metadata:
+  name: RStudio
+  version: latest
+  description: RStudio is a powerful integrated development environment (IDE) for
+    R programming and statistical computing. It provides a comprehensive set of tools
+    for data analysis, visualization, and statistical modeling. This server-based
+    version allows you to access RStudio through your web browser, enabling collaborative
+    work and remote access to your R projects from anywhere. Perfect for data scientists,
+    statisticians, and researchers working with R.
+  category: development
+  tags:
+  - Development
+  - IDE
+  - R
+  - Statistics
+  - Data Science
+  - Analytics
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: rocker/rstudio:4.5.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8787
+links:
+- label: Website
+  url: https://posit.co/products/open-source/rstudio/
+- label: Documentation
+  url: https://docs.posit.co/ide/server-pro/
+- label: GitHub
+  url: https://github.com/rstudio/rstudio
+instructions: Default username is rstudio and password is 1234
+install:
+- docker:
+    image: $IMAGE
+    name: rstudio
+    port: $PORT:8787
+    volumes:
+    - /home/rstudio
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Default username is rstudio and password is 1234

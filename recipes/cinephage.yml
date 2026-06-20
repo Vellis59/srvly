@@ -1,0 +1,57 @@
+metadata:
+  name: Cinephage
+  version: latest
+  description: Cinephage is a self-hosted media management and streaming application
+    designed for organizing and accessing your movie and TV show collection. It provides
+    a modern web interface for browsing your media library, with features like metadata
+    management, watch tracking, and streaming capabilities. Built with privacy and
+    self-hosting in mind, Cinephage gives you complete control over your media collection
+    without relying on external services.
+  category: media
+  tags:
+  - Media
+  - Streaming
+  - Movies
+  - TV Shows
+  - Self-Hosted
+  - Plex Alternative
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/moldytaint/cinephage:sha-7e755e4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: GitHub
+  url: https://github.com/moldytaint/cinephage
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: cinephage
+    port: $PORT:3000
+    volumes:
+    - /app/data
+    - /app/logs
+    - /media
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

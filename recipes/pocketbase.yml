@@ -1,0 +1,63 @@
+metadata:
+  name: PocketBase
+  version: latest
+  description: PocketBase is a powerful backend solution for your next SaaS or Mobile
+    app. It is designed to be ready to use out of the box, providing a realtime database,
+    user authentication, file storage, and an admin dashboard all in one file. The
+    realtime database is embedded and performant, featuring a schema builder, data
+    validations, realtime subscriptions, and an easy-to-use REST API. The authentication
+    feature allows you to manage your app users and handle email/password and OAuth2
+    sign ups from various platforms like Google, Facebook, GitHub, GitLab without
+    any hassle. The file storage feature allows you to store files locally or in an
+    S3 storage, attach media to your database records, and generate thumbnails on
+    the fly. PocketBase is extendable and can be used as a standalone app or as a
+    Go framework, which you can extend via hooks to create your own custom portable
+    backend. It also provides official client SDKs for seamless integration.
+  category: databases
+  tags:
+  - Databases
+  - Developer Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: spectado/pocketbase:0.23.12
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://pocketbase.io
+- label: Documentation
+  url: https://pocketbase.io/docs
+- label: Github
+  url: https://github.com/pocketbase/pocketbase
+instructions: Admin Dashboard can be accessed via "DOMAIN/_/""
+install:
+- docker:
+    image: $IMAGE
+    name: pocketbase
+    port: $PORT:80
+    volumes:
+    - /pb_data
+    - /pb_public
+    - /pb_migrations
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Admin Dashboard can be accessed via "DOMAIN/_/""

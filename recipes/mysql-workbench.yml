@@ -1,0 +1,61 @@
+metadata:
+  name: MySQL-Workbench
+  version: latest
+  description: MySQL Workbench is a unified visual tool for database architects, developers,
+    and DBAs. It provides data modeling, SQL development, and comprehensive database
+    management capabilities for MySQL and MariaDB. With MySQL Workbench, you can design
+    and create new databases, reverse-engineer existing databases, and perform complex
+    migrations. It offers a visual query builder, a powerful SQL editor, and support
+    for data modeling and schema creation. MySQL Workbench is a trusted, easy-to-use
+    tool to streamline database operations and improve productivity.
+  category: database
+  tags:
+  - Database
+  - MySQL
+  - Development
+  - Administration
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/mysql-workbench:8.0.47
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://www.mysql.com/products/workbench/
+- label: Documentation
+  url: https://dev.mysql.com/doc/workbench/en/
+- label: Github
+  url: https://github.com/mysql/mysql-workbench
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: mysql-workbench
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

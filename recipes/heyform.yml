@@ -1,0 +1,68 @@
+metadata:
+  name: HeyForm
+  version: latest
+  description: HeyForm is an open-source form builder platform designed to create,
+    manage, and share forms with ease. It simplifies form creation workflows for businesses,
+    developers, and individuals by offering intuitive UI components and backend management.
+    HeyForm provides robust support for form encryption, session management, and integrations
+    with third-party services like MongoDB and Redis. Its flexible API allows developers
+    to customize and extend functionalities while ensuring data security. HeyForm's
+    clean design and modular architecture make it scalable and adaptable for growing
+    business needs, enabling effective form creation, storage, and analysis.
+  category: form-builder
+  tags:
+  - Form Builder
+  - Form Encryption
+  - MongoDB Integration
+  - Redis Integration
+  - API-Driven
+  - Scalable Architecture
+  - Multi-Tenancy
+  - Notifications
+  - Data Security
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: heyform/community-edition:v0.1.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Website
+  url: https://heyform.net/
+- label: Documentation
+  url: https://docs.heyform.net
+- label: GitHub
+  url: https://github.com/heyform/heyform
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: heyform
+    port: $PORT:8000
+    volumes:
+    - /data/db
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  redis:
+    type: redis
+    version: '7'

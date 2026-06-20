@@ -1,0 +1,57 @@
+metadata:
+  name: DumbTerm
+  version: latest
+  description: DumbTerm is a web-based terminal emulator that provides secure terminal
+    access through your browser. It features PIN protection, session management, and
+    configurable security settings. Perfect for remote server access, development
+    environments, and system administration tasks.
+  category: terminal
+  tags:
+  - Terminal
+  - SSH
+  - Web Interface
+  - Security
+  - System Administration
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: dumbwareio/dumbterm:1.2.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://www.dumbware.io/DumbTerm
+- label: Documentation
+  url: https://github.com/dumbwareio/dumbterm#readme
+- label: GitHub
+  url: https://github.com/dumbwareio/dumbterm
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: dumbterm
+    port: $PORT:3000
+    volumes:
+    - /root/.config
+    - /root/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

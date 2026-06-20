@@ -1,0 +1,71 @@
+metadata:
+  name: Frappe LMS
+  version: latest
+  description: LMS (Learning Management System) is a comprehensive educational platform
+    built on the Frappe framework that enables organizations to create, manage, and
+    deliver online learning content. The system provides course management, student
+    enrollment, progress tracking, assessments, and interactive learning features.
+    Built with modern web technologies, it offers a robust and scalable solution for
+    educational institutions, corporate training programs, and online learning platforms.
+    The Frappe-based architecture ensures reliability, extensibility, and ease of
+    customization for specific learning requirements.
+  category: learning-management
+  tags:
+  - Learning Management
+  - Education
+  - E-Learning
+  - Course Management
+  - Student Portal
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: frappe/bench:v5.29.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Github
+  url: https://github.com/frappe/lms
+- label: Documentation
+  url: https://frappe.io/learning
+- label: Website
+  url: https://frappeframework.com
+instructions: Default login credentials are Administrator/admin. It takes 5-7 minutes
+  to install the app.
+install:
+- docker:
+    image: $IMAGE
+    name: frappe-lms
+    port: $PORT:8000
+    volumes:
+    - /workspace/init.sh
+    - /workspace
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Default login credentials are Administrator/admin. It takes 5-7 minutes to
+    install the app.
+services:
+  mysql:
+    type: mysql
+    version: latest
+  redis:
+    type: redis
+    version: '7'

@@ -1,0 +1,58 @@
+metadata:
+  name: Flagsmith
+  version: latest
+  description: Flagsmith is a powerful, self-hosted service for feature flag management,
+    remote configuration, and experimentation. It provides a clean and simple interface,
+    supports integrations with various tools, and offers advanced analytics for feature
+    usage and experimentation results. With Flagsmith, you can maintain control over
+    your feature management and deployment process.
+  category: feature-flags
+  tags:
+  - Feature Flags
+  - Remote Configuration
+  - Analytics
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: flagsmith/flagsmith:2.231.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Documentation
+  url: https://docs.flagsmith.com/
+- label: GitHub
+  url: https://github.com/Flagsmith/flagsmith
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: flagsmith
+    port: $PORT:8000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

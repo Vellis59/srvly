@@ -1,0 +1,53 @@
+metadata:
+  name: Altus
+  version: latest
+  description: Altus is a desktop application that brings WhatsApp Web to your desktop
+    with additional features and customization options. It provides a clean, native
+    desktop experience for WhatsApp Web, with support for multiple accounts, themes,
+    and enhanced functionality beyond the standard web interface.
+  category: messaging
+  tags:
+  - Messaging
+  - WhatsApp
+  - Desktop App
+  - Communication
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/altus:5.7.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Documentation
+  url: https://docs.linuxserver.io/images/docker-altus/
+- label: Github
+  url: https://github.com/linuxserver/docker-altus
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: altus
+    port: $PORT:3000
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

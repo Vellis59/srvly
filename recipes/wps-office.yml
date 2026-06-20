@@ -1,0 +1,59 @@
+metadata:
+  name: WPS Office
+  version: latest
+  description: WPS Office is a comprehensive office suite that is lightweight yet
+    feature-rich. It offers high compatibility and a range of professional office
+    software tools. With WPS Office, you can edit files in Writer, Presentation, Spreadsheet,
+    and PDF, enhancing your work efficiency. The application can be accessed at your
+    host on ports 3000 and 3001. This container is based on Docker Baseimage KasmVNC,
+    which provides additional environment variables and run configurations to enable
+    or disable specific functionality. The application also supports the docker manifest
+    for multi-platform awareness, ensuring the correct image for your architecture
+    is retrieved.
+  category: productivity
+  tags:
+  - Productivity
+  - Documents
+  - Office Suite
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/wps-office:11.1.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Documentation
+  url: https://docs.linuxserver.io/images/docker-wps-office
+- label: Github
+  url: https://github.com/linuxserver/docker-wps-office
+instructions: use abc:abc to login. To access the login interface, add ?login=true
+  to your URL.
+install:
+- docker:
+    image: $IMAGE
+    name: wps-office
+    port: $PORT:3000
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: use abc:abc to login. To access the login interface, add ?login=true to your
+    URL.

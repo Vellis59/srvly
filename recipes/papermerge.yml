@@ -1,0 +1,62 @@
+metadata:
+  name: Papermerge
+  version: latest
+  description: Papermerge is an open-source document management system (DMS) designed
+    to help you digitize, store, and organize documents efficiently. It simplifies
+    document workflows with features like automated OCR, smart categorization, and
+    role-based access control. By centralizing all your documents in a single platform,
+    Papermerge enables teams to improve collaboration and streamline document handling
+    processes.
+  category: document-management
+  tags:
+  - Document Management
+  - OCR
+  - Workflow Automation
+  - Open-Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: papermerge/papermerge:3.5.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://docs.papermerge.io/3.3/
+- label: GitHub
+  url: https://github.com/ciur/papermerge
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: papermerge
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

@@ -1,0 +1,50 @@
+metadata:
+  name: Oxigen
+  version: latest
+  description: Oxigen is a dynamic social media image generator designed to streamline
+    the process of creating and customizing og images. With a user-friendly interface
+    and API, Oxigen allows you to effortlessly generate images tailored to your specific
+    needs. Whether you're looking to create unique images for your social media posts
+    or need a reliable tool for generating og images, Oxigen offers a flexible and
+    efficient solution.
+  category: social-networking
+  tags:
+  - Social Networking
+  - Image Generator
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/yuriizinets/oxigen:2.1.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Github
+  url: https://github.com/yuriizinets/oxigen
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: oxigen
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

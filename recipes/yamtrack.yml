@@ -1,0 +1,65 @@
+metadata:
+  name: Yamtrack
+  version: latest
+  description: Yamtrack is a self-hosted media tracking application designed to help
+    you keep track of your movies, TV shows, books, video games, and other media consumption.
+    It provides a clean, modern interface for logging what you're watching, reading,
+    or playing, along with ratings, reviews, and personal notes. Yamtrack features
+    automatic metadata fetching from popular databases, progress tracking, viewing
+    statistics, and customizable lists. The application supports multiple media types
+    and offers detailed analytics about your consumption habits. Built with a focus
+    on privacy and simplicity, Yamtrack keeps all your tracking data under your control.
+    Perfect for media enthusiasts who want to maintain a comprehensive log of their
+    entertainment without relying on third-party services.
+  category: media-tracker
+  tags:
+  - Media Tracker
+  - Movies
+  - TV Shows
+  - Books
+  - Gaming
+  - Analytics
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/fuzzygrim/yamtrack:0.25.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Github
+  url: https://github.com/FuzzyGrim/Yamtrack
+- label: Documentation
+  url: https://github.com/FuzzyGrim/Yamtrack/wiki
+instructions: Default credentials are admin/admin123.
+install:
+- docker:
+    image: $IMAGE
+    name: yamtrack
+    port: $PORT:8000
+    volumes:
+    - /yamtrack/db
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Default credentials are admin/admin123.
+services:
+  redis:
+    type: redis
+    version: '7'

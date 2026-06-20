@@ -1,0 +1,59 @@
+metadata:
+  name: CrowdSec
+  version: latest
+  description: CrowdSec is a free, modern, and collaborative security engine utilizing
+    crowdsourcing to generate cyber threat intelligence data. It analyzes visitor
+    behavior & provides an adapted response to all kinds of attacks. It can read logs,
+    spot malevolent visitors, and trigger appropriate remediation.
+  category: security
+  tags:
+  - Security
+  - IDS
+  - IPS
+  - Firewall
+  - Protection
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: crowdsecurity/crowdsec
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://www.crowdsec.net/
+- label: Documentation
+  url: https://docs.crowdsec.net/
+- label: Github
+  url: https://github.com/crowdsecurity/crowdsec
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: crowdsec
+    port: $PORT:80
+    volumes:
+    - /etc/crowdsec/acquis.yaml
+    - /var/log/nginx
+    - /var/lib/crowdsec/data/
+    - /etc/crowdsec/
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

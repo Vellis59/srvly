@@ -1,0 +1,68 @@
+metadata:
+  name: LogChimp
+  version: latest
+  description: LogChimp is an open-source feedback and changelog platform that lets
+    you collect product feedback, publish updates, and keep users informed from a
+    single place. It provides an API, a web UI, and a themed frontend for your users
+    to submit ideas, vote, and read announcements. Built with PostgreSQL and Valkey
+    (Redis), it supports self-hosted deployments with migrations, background processing,
+    and email notifications.
+  category: feedback
+  tags:
+  - Feedback
+  - Changelog
+  - Product Management
+  - Self-Hosted
+  - PostgreSQL
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ''
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://logchimp.codecarrot.net
+- label: Documentation
+  url: https://docs.logchimp.codecarrot.net/platform/what-is-logchimp
+- label: GitHub
+  url: https://github.com/logchimp/logchimp
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: logchimp
+    port: $PORT:3000
+    volumes:
+    - /data
+    extra_ports:
+    - 8000:8000
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

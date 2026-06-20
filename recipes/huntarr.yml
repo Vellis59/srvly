@@ -1,0 +1,70 @@
+metadata:
+  name: Huntarr
+  version: latest
+  description: Huntarr is an automated media library enhancement tool that continuously
+    monitors and improves your Radarr, Sonarr, and Lidarr collections. It works by
+    periodically scanning your media libraries to identify missing items, failed downloads,
+    and opportunities for quality upgrades, then automatically triggering searches
+    to fill gaps and improve your collection. Huntarr acts as an intelligent automation
+    layer on top of your existing *arr stack, ensuring your media library stays complete
+    and up-to-date without manual intervention. The application features configurable
+    scan intervals, customizable search triggers, support for multiple quality profiles,
+    and detailed logging for tracking improvements. With its set-it-and-forget-it
+    approach, Huntarr continuously works in the background to enhance your media collection
+    by finding better quality versions, locating missing episodes or movies, and automatically
+    requesting upgrades based on your configured quality preferences. The web interface
+    provides visibility into scan history, search statistics, and library health metrics.
+    Perfect for users who want their media libraries to automatically improve over
+    time, home media server enthusiasts managing large collections, or anyone running
+    Radarr/Sonarr/Lidarr who wants to ensure their libraries are always complete and
+    optimized without constant manual searching.
+  category: media-automation
+  tags:
+  - Media Automation
+  - Radarr
+  - Sonarr
+  - Lidarr
+  - Library Management
+  - Media Server
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: huntarr/huntarr:9.2.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 9705
+links:
+- label: Website
+  url: https://huntarr.io/
+- label: GitHub
+  url: https://github.com/plexguide/Huntarr.io
+- label: Docker Hub
+  url: https://hub.docker.com/r/huntarr/huntarr
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: huntarr
+    port: $PORT:9705
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

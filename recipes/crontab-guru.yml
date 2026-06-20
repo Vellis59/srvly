@@ -1,0 +1,55 @@
+metadata:
+  name: Crontab Guru
+  version: latest
+  description: Crontab Guru is a simple web interface for managing and testing cron
+    expressions. It provides an intuitive dashboard for creating, editing, and validating
+    crontab entries with real-time feedback. Perfect for system administrators and
+    developers who need to schedule tasks and want to ensure their cron expressions
+    are correct before deployment.
+  category: cron
+  tags:
+  - Cron
+  - Scheduling
+  - System Administration
+  - Task Management
+  - Developer Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: dockeriddonuts/crontab-dashboard:1.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 9000
+links:
+- label: Website
+  url: https://crontab.guru
+- label: Documentation
+  url: https://crontab.guru/examples.html
+instructions: Login using the default credentials; admin/secret123
+install:
+- docker:
+    image: $IMAGE
+    name: crontab-guru
+    port: $PORT:9000
+    volumes:
+    - /var/spool/cron/crontabs
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Login using the default credentials; admin/secret123

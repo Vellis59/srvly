@@ -1,0 +1,62 @@
+metadata:
+  name: EasyAppointments
+  version: latest
+  description: EasyAppointments is an open-source, self-hosted scheduling platform
+    designed to help businesses manage appointments seamlessly. It enables organizations
+    to handle booking, customer management, and service scheduling with ease. With
+    an intuitive interface and robust customization options, EasyAppointments supports
+    integrations, multi-language capabilities, and detailed reporting, making it a
+    versatile solution for appointment scheduling.
+  category: appointment-scheduling
+  tags:
+  - Appointment Scheduling
+  - Booking System
+  - Open Source
+  - Calendar Integration
+  - Multi-Language
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: alextselegidis/easyappointments:1.5.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Github
+  url: https://github.com/alextselegidis/easyappointments
+- label: Documentation
+  url: https://easyappointments.org/
+- label: Demo
+  url: https://demo.easyappointments.org/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: easyappointments
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

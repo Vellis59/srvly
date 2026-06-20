@@ -1,0 +1,58 @@
+metadata:
+  name: Emby-Stat
+  version: latest
+  description: Emby-Stat is an advanced statistics and analytics tool for Emby and
+    Jellyfin media servers. It allows you to gain deeper insights into your media
+    library, viewing habits, and server usage. With detailed statistics and customizable
+    reports, Emby-Stat helps you visualize and analyze your media server data effectively.
+    It also provides a user-friendly interface to track playback history, top media
+    consumption trends, and server activity over time. Emby-Stat integrates seamlessly
+    with Emby, giving you the ability to enhance your media management with data-driven
+    decisions.
+  category: media
+  tags:
+  - Media
+  - Analytics
+  - Statistics
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/embystat:0.2.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 6555
+links:
+- label: Website
+  url: https://embystat.org/
+- label: Documentation
+  url: https://docs.embystat.org/
+- label: Github
+  url: https://github.com/mregni/EmbyStat
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: emby-stat
+    port: $PORT:6555
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

@@ -1,0 +1,68 @@
+metadata:
+  name: PgBackWeb
+  version: latest
+  description: PgBackWeb is a comprehensive web-based backup solution for PostgreSQL
+    databases. It provides an intuitive interface to manage, schedule, and monitor
+    PostgreSQL backups with support for multiple backup destinations including local
+    storage and S3-compatible object storage. The application allows you to configure
+    automated backup schedules, manage retention policies, and restore databases through
+    a user-friendly web interface. PgBackWeb ensures your PostgreSQL databases are
+    safely backed up with encryption support, making it an essential tool for database
+    administrators who need reliable backup management without complex command-line
+    operations. It supports multiple PostgreSQL instances and provides detailed backup
+    logs and notifications.
+  category: database
+  tags:
+  - Database
+  - Backup
+  - PostgreSQL
+  - Data Management
+  - Database Tools
+  - Self-Hosted
+  - Disaster Recovery
+  - Automation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: eduardolat/pgbackweb:0.5.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8085
+links:
+- label: GitHub
+  url: https://github.com/eduardolat/pgbackweb
+- label: Documentation
+  url: https://github.com/eduardolat/pgbackweb#readme
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: pgbackweb
+    port: $PORT:8085
+    volumes:
+    - /backups
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

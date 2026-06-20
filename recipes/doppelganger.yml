@@ -1,0 +1,70 @@
+metadata:
+  name: Doppelganger
+  version: latest
+  description: Doppelganger (Figranium) is a self-hosted browser automation and scraping
+    platform built on Playwright. It offers a visual task editor, structured JSON
+    task format, and execution modes for simple scraping to complex, human-like browser
+    interactions. Includes noVNC for remote browser viewing.
+  category: automation
+  tags:
+  - Automation
+  - Scraping
+  - Playwright
+  - Browser
+  - Open Source
+  - Self-hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: mnemosyneai/doppelganger:v0.12.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 11345
+links:
+- label: Website
+  url: https://doppelgangerdev.com
+- label: Documentation
+  url: https://figranium.dev/docs/overview
+- label: GitHub
+  url: https://github.com/mnemosynestack/doppelganger
+instructions: 'Open your app domain to access the Doppelganger web interface and create
+  your first automation task.
+
+  Data persistence is enabled in the mounted `/app/data` volume and update to a newer
+  image tag when available.
+
+  '
+install:
+- docker:
+    image: $IMAGE
+    name: doppelganger
+    port: $PORT:11345
+    volumes:
+    - /app/data
+    extra_ports:
+    - 54311:54311
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: 'Open your app domain to access the Doppelganger web interface and create
+    your first automation task.
+
+    Data persistence is enabled in the mounted `/app/data` volume and update to a
+    newer image tag when available.
+
+    '

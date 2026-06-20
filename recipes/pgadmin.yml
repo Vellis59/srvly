@@ -1,0 +1,57 @@
+metadata:
+  name: Pgadmin
+  version: latest
+  description: PGAdmin is a popular open-source administration and management tool
+    for PostgreSQL databases. It provides a web-based interface to interact with PostgreSQL
+    databases, allowing users to create, modify, and manage databases, tables, roles,
+    and queries with ease. PGAdmin supports advanced query execution, database performance
+    analysis, and extensive user management capabilities. With a modern and intuitive
+    UI, it is designed for database administrators, developers, and analysts to efficiently
+    work with PostgreSQL databases. Additional features include SQL query editor,
+    ERD diagrams, scheduled backups, and monitoring tools.
+  category: database-management
+  tags:
+  - Database Management
+  - PostgreSQL
+  - Web UI
+  - Administration
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: dpage/pgadmin4:9.14
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://www.pgadmin.org/docs/
+- label: Github
+  url: https://github.com/pgadmin-org/pgadmin4
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: pgadmin
+    port: $PORT:80
+    volumes:
+    - /var/lib/pgadmin
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

@@ -1,0 +1,58 @@
+metadata:
+  name: Dillinger
+  version: latest
+  description: Dillinger is an open-source, online Markdown editor designed to provide
+    a seamless and user-friendly experience for writing and editing Markdown files.
+    With its intuitive interface, Dillinger supports real-time preview, file imports/exports,
+    and integration with popular cloud storage services such as Dropbox, Google Drive,
+    GitHub, and OneDrive. It allows users to write Markdown efficiently and export
+    their work in various formats, including HTML, PDF, and Markdown itself. Dillinger
+    operates as a modern, distraction-free editor that simplifies writing and content
+    creation for developers, writers, and professionals.
+  category: markdown-editor
+  tags:
+  - Markdown Editor
+  - Content Creation
+  - Productivity Tools
+  - Cloud Integration
+  - File Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/dillinger:3.39.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Demo
+  url: https://dillinger.io/
+- label: GitHub
+  url: https://github.com/joemccann/dillinger
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: dillinger
+    port: $PORT:8080
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

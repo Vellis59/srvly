@@ -1,0 +1,58 @@
+metadata:
+  name: Gerrit
+  version: latest
+  description: Gerrit is a web-based code review tool that integrates with Git. It
+    provides a framework for reviewing code changes before they are merged into the
+    codebase, making it an essential tool for collaborative software development.
+  category: git
+  tags:
+  - Git
+  - Code Review
+  - Version Control
+  - Collaboration
+  - Development
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: gerritcodereview/gerrit:3.13.6
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://www.gerritcodereview.com/
+- label: Documentation
+  url: https://gerrit-documentation.storage.googleapis.com/Documentation/3.7.1/index.html
+- label: GitHub
+  url: https://github.com/GerritCodeReview/gerrit
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: gerrit
+    port: $PORT:8080
+    volumes:
+    - /var/gerrit/git
+    - /var/gerrit/index
+    - /var/gerrit/cache
+    extra_ports:
+    - 29418:29418
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

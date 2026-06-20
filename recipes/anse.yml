@@ -1,0 +1,50 @@
+metadata:
+  name: Anse
+  version: latest
+  description: Anse is a modern web application that provides a clean and intuitive
+    interface. It's a lightweight and efficient solution for your needs.
+  category: web-application
+  tags:
+  - Web Application
+  - UI
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ddiu8081/anse:v1.1.11
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://anse.app
+- label: Github
+  url: https://github.com/ddiu8081/anse
+- label: Documentation
+  url: https://docs.anse.app
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: anse
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

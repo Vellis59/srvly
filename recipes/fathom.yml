@@ -1,0 +1,56 @@
+metadata:
+  name: Fathom
+  version: latest
+  description: Fathom is a simple, privacy-focused alternative to Google Analytics.
+    It provides fast, lightweight and privacy-first website analytics without compromising
+    user data.
+  category: analytics
+  tags:
+  - Analytics
+  - Privacy
+  - GDPR
+  - Web Analytics
+  - Statistics
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: usefathom/fathom:version-1.2.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://usefathom.com
+- label: Documentation
+  url: https://usefathom.com/docs
+- label: GitHub
+  url: https://github.com/usefathom/fathom
+instructions: Open Fathom from your domain, complete the initial admin setup, then
+  add your website and embed the generated tracking script in your site pages.
+install:
+- docker:
+    image: $IMAGE
+    name: fathom
+    port: $PORT:8080
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Open Fathom from your domain, complete the initial admin setup, then add
+    your website and embed the generated tracking script in your site pages.

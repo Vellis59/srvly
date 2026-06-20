@@ -1,0 +1,62 @@
+metadata:
+  name: Goaway
+  version: latest
+  description: Goaway is a DNS service that provides filtering and blocking capabilities
+    for unwanted content. It acts as a DNS server that can block malicious domains,
+    advertisements, and other unwanted traffic while providing a clean web interface
+    for management.
+  category: dns
+  tags:
+  - DNS
+  - Network Security
+  - Ad Blocking
+  - Content Filtering
+  - Privacy
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: pommee/goaway:0.57.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 53
+links:
+- label: Website
+  url: https://pommee.github.io/goaway/
+- label: Documentation
+  url: https://pommee.github.io/goaway/getting-started/
+- label: GitHub
+  url: https://github.com/pommee/goaway
+instructions: The login credentials are user = admin and password is generated on
+  the startup logs of GoAway inside overview section. In order to mount the DNS port,
+  you have to make sure your host machine has the port 53 not being used by any other
+  service.
+install:
+- docker:
+    image: $IMAGE
+    name: goaway
+    port: $PORT:53
+    volumes:
+    - /home/appuser
+    extra_ports:
+    - 8080:8080
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: The login credentials are user = admin and password is generated on the startup
+    logs of GoAway inside overview section. In order to mount the DNS port, you have
+    to make sure your host machine has the port 53 not being used by any other service.

@@ -1,0 +1,61 @@
+metadata:
+  name: LazyLibrarian
+  version: latest
+  description: LazyLibrarian is an open-source tool designed to manage and automate
+    the downloading, organizing, and serving of eBooks, audiobooks, and magazines.
+    It integrates seamlessly with Usenet and torrent services to fetch content based
+    on user preferences. With LazyLibrarian, you can search, download, and manage
+    your media library effortlessly. It supports multiple download providers, metadata
+    retrieval, and integration with Calibre for organizing your eBook collection.
+    LazyLibrarian is user-friendly, flexible, and provides a centralized solution
+    for book lovers to manage their digital libraries.
+  category: ebooks
+  tags:
+  - eBooks
+  - Audiobooks
+  - Library
+  - Media Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/lazylibrarian:c3a20585-ls280
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5299
+links:
+- label: Website
+  url: https://lazylibrarian.gitlab.io
+- label: Documentation
+  url: https://lazylibrarian.gitlab.io
+- label: Github
+  url: https://gitlab.com/LazyLibrarian/LazyLibrarian
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: lazylibrarian
+    port: $PORT:5299
+    volumes:
+    - /config
+    - /downloads
+    - /books
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

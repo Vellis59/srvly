@@ -1,0 +1,57 @@
+metadata:
+  name: Dnote
+  version: latest
+  description: Dnote is a simple command-line notebook application that helps you
+    capture and organize your thoughts. It provides a clean interface for taking notes
+    and organizing them into books.
+  category: note-taking
+  tags:
+  - Note Taking
+  - CLI
+  - Organization
+  - Self-Hosted
+  - Productivity
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: dnote/dnote:3.0.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3001
+links:
+- label: GitHub
+  url: https://github.com/dnote/dnote
+- label: Website
+  url: https://dnote.io
+- label: Documentation
+  url: https://www.getdnote.com/blog/introducing-dnote-web/
+instructions: Configure SMTP to enable email verification and password resets. Dnote
+  v3 uses embedded SQLite — no external database is required.
+install:
+- docker:
+    image: $IMAGE
+    name: dnote
+    port: $PORT:3001
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Configure SMTP to enable email verification and password resets. Dnote v3
+    uses embedded SQLite — no external database is required.

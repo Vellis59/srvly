@@ -1,0 +1,58 @@
+metadata:
+  name: HackMD
+  version: latest
+  description: HackMD is a simple and powerful note-taking app that allows you to
+    create notes, write and organize your thoughts, and collaborate with others in
+    real time. It's a great tool for anyone who wants to stay organized and productive
+    while working remotely or on the go.
+  category: no-code
+  tags:
+  - No-Code
+  - Collaboration
+  - Note Taking
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: hackmdio/hackmd:2.6.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://hackmd.io/
+- label: Github
+  url: https://github.com/hackmdio/codimd
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: hackmdio
+    port: $PORT:3000
+    volumes:
+    - /home/hackmd/app/public/uploads
+    - /var/lib/postgresql/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

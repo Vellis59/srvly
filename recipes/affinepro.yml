@@ -1,0 +1,72 @@
+metadata:
+  name: Affine
+  version: latest
+  description: Affine is a modern, self-hosted platform designed for collaborative
+    content creation and project management. It offers an intuitive interface, seamless
+    real-time collaboration, and powerful tools for organizing tasks, notes, and ideas.
+    With Affine, you can centralize your workflows and enhance productivity. The platform
+    features a comprehensive workspace that combines note-taking, task management,
+    and project planning in one unified environment.
+  category: collaboration
+  tags:
+  - Collaboration
+  - Self-Hosted
+  - Productivity
+  - Project Management
+  - PostgreSQL
+  - Vector Search
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/toeverything/affine:0.26.6
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3010
+links:
+- label: Website
+  url: https://affine.pro
+- label: Documentation
+  url: https://affine.pro/docs
+- label: Github
+  url: https://github.com/toeverything/Affine
+instructions: The migration service runs automatically during deployment to set up
+  the database schema. It can be safely removed once the process is complete.
+install:
+- docker:
+    image: $IMAGE
+    name: affinepro
+    port: $PORT:3010
+    volumes:
+    - /root/.affine/storage
+    - /root/.affine/config
+    - /root/.affine/storage
+    - /root/.affine/config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: The migration service runs automatically during deployment to set up the
+    database schema. It can be safely removed once the process is complete.
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

@@ -1,0 +1,52 @@
+metadata:
+  name: Feedpushr
+  version: latest
+  description: Feedpushr is a simple and fast RSS/Atom feed aggregator that can push
+    notifications to various services. It supports multiple output formats and can
+    be used to monitor and aggregate RSS/Atom feeds.
+  category: rss
+  tags:
+  - RSS
+  - Atom
+  - Feed
+  - Aggregator
+  - Notifications
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ncarlier/feedpushr:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Github
+  url: https://github.com/ncarlier/feedpushr
+- label: Documentation
+  url: https://docs.readflow.app/en/integrations/examples/feedpushr/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: feedpushr
+    port: $PORT:8080
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

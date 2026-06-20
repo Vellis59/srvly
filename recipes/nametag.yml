@@ -1,0 +1,71 @@
+metadata:
+  name: Nametag
+  version: latest
+  description: Nametag is a simple, yet effective Personal Relationship Manager (PRM)
+    - like a CRM, but for your actual relationships instead of sales prospects. Built
+    with Next.js, it helps you manage your personal network by tracking contacts,
+    mapping relationships between people, and visualizing your network with interactive
+    graphs. Remember when you last talked to an old friend, their kids' names, or
+    their birthday. Organize contacts into custom groups, set reminders for important
+    dates and staying in touch, and keep all your relationship data in one secure,
+    self-hosted location.
+  category: personal-relationship-manager
+  tags:
+  - Personal Relationship Manager
+  - PRM
+  - CRM
+  - Contacts
+  - Relationships
+  - Next.js
+  - Self-Hosted
+  - Network Visualization
+  - Reminders
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/mattogodoy/nametag:0.44.6
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: GitHub
+  url: https://github.com/mattogodoy/nametag
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: nametag
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

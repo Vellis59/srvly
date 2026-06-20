@@ -1,0 +1,61 @@
+metadata:
+  name: Nzbget
+  version: latest
+  description: NZBGet is an efficient Usenet downloader that is open source and hosted
+    on GitHub. This powerful tool is designed to download files from Usenet based
+    on information provided in nzb-files. Known for its performance and efficiency,
+    NZBGet is written in C++ and can run on almost any device, including classic PCs,
+    NAS, media players, SAT-receivers, WLAN-routers, and more. It provides precompiled
+    binaries for Windows, macOS, Linux, FreeBSD, and Android. The app also offers
+    features like RSS and duplicate check for automating your downloads, VideoSort
+    for sorting downloaded video files, and various scripts for enhancing functionality.
+    With NZBGet, you can maximize your device's performance and improve your downloading
+    experience.
+  category: download
+  tags:
+  - Download
+  - Usenet
+  - Downloader
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/nzbget:version-v25.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 6789
+links:
+- label: Website
+  url: https://nzbget.net/
+- label: Documentation
+  url: https://nzbget.net/documentation
+- label: Github
+  url: https://github.com/nzbget/nzbget
+instructions: Default username=nzbget, password=tegbzn6789
+install:
+- docker:
+    image: $IMAGE
+    name: nzbget
+    port: $PORT:6789
+    volumes:
+    - /config
+    - /downloads
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Default username=nzbget, password=tegbzn6789

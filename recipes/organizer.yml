@@ -1,0 +1,53 @@
+metadata:
+  name: Organizer
+  version: latest
+  description: Organizer is a self-hosted service designed to help you manage and
+    organize your various web applications efficiently. It serves as a centralized
+    portal where you can categorize and access all your self-hosted apps in a simple
+    and intuitive way. Written in PHP, Organizer provides a dashboard for quick navigation,
+    supports authentication for security, and integrates with various third-party
+    applications. It offers a customizable interface, supports mobile devices, and
+    ensures a seamless experience for managing multiple services within your home
+    or business environment.
+  category: dashboard
+  tags:
+  - Dashboard
+  - Productivity
+  - App Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: linuxserver/organizr:version-f6d984d2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Github
+  url: https://github.com/causefx/Organizr
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: organizer
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

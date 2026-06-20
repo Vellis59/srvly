@@ -1,0 +1,54 @@
+metadata:
+  name: Gokapi
+  version: latest
+  description: Gokapi is a lightweight file-sharing server that allows you to easily
+    upload and share files with others. It provides a simple web interface for file
+    uploads, generates shareable links, and supports features like password protection,
+    automatic file expiration, and customizable download limits.
+  category: file-sharing
+  tags:
+  - File Sharing
+  - Upload Server
+  - File Transfer
+  - Temporary Storage
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: f0rc3/gokapi:v2.2.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 53842
+links:
+- label: Github
+  url: https://github.com/Forceu/Gokapi
+- label: Documentation
+  url: https://gokapi.readthedocs.io/en/latest/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: gokapi
+    port: $PORT:53842
+    volumes:
+    - /app/config
+    - /app/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

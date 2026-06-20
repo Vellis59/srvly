@@ -1,0 +1,57 @@
+metadata:
+  name: Deluge
+  version: latest
+  description: Deluge is a comprehensive BitTorrent client designed to cater to your
+    torrenting needs. It operates on a daemon/client model and is equipped with various
+    user interfaces, including GTK-UI, Web-UI, and Console-UI. At its core, Deluge
+    uses libtorrent to efficiently manage the BitTorrent protocol. The app allows
+    you to start various user-interfaces and the Deluge daemon with simple commands.
+    It also provides a web UI that can be accessed at http://localhost:8112 with the
+    default password 'deluge'. For advanced users, Deluge offers features like bandwidth
+    tweaking, VPN, and reverse proxy.
+  category: file-management
+  tags:
+  - File Management
+  - Networking Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: linuxserver/deluge:2.2.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 6881
+links:
+- label: Documentation
+  url: http://dev.deluge-torrent.org/wiki/UserGuide
+- label: Github
+  url: https://github.com/deluge-torrent/deluge
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: deluge
+    port: $PORT:6881
+    volumes:
+    - /config
+    - /downloads
+    extra_ports:
+    - 8112:8112
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

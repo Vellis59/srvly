@@ -1,0 +1,72 @@
+metadata:
+  name: Wiki.js
+  version: latest
+  description: Wiki.js is a powerful and extensible open source Wiki software designed
+    to make documentation a joy to write. It features a beautiful and intuitive interface
+    that can be fully customized to your liking, including a light and dark mode.
+    The software is compatible with various platforms and databases, including PostgreSQL,
+    MySQL, MariaDB, MS SQL Server, and SQLite. With Wiki.js, you can manage all aspects
+    of your wiki using the extensive and intuitive admin area. The software is built
+    with performance in mind, running on the blazing fast Node.js engine. It is designed
+    to intelligently make use of available resources, making it scalable whether it's
+    on a tiny Raspberry Pi or on a high performance VM in the cloud. Wiki.js also
+    allows you to control the privacy of your wiki, making it public, completely private,
+    or a mix of both. It offers a wide range of modules that can be turned on/off
+    on demand, catering to the unique needs of different teams. These modules include
+    authentication, editors, history, localization, media assets, rendering, search,
+    storage, user management, and themes. Wiki.js is proudly licensed under AGPLv3
+    and has been downloaded over 50 million times.
+  category: wiki
+  tags:
+  - Wiki
+  - Documentation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/requarks/wiki:2.5.314
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://js.wiki/
+- label: Documentation
+  url: https://docs.requarks.io/
+- label: Github
+  url: https://github.com/Requarks/wiki
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: wikijs
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest
+  mysql:
+    type: mysql
+    version: latest

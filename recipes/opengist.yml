@@ -1,0 +1,56 @@
+metadata:
+  name: OpenGist
+  version: latest
+  description: OpenGist is a self-hosted pastebin powered by Git. All snippets are
+    stored in a Git repository and can be read and/or modified using standard Git
+    commands, or with the web interface. It is similar to GitHub Gist, but open-source
+    and can be self-hosted. Create public, unlisted or private snippets with syntax
+    highlighting, search functionality, and Git integration.
+  category: pastebin
+  tags:
+  - Pastebin
+  - Git
+  - Code Sharing
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/thomiceli/opengist:1.12.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 6157
+links:
+- label: Website
+  url: https://opengist.io/
+- label: Documentation
+  url: https://opengist.io/
+- label: Github
+  url: https://github.com/thomiceli/opengist
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: opengist
+    port: $PORT:6157
+    volumes:
+    - /opengist
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

@@ -1,0 +1,74 @@
+metadata:
+  name: Surmai
+  version: latest
+  description: Surmai is a personal and family travel organizer—a Progressive Web
+    App for collaborative trip planning with privacy-first, self-hosted data. Built
+    on PocketBase, it helps you keep itineraries, bookings, documents, and trip details
+    in one place, with multi-user collaboration and offline-friendly access. The stack
+    exposes the web UI on port 8080 and persists PocketBase data under /pb_data.
+  category: travel
+  tags:
+  - Travel
+  - Trip Planning
+  - Self-Hosted
+  - PocketBase
+  - PWA
+  - Collaboration
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/rohitkumbhar/surmai:v0.5.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://surmai.app/
+- label: Documentation
+  url: https://surmai.app/documentation/
+- label: GitHub
+  url: https://github.com/rohitkumbhar/surmai
+instructions: 'After deploy, sign in with the admin email you configured and the password
+
+  shown in the service environment (SURMAI_ADMIN_PASSWORD)—it is auto-generated
+
+  for a strong default. Change it after first login if you like. See
+
+  https://surmai.app/documentation/installation for Docker details.
+
+  '
+install:
+- docker:
+    image: $IMAGE
+    name: surmai
+    port: $PORT:8080
+    volumes:
+    - /pb_data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: 'After deploy, sign in with the admin email you configured and the password
+
+    shown in the service environment (SURMAI_ADMIN_PASSWORD)—it is auto-generated
+
+    for a strong default. Change it after first login if you like. See
+
+    https://surmai.app/documentation/installation for Docker details.
+
+    '

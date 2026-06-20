@@ -1,0 +1,67 @@
+metadata:
+  name: Octobox
+  version: latest
+  description: Octobox is an innovative app designed to help you manage your GitHub
+    notifications more efficiently. With Octobox, you no longer have to worry about
+    losing track of important issues or waking up to hundreds of notifications. The
+    app adds an extra 'archived' state to each notification, allowing you to mark
+    it as 'done'. If there's any activity on an archived thread, issue or PR, Octobox
+    will move it back into your inbox. You can also search and filter notifications
+    by repository, organization, type, action, state, CI status, and reason. Octobox
+    keeps your notifications up to date with issue/pull-request status, CI status,
+    labels, and more. The app is free for open source projects and offers enhanced
+    notifications for private projects at a cost. Octobox is the perfect tool for
+    developers who want to stay organized and focused.
+  category: developer-tools
+  tags:
+  - Developer Tools
+  - Code Hosting
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: octoboxio/octobox:december-2025
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://octobox.io
+- label: Documentation
+  url: https://octobox.io/documentation
+- label: Github
+  url: https://github.com/octobox/octobox
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: octobox
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

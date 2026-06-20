@@ -1,0 +1,57 @@
+metadata:
+  name: Suwayomi Server
+  version: latest
+  description: Suwayomi Server is a free and open source manga reader server that
+    runs on the desktop and mobile. It provides a web interface for reading manga
+    from various sources and supports multiple extensions. Suwayomi Server allows
+    you to organize your manga library, track reading progress, and access your collection
+    from any device through a modern web interface.
+  category: manga-reader
+  tags:
+  - Manga Reader
+  - Digital Library
+  - Reading
+  - Self-Hosted
+  - Web Interface
+  - Comics
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/suwayomi/suwayomi-server:v2.1.2099
+  port:
+    type: integer
+    title: Port HTTP
+    default: 4567
+links:
+- label: Documentation
+  url: https://suwayomi.org/
+- label: Github
+  url: https://github.com/Suwayomi/Suwayomi-Server
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: suwayomi-server
+    port: $PORT:4567
+    volumes:
+    - /home/suwayomi/.local/share/Tachidesk/downloads
+    - /home/suwayomi/.local/share/Tachidesk
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

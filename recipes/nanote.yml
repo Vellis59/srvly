@@ -1,0 +1,59 @@
+metadata:
+  name: Nanote
+  version: latest
+  description: Nanote is a lightweight, self-hosted note-taking application that provides
+    a simple and clean interface for managing your notes. Built with privacy-focused
+    design, Nanote allows you to store and organize your notes locally or on your
+    own server. It features markdown support, file uploads, and a minimalistic interface
+    that focuses on productivity without distractions.
+  category: notes
+  tags:
+  - Notes
+  - Markdown
+  - Self-Hosted
+  - Productivity
+  - Documentation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: omarmir/nanote:0.11.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: GitHub
+  url: https://github.com/omarmir/nanote
+- label: Website
+  url: https://nanote.link
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: nanote
+    port: $PORT:3000
+    volumes:
+    - /nanote
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

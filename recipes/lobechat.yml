@@ -1,0 +1,62 @@
+metadata:
+  name: LobeChat
+  version: latest
+  description: LobeChat is an open-source, AI-powered chat application designed to
+    integrate with OpenAI services. It provides a seamless user experience, combining
+    conversational AI capabilities with a customizable and extensible architecture.
+    LobeChat is ideal for both personal and professional use cases, offering robust
+    features for modern AI chat applications.
+  category: ai-chat
+  tags:
+  - AI Chat
+  - OpenAI Integration
+  - Customizable
+  - Open Source
+  - Conversational AI
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lobehub/lobe-chat:1.143.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3210
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://lobehub.com/
+- label: Compose Docs
+  url: https://lobehub.com/docs/self-hosting/server-database/docker-compose
+- label: Documentation
+  url: https://lobehub.com/docs/usage/start
+- label: Github
+  url: https://github.com/lobehub/lobe-chat
+instructions: Configure your OpenAI API key and proxy URL to start using the application.
+install:
+- docker:
+    image: $IMAGE
+    name: lobechat
+    port: $PORT:3210
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Configure your OpenAI API key and proxy URL to start using the application.

@@ -1,0 +1,66 @@
+metadata:
+  name: GLPI
+  version: latest
+  description: GLPI (Gestionnaire Libre de Parc Informatique) is a powerful IT asset
+    management and help desk software designed to streamline IT operations. It offers
+    features like inventory management, ticketing, and reporting, making it an ideal
+    solution for IT teams. With its robust plugin support and user-friendly interface,
+    GLPI provides extensive customization options to adapt to various organizational
+    needs. This containerized version is based on Docker Baseimage KasmVNC, ensuring
+    smooth multi-platform support and flexible deployment.
+  category: it-asset-management
+  tags:
+  - IT Asset Management
+  - Help Desk
+  - Ticketing
+  - Customization
+  - Reporting
+  - Plugins
+  - IT Operations
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: diouxx/glpi:9.1.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://glpi-project.org/documentation/
+- label: Github
+  url: https://github.com/glpi-project/glpi
+instructions: Default login is; glpi/glpi, and other credentials can be found on the
+  Github repository or during the installation wizard.
+install:
+- docker:
+    image: $IMAGE
+    name: glpi
+    port: $PORT:80
+    volumes:
+    - /var/www/html/glpi
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Default login is; glpi/glpi, and other credentials can be found on the Github
+    repository or during the installation wizard.
+services:
+  mysql:
+    type: mysql
+    version: latest

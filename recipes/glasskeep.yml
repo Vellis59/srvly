@@ -1,0 +1,77 @@
+metadata:
+  name: Glass Keep
+  version: latest
+  description: Glass Keep is a lightweight, self-hosted note-taking and organization
+    application designed for personal knowledge management. It provides a clean, intuitive
+    interface for creating, organizing, and managing notes, thoughts, and ideas. Glass
+    Keep features markdown support, rich text editing, categories, tags, and powerful
+    search capabilities to help you find information quickly. Built with Node.js and
+    SQLite, it offers fast performance and easy deployment without requiring complex
+    database setup. All your notes are stored locally in a SQLite database, ensuring
+    privacy and complete control over your data. Perfect for individuals who want
+    a simple, fast, and private note-taking solution without the complexity of larger
+    systems.
+  category: notes
+  tags:
+  - Notes
+  - Knowledge Management
+  - Note Taking
+  - Markdown
+  - SQLite
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: nikunjsingh/glass-keep:v20260114-1008
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://github.com/nikunjsingh93/react-glass-keep
+- label: Documentation
+  url: https://github.com/nikunjsingh93/react-glass-keep#readme
+- label: GitHub
+  url: https://github.com/nikunjsingh93/react-glass-keep
+instructions: Open the web app on your assigned domain. The application uses the ADMIN_EMAILS
+  value from this template to mark admin users. This template uses the Docker image
+  name recommended by the upstream README and pins it to a static version tag instead
+  of latest.For a fresh deployment, the default admin username is admin and the default
+  password is admin. If you set the Admin Email/Username field before first start,
+  that value is used to auto-promote the corresponding admin user(s). Create or manage
+  users using the admin route at https://<your-domain>/#/admin. After login you can
+  change admin settings in the Admin Panel and create additional users as needed.
+install:
+- docker:
+    image: $IMAGE
+    name: glasskeep
+    port: $PORT:8080
+    volumes:
+    - /app/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Open the web app on your assigned domain. The application uses the ADMIN_EMAILS
+    value from this template to mark admin users. This template uses the Docker image
+    name recommended by the upstream README and pins it to a static version tag instead
+    of latest.For a fresh deployment, the default admin username is admin and the
+    default password is admin. If you set the Admin Email/Username field before first
+    start, that value is used to auto-promote the corresponding admin user(s). Create
+    or manage users using the admin route at https://<your-domain>/#/admin. After
+    login you can change admin settings in the Admin Panel and create additional users
+    as needed.

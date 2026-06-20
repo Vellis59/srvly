@@ -1,0 +1,66 @@
+metadata:
+  name: Gladys Assistant
+  version: latest
+  description: Gladys Assistant is a privacy-first, open-source home automation platform
+    that allows you to control and automate your smart home devices. Built with Node.js,
+    Gladys provides a comprehensive solution for managing IoT devices, creating automation
+    scenarios, and monitoring your home environment. The system supports a wide range
+    of devices including Zigbee, Z-Wave, Bluetooth, WiFi, and more. Gladys stores
+    all data locally in SQLite, ensuring your home automation data remains private.
+    Perfect for home automation enthusiasts looking for a self-hosted alternative
+    to commercial smart home platforms.
+  category: home-automation
+  tags:
+  - Home Automation
+  - IoT
+  - Smart Home
+  - Self-Hosted
+  - Privacy
+  - Zigbee
+  - Z-Wave
+  - Docker
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: gladysassistant/gladys:sha-569dfde
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://gladysassistant.com
+- label: GitHub
+  url: https://github.com/GladysAssistant/Gladys
+- label: Documentation
+  url: https://gladysassistant.com/docs
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: gladys
+    port: $PORT:8080
+    volumes:
+    - /var/run/docker.sock
+    - /var/lib/gladysassistant
+    - /dev
+    - /run/udev
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

@@ -1,0 +1,52 @@
+metadata:
+  name: Anchor
+  version: latest
+  description: Anchor is a self-hosted application designed to provide a modern web
+    interface for managing and organizing your data. It offers a clean, intuitive
+    user experience with persistent storage capabilities, ensuring your data is safely
+    stored and accessible. Built with privacy and self-hosting in mind, Anchor gives
+    you complete control over your information without relying on external cloud services.
+  category: self-hosted
+  tags:
+  - Self-Hosted
+  - Web Application
+  - Data Management
+  - Privacy
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/zhfahim/anchor:0.10
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: GitHub
+  url: https://github.com/zhfahim/anchor
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: anchor
+    port: $PORT:3000
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

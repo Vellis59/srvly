@@ -1,0 +1,66 @@
+metadata:
+  name: Memgraph
+  version: latest
+  description: Memgraph is a high-performance, in-memory graph database designed for
+    real-time analytics and machine learning applications. It provides fast graph
+    traversal, pattern matching, and complex graph algorithms with support for Cypher
+    query language. Memgraph MAGE (Memgraph Advanced Graph Extensions) includes pre-built
+    graph algorithms and machine learning modules. The platform comes with Memgraph
+    Lab, a visual interface for database management, query development, and graph
+    visualization.
+  category: graph-database
+  tags:
+  - Graph Database
+  - Real-Time Analytics
+  - Machine Learning
+  - Cypher
+  - Graph Algorithms
+  - Visualization
+  - MAGE
+  - In-Memory
+  - High Performance
+  - Data Science
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ''
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: GitHub
+  url: https://github.com/memgraph/memgraph
+- label: Docker Hub
+  url: https://hub.docker.com/r/memgraph/memgraph
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: memgraph
+    port: $PORT:3000
+    volumes: []
+    extra_ports:
+    - 7687:7687
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

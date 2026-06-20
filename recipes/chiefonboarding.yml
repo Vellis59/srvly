@@ -1,0 +1,63 @@
+metadata:
+  name: Chief-Onboarding
+  version: latest
+  description: Chief-Onboarding is a comprehensive, self-hosted onboarding and employee
+    management platform designed for businesses to streamline their onboarding processes.
+    It allows organizations to manage employee onboarding, document collection, and
+    task tracking efficiently. With a clean interface and robust customization options,
+    Chief-Onboarding supports role-based access, multi-language capabilities, and
+    seamless integration with existing HR systems, making it the ultimate solution
+    for employee onboarding.
+  category: employee-onboarding
+  tags:
+  - Employee Onboarding
+  - HR Management
+  - Task Tracking
+  - Role-Based Access
+  - Document Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: chiefonboarding/chiefonboarding:v2.4.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Github
+  url: https://github.com/chiefonboarding/chiefonboarding
+- label: Documentation
+  url: https://docs.chiefonboarding.com/
+- label: Demo
+  url: https://demo.chiefonboarding.com/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: chiefonboarding
+    port: $PORT:8000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

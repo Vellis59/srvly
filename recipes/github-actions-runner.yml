@@ -1,0 +1,63 @@
+metadata:
+  name: Github Actions Runner
+  version: latest
+  description: 'A GitHub Actions runner is a service that runs the jobs defined in
+    your GitHub workflows.
+
+    This image is based on Linux 24.04'
+  category: github-actions
+  tags:
+  - GitHub Actions
+  - CI/CD
+  - Automation
+  - DevOps
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: leogomide/gha-runner:latest-x64
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://github.com/actions/runner
+- label: Documentation
+  url: https://docs.github.com/en/actions/concepts/runners/self-hosted-runners
+- label: GitHub
+  url: https://github.com/leogomide/gha-runner
+- label: Docker Hub
+  url: https://hub.docker.com/r/leogomide/gha-runner
+- label: Environment Variables
+  url: https://github.com/leogomide/gha-runner
+instructions: Go to your GitHub repository or organization. Navigate to Settings >
+  Actions > Runners. Click Add Runner and copy the registration token provided.
+install:
+- docker:
+    image: $IMAGE
+    name: github-actions-runner
+    port: $PORT:80
+    volumes:
+    - /var/run/docker.sock
+    - /runner/_work
+    - /opt/hostedtoolcache
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Go to your GitHub repository or organization. Navigate to Settings > Actions
+    > Runners. Click Add Runner and copy the registration token provided.

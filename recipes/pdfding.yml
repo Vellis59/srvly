@@ -1,0 +1,56 @@
+metadata:
+  name: PdfDing
+  version: latest
+  description: PdfDing is a self-hosted PDF management and processing application
+    that provides a comprehensive solution for handling PDF documents. It offers features
+    for viewing, organizing, and managing PDF files with a clean web interface. PdfDing
+    supports various PDF operations including viewing, searching, and organizing your
+    PDF collection in a centralized location.
+  category: pdf-management
+  tags:
+  - PDF Management
+  - Document Viewer
+  - Self-Hosted
+  - Web Interface
+  - SQLite
+  - File Management
+  - Document Organization
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: mrmn/pdfding:v1.7.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Github
+  url: https://github.com/mrmn2/PdfDing
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: pdfding
+    port: $PORT:8000
+    volumes:
+    - /home/nonroot/pdfding/db
+    - /home/nonroot/pdfding/media
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

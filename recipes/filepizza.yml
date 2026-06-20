@@ -1,0 +1,66 @@
+metadata:
+  name: FilePizza
+  version: latest
+  description: FilePizza is a peer-to-peer file sharing platform that enables secure,
+    direct file transfers between users without storing files on servers. Using WebRTC
+    technology, it creates direct connections between browsers for fast, private file
+    sharing. The platform includes Redis for session management and COTURN server
+    for NAT traversal, ensuring reliable connections across different network configurations.
+    Perfect for sharing large files securely without upload limits or storage concerns.
+  category: file-sharing
+  tags:
+  - File Sharing
+  - Peer-to-Peer
+  - WebRTC
+  - Privacy
+  - Direct Transfer
+  - Real-time
+  - Secure
+  - Cross-Platform
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: kern/filepizza:3258673
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3478
+links:
+- label: Website
+  url: https://file.pizza
+- label: GitHub
+  url: https://github.com/kern/filepizza
+- label: Documentation
+  url: https://github.com/kern/filepizza#readme
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: filepizza
+    port: $PORT:3478
+    volumes: []
+    extra_ports:
+    - 5349:5349
+    - 8080:8080
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  redis:
+    type: redis
+    version: '7'

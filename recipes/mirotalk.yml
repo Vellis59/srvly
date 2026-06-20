@@ -1,0 +1,65 @@
+metadata:
+  name: MiroTalk P2P
+  version: latest
+  description: MiroTalk P2P is a powerful WebRTC-based peer-to-peer video conferencing
+    platform that enables secure, real-time communication directly between participants
+    without requiring external servers for media transmission. It offers advanced
+    features like screen sharing, file transfer, chat messaging, and room protection,
+    making it perfect for businesses, educational institutions, and personal use that
+    require privacy-focused video conferencing solutions.
+  category: video-conferencing
+  tags:
+  - Video Conferencing
+  - WebRTC
+  - Peer-to-Peer
+  - Communication
+  - Collaboration
+  - Screen Sharing
+  - Real-time
+  - Privacy
+  - Security
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: mirotalk/p2p:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://p2p.mirotalk.com
+- label: Documentation
+  url: https://docs.mirotalk.com
+- label: GitHub
+  url: https://github.com/miroslavpejic85/mirotalk
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: mirotalk
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

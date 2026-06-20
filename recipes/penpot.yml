@@ -1,0 +1,75 @@
+metadata:
+  name: Penpot
+  version: latest
+  description: Penpot is an open-source, design and prototyping platform that empowers
+    teams to collaborate and bring creative ideas to life. Unlike other design tools,
+    Penpot is entirely web-based and runs on open standards, allowing teams to access
+    it from anywhere and on any platform. Trusted by designers and developers worldwide,
+    Penpot is known for its flexibility and integration within diverse workflows.
+    It offers real-time collaboration, making it easy for team members to co-create,
+    review, and provide feedback instantly. The app supports complex design requirements,
+    from vector editing to responsive design, and prioritizes user control over projects
+    with extensive customization options. Penpot is built by a team dedicated to privacy
+    and security, with a strong commitment to open-source principles. It ensures that
+    designers and developers alike have the freedom to innovate without restrictions,
+    providing a transparent, community-driven alternative to proprietary tools.
+  category: design
+  tags:
+  - Design
+  - Prototyping
+  - Collaboration
+  - Open Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: penpotapp/frontend:2.14.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://penpot.app
+- label: Documentation
+  url: https://help.penpot.app
+- label: Github
+  url: https://github.com/penpot
+instructions: In order to configure email invitations for team members, please configure
+  the environment variables provided in backend configuration.
+install:
+- docker:
+    image: $IMAGE
+    name: penpot
+    port: $PORT:80
+    volumes:
+    - /opt/data/assets
+    - /opt/data/assets
+    extra_ports:
+    - 8080:8080
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: In order to configure email invitations for team members, please configure
+    the environment variables provided in backend configuration.
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

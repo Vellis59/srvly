@@ -1,0 +1,62 @@
+metadata:
+  name: Pigeon Pod
+  version: latest
+  description: Pigeon Pod is a self-hosted application that converts YouTube channels
+    or playlists into podcast feeds. It supports automatic syncing of new uploads,
+    backfilling historical content, media downloads, and secure RSS feeds compatible
+    with standard podcast players. Built with Spring Boot, Pigeon Pod provides a web
+    interface for managing YouTube subscriptions and generates podcast-compatible
+    RSS feeds that work with any standard podcast player. Perfect for podcast enthusiasts
+    who want to listen to YouTube content as podcasts while maintaining complete control
+    over their data and subscriptions.
+  category: podcast
+  tags:
+  - Podcast
+  - YouTube
+  - RSS
+  - Self-Hosted
+  - Media
+  - Audio
+  - Video
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/aizhimou/pigeon-pod:release-1.28.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: GitHub
+  url: https://github.com/aizhimou/pigeon-pod
+- label: Website
+  url: https://pigeonpod.cloud
+- label: Guides
+  url: https://pigeonpod.cloud/guides/
+instructions: Login using the credentials; username=root, password=Root@123
+install:
+- docker:
+    image: $IMAGE
+    name: pigeon-pod
+    port: $PORT:8080
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Login using the credentials; username=root, password=Root@123

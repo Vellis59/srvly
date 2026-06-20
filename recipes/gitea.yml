@@ -1,0 +1,77 @@
+metadata:
+  name: Gitea
+  version: latest
+  description: Gitea is a lightweight DevOps platform designed to streamline operations
+    from planning to production. It enables the creation and management of repositories,
+    exploration of commit history and code files, review and merging of code commits,
+    and more. Gitea also supports standard Git features, including tags, cherry-picking,
+    hooks, and integrated collaboration tools. It features an integrated CI/CD system,
+    Gitea Actions, that is compatible with GitHub Actions. With Gitea, you can efficiently
+    manage a project's requirements, features, and bugs through issue tasks, labeling,
+    and kanban project boards. It supports more than 20 different kinds of public
+    or private package management. Gitea is an open-source project that accelerates
+    development and collaboration, offering universal compatibility and flexible deployment
+    options. It also provides a powerful built-in CI/CD system and is developed with
+    a focus on security. Gitea can be tailored to your requirements and is integrated
+    with your favorite tools to boost your workflow.
+  category: code-hosting
+  tags:
+  - Code Hosting
+  - Developer Tools
+  - Documentation
+  - Project Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: gitea/gitea:1.26.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 22
+links:
+- label: Website
+  url: https://gitea.io/en-us/
+- label: Documentation
+  url: https://docs.gitea.io/en-us/
+- label: Github
+  url: https://github.com/go-gitea/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: gitea
+    port: $PORT:22
+    volumes:
+    - /data
+    - /etc/timezone
+    - /etc/localtime
+    extra_ports:
+    - 2222:2222
+    - 3000:3000
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest
+  mysql:
+    type: mysql
+    version: latest

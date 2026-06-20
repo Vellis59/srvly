@@ -1,0 +1,57 @@
+metadata:
+  name: Cronicle
+  version: latest
+  description: Cronicle is a powerful, multi-server task scheduler and runner, with
+    an easy-to-use web-based interface. It allows you to schedule and run scripts,
+    commands, or software programs on a recurring basis, similar to cron jobs but
+    with the added capability of visual management and log tracking. Cronicle supports
+    complex workflows including dependencies between tasks, and it can distribute
+    tasks across multiple servers for load balancing. It's ideal for automating backups,
+    updates, data processing tasks, and more in a distributed environment.
+  category: automation
+  tags:
+  - Automation
+  - Task Scheduler
+  - Distributed Computing
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: soulteary/cronicle:0.9.80
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3012
+links:
+- label: Website
+  url: https://cronicle.net/
+- label: Github
+  url: https://github.com/jhuckaby/Cronicle
+instructions: The default username is 'admin' and the default password is 'admin'
+install:
+- docker:
+    image: $IMAGE
+    name: cronicle
+    port: $PORT:3012
+    volumes:
+    - /opt/cronicle/data
+    - /opt/cronicle/logs
+    - /opt/cronicle/plugins
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: The default username is 'admin' and the default password is 'admin'

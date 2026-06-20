@@ -1,0 +1,70 @@
+metadata:
+  name: OneDev
+  version: latest
+  description: OneDev is a versatile app designed to streamline your project management
+    and development processes. It offers a comprehensive suite of features including
+    pull requests, issue tracking, and build management. With OneDev, you can easily
+    manage your projects, track commits, and handle branches and tags. The app also
+    provides a platform for managing pull requests, merging them, and discarding when
+    necessary. It allows you to keep track of open and closed issues, as well as those
+    that have been released. OneDev also offers a robust build management system,
+    enabling you to monitor successful builds across various projects. The app is
+    designed to support multiple projects, each with its own set of files, commits,
+    branches, tags, pull requests, and builds. With OneDev, you can streamline your
+    workflow, enhance collaboration, and improve productivity in your development
+    projects.
+  category: code-hosting
+  tags:
+  - Code Hosting
+  - Developer Tools
+  - CI/CD
+  - Issue Tracking
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: 1dev/server:15.0.5
+  port:
+    type: integer
+    title: Port HTTP
+    default: 6610
+links:
+- label: Website
+  url: https://code.onedev.io/
+- label: Documentation
+  url: https://docs.onedev.io/
+- label: Github
+  url: https://code.onedev.io/onedev/server
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: onedev
+    port: $PORT:6610
+    volumes:
+    - /opt/onedev
+    - /var/run/docker.sock
+    extra_ports:
+    - 6611:6611
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

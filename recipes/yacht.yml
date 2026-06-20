@@ -1,0 +1,56 @@
+metadata:
+  name: yacht
+  version: latest
+  description: Yacht is a self-hosted web-based container management tool designed
+    to provide a user-friendly and intuitive interface for managing Docker containers.
+    It simplifies container deployment, monitoring, and management, making it accessible
+    for both beginners and advanced users. Yacht supports multiple container engines
+    and integrates with Docker Compose, allowing users to easily create, update, and
+    manage their containerized applications.
+  category: docker
+  tags:
+  - Docker
+  - Container Management
+  - DevOps
+  - Self-Hosting
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: selfhostedpro/yacht:v0.0.7-alpha-2023-01-12--05
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Website
+  url: https://yacht.sh/
+- label: Github
+  url: https://github.com/SelfhostedPro/Yacht
+instructions: Login using credentials admin@yacht.local/pass
+install:
+- docker:
+    image: $IMAGE
+    name: yacht
+    port: $PORT:8000
+    volumes:
+    - /config
+    - /var/run/docker.sock
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Login using credentials admin@yacht.local/pass

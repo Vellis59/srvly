@@ -1,0 +1,63 @@
+metadata:
+  name: Habridge
+  version: latest
+  description: Habridge is an open-source software solution that emulates Philips
+    Hue bridges, enabling the integration of various smart devices with home automation
+    systems. It provides a simple yet powerful interface for controlling and managing
+    smart lights, switches, and other IoT devices. Habridge supports a wide range
+    of integrations, including Amazon Alexa, Google Home, and custom APIs, allowing
+    users to create a seamless smart home experience. With its focus on flexibility
+    and ease of use, Habridge empowers users to control their home automation setup
+    with precision and efficiency.
+  category: smart-home
+  tags:
+  - Smart Home
+  - Home Automation
+  - IoT
+  - Device Integration
+  - Open-Source
+  - Alexa Integration
+  - Google Home Integration
+  - Custom Commands
+  - Philips Hue Emulation
+  - Voice-Controlled Automation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: linuxserver/habridge:5.4.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://github.com/bwssytems/ha-bridge
+- label: Github
+  url: https://github.com/bwssytems/ha-bridge
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: habridge
+    port: $PORT:8080
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

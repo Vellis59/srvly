@@ -1,0 +1,75 @@
+metadata:
+  name: Nextcloud
+  version: latest
+  description: 'Nextcloud Hub 5 is a comprehensive platform that integrates the four
+    key Nextcloud products: Files, Talk, Groupware, and Office. It is designed to
+    optimize the flow of collaboration, providing a seamless experience for users.
+    Nextcloud Files offers an on-premise Universal File Access and sync platform with
+    powerful collaboration capabilities and interfaces for desktop, mobile, and web.
+    The platform ensures no data leaks to third parties, providing you with full control
+    over your data. It is customizable, scalable, and can be deployed on-premises
+    or in the cloud. Nextcloud is committed to providing technology that fits perfectly
+    with your organization, whether it''s a government entity, enterprise, service
+    provider, or educational institution. It is the most popular self-hosted collaboration
+    solution, used by tens of millions of users at thousands of organizations across
+    the globe.'
+  category: file-management
+  tags:
+  - File Management
+  - Collaboration
+  - Data Control
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: nextcloud:33.0.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://nextcloud.com/
+- label: Documentation
+  url: https://docs.nextcloud.com/
+- label: Github
+  url: https://github.com/nextcloud
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: nextcloud
+    port: $PORT:80
+    volumes:
+    - /var/www/html
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest
+  mysql:
+    type: mysql
+    version: latest

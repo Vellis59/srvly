@@ -1,0 +1,51 @@
+metadata:
+  name: SideQuests
+  version: latest
+  description: SideQuests is a task management application that helps you organize
+    and track your tasks and projects. It provides a simple and intuitive interface
+    for managing your daily activities and side projects.
+  category: task-management
+  tags:
+  - Task Management
+  - Project Management
+  - Organization
+  - Productivity
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: need4swede/sidequests:1.1.5
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: GitHub
+  url: https://github.com/need4swede/sidequests
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: sidequests
+    port: $PORT:8080
+    volumes:
+    - /app/instance
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

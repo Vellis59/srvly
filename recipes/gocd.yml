@@ -1,0 +1,61 @@
+metadata:
+  name: GoCD
+  version: latest
+  description: GoCD is a continuous delivery and release automation server. It helps
+    you automate and streamline your build-test-release cycle, making it easy to manage
+    complex deployment pipelines. GoCD provides end-to-end visibility and traceability
+    from commit to deployment, with the ability to model complex workflows and dependencies
+    with ease. It supports parallel and sequential execution, and provides powerful
+    value stream visualization to help you optimize your delivery process.
+  category: ci/cd
+  tags:
+  - CI/CD
+  - Continuous Delivery
+  - DevOps
+  - Automation
+  - Pipeline Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: gocd/gocd-server:v25.4.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8153
+links:
+- label: Website
+  url: https://www.gocd.org/
+- label: Documentation
+  url: https://docs.gocd.org/
+- label: Github
+  url: https://github.com/gocd/gocd
+instructions: Open GoCD from your domain, complete the first-time admin login flow,
+  then create your initial pipeline and connect your source repository and build agents.
+install:
+- docker:
+    image: $IMAGE
+    name: gocd
+    port: $PORT:8153
+    volumes:
+    - /godata
+    - /home/go
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Open GoCD from your domain, complete the first-time admin login flow, then
+    create your initial pipeline and connect your source repository and build agents.

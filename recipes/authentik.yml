@@ -1,0 +1,69 @@
+metadata:
+  name: Authentik
+  version: latest
+  description: Authentik is an open-source Identity Provider focused on flexibility
+    and versatility. It provides secure authentication, authorization, and user management
+    with support for single sign-on (SSO), multi-factor authentication (MFA), and
+    a modern user interface.
+  category: identity-provider
+  tags:
+  - Identity Provider
+  - Authentication
+  - SSO
+  - Security
+  - Access Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/goauthentik/server:2026.2.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 9000
+links:
+- label: Website
+  url: https://goauthentik.io
+- label: Documentation
+  url: https://goauthentik.io/docs
+- label: GitHub
+  url: https://github.com/goauthentik/authentik
+instructions: After deployment, open /if/flow/initial-setup/ to create the initial
+  admin user. Allow ~60s for migrations to complete.
+install:
+- docker:
+    image: $IMAGE
+    name: authentik
+    port: $PORT:9000
+    volumes:
+    - /media
+    - /templates
+    - /media
+    - /templates
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After deployment, open /if/flow/initial-setup/ to create the initial admin
+    user. Allow ~60s for migrations to complete.
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

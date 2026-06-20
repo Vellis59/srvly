@@ -1,0 +1,75 @@
+metadata:
+  name: Frappe Helpdesk
+  version: latest
+  description: Frappe Helpdesk is a comprehensive customer support and ticketing system
+    built on the Frappe framework. It provides a complete solution for managing customer
+    inquiries, support tickets, and service requests. The platform offers multi-channel
+    support, automated workflows, knowledge base integration, and detailed analytics
+    to help teams deliver exceptional customer service. Frappe Helpdesk features a
+    modern, responsive interface that works seamlessly across desktop and mobile devices,
+    making it easy for support agents to manage tickets and for customers to submit
+    and track their requests. The system supports team collaboration, SLA management,
+    and integration with various communication channels including email, chat, and
+    social media platforms.
+  category: helpdesk
+  tags:
+  - Helpdesk
+  - Customer Support
+  - Ticketing
+  - CRM
+  - Open Source
+  - Web App
+  - Self-hosted
+  - MariaDB
+  - Redis
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: frappe/bench:v5.25.9
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Website
+  url: https://frappe.io/
+- label: Documentation
+  url: https://frappe.io/docs
+- label: GitHub
+  url: https://github.com/frappe/frappe
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: frappe-helpdesk
+    port: $PORT:8000
+    volumes:
+    - /workspace
+    - /workspace/init.sh
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest
+  redis:
+    type: redis
+    version: '7'

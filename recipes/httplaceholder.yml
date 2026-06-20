@@ -1,0 +1,60 @@
+metadata:
+  name: HTTP Placeholder
+  version: latest
+  description: HTTP Placeholder is a powerful API mocking tool that allows you to
+    create mock HTTP endpoints for testing and development purposes. It provides a
+    simple way to simulate API responses and test your applications without relying
+    on real backend services.
+  category: api
+  tags:
+  - API
+  - Testing
+  - Development
+  - Mocking
+  - HTTP
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: dukeofharen/httplaceholder:2024.12.27.10
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5000
+links:
+- label: Github
+  url: https://github.com/dukeofharen/httplaceholder
+- label: Documentation
+  url: https://github.com/dukeofharen/httplaceholder/wiki
+instructions: After installation, access the web interface through the provided domain
+  to start creating and managing your mock endpoints.
+install:
+- docker:
+    image: $IMAGE
+    name: httplaceholder
+    port: $PORT:5000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After installation, access the web interface through the provided domain
+    to start creating and managing your mock endpoints.
+services:
+  postgres:
+    type: postgres
+    version: latest

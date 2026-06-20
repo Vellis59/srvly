@@ -1,0 +1,60 @@
+metadata:
+  name: SmokePing
+  version: latest
+  description: SmokePing is a powerful open-source tool designed for network monitoring
+    and latency measurement. It provides real-time visualizations of network latency
+    and packet loss, making it easier to identify and diagnose connectivity issues.
+    SmokePing uses ICMP and other protocols to monitor latency across multiple targets
+    and generates detailed graphs to highlight network performance over time. It supports
+    alerting, letting you know when latency or packet loss exceeds predefined thresholds.
+    With its flexible configuration and plugin system, SmokePing can be adapted to
+    various network environments, providing valuable insights into network health
+    and reliability.
+  category: network-monitoring
+  tags:
+  - Network Monitoring
+  - Latency Measurement
+  - Open Source
+  - Connectivity
+  - Troubleshooting
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/smokeping:2.9.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://oss.oetiker.ch/smokeping/doc/smokeping_install.en.html
+- label: Github
+  url: https://github.com/oetiker/SmokePing
+instructions: You may configure your targets by taking the console from Easypanel
+install:
+- docker:
+    image: $IMAGE
+    name: smokeping
+    port: $PORT:80
+    volumes:
+    - /config
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: You may configure your targets by taking the console from Easypanel

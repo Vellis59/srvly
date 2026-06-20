@@ -1,0 +1,54 @@
+metadata:
+  name: Web-Check
+  version: latest
+  description: A comprehensive OSINT tool for analyzing websites, providing insights
+    into security configurations, server architecture, and technologies.
+  category: osint
+  tags:
+  - OSINT
+  - Security
+  - Web Analysis
+  - DNS
+  - SSL
+  - Performance
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lissy93/web-check
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://web-check.xyz/
+- label: Github
+  url: https://github.com/Lissy93/web-check
+- label: Documentation
+  url: https://web-check.xyz/about
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: web-check
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

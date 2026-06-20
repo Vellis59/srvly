@@ -1,0 +1,74 @@
+metadata:
+  name: Castopod
+  version: latest
+  description: Castopod is an open-source hosting platform made for podcasters who
+    want full control over their content. It provides a comprehensive solution for
+    creating, managing, and distributing podcasts with features like built-in analytics,
+    automatic RSS feed generation, and support for the ActivityPub protocol for social
+    interactions. Castopod helps podcasters save time with automatic episode publishing
+    to podcast platforms and social media. The platform includes powerful tools for
+    audience engagement, SEO optimization, and monetization options. With its modern,
+    intuitive interface, Castopod makes podcast hosting accessible while giving creators
+    complete ownership of their content and audience data.
+  category: podcast
+  tags:
+  - Podcast
+  - Audio
+  - Content Management
+  - ActivityPub
+  - Social
+  - Podcast Hosting
+  - Podcast Management
+  - Podcast Player
+  - Podcast Analytics
+  - Podcast Social Media
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: castopod/castopod:1.15.5
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Website
+  url: https://castopod.org/
+- label: Documentation
+  url: https://docs.castopod.org/
+- label: Github
+  url: https://github.com/ad-aures/castopod
+instructions: First install the application by going on this path "/cp-install"
+install:
+- docker:
+    image: $IMAGE
+    name: castopod
+    port: $PORT:8000
+    volumes:
+    - /var/www/castopod/public/media
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: First install the application by going on this path "/cp-install"
+services:
+  mysql:
+    type: mysql
+    version: latest
+  redis:
+    type: redis
+    version: '7'

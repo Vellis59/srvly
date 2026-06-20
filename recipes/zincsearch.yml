@@ -1,0 +1,54 @@
+metadata:
+  name: ZincSearch
+  version: latest
+  description: ZincSearch is a lightweight, fast, and modern search engine built in
+    Go. It provides full-text search capabilities with a simple REST API, making it
+    an excellent alternative to Elasticsearch for smaller to medium-scale applications.
+    ZincSearch offers easy deployment, low resource consumption, and compatibility
+    with Elasticsearch APIs.
+  category: search-engine
+  tags:
+  - Search Engine
+  - Full-Text Search
+  - API
+  - Elasticsearch Alternative
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: public.ecr.aws/zinclabs/zincsearch:0.4.10
+  port:
+    type: integer
+    title: Port HTTP
+    default: 4080
+links:
+- label: Documentation
+  url: https://zincsearch-docs.zinc.dev/
+- label: Github
+  url: https://github.com/zincsearch/zincsearch
+instructions: Provide the admin password, or leave it blank to generate a random one.
+install:
+- docker:
+    image: $IMAGE
+    name: zincsearch
+    port: $PORT:4080
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Provide the admin password, or leave it blank to generate a random one.

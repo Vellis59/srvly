@@ -1,0 +1,60 @@
+metadata:
+  name: YOURLS
+  version: latest
+  description: YOURLS (Your Own URL Shortener) is a powerful, self-hosted service
+    designed for creating and managing short URLs. It provides a clean and simple
+    interface, supports plugins for extended functionality, and offers detailed link
+    tracking analytics. With YOURLS, you can maintain control over your short links
+    and branding. The application is accessible via your host on ports 8080 and 8081.
+    This container is based on Docker Baseimage KasmVNC, providing additional environment
+    variables and configurations for enhanced flexibility. It also supports the docker
+    manifest for multi-platform awareness, ensuring the correct image for your architecture.
+  category: url-shortener
+  tags:
+  - URL Shortener
+  - Self-Hosted
+  - Analytics
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: yourls:1.10.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://yourls.org/#Guide
+- label: Github
+  url: https://github.com/YOURLS/YOURLS
+instructions: Use admin:admin123 to login.
+install:
+- docker:
+    image: $IMAGE
+    name: yourls
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Use admin:admin123 to login.
+services:
+  mysql:
+    type: mysql
+    version: latest

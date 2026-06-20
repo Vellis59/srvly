@@ -1,0 +1,63 @@
+metadata:
+  name: Lollypop
+  version: latest
+  description: Lollypop is a self-hosted, high-performance music library manager and
+    player. It is designed to handle extensive music collections, offering a sleek
+    and modern interface for browsing, organizing, and playing your favorite tracks.
+    The app supports multiple audio formats, playlists, and smart sorting options.
+    Lollypop integrates seamlessly with online services to fetch album artwork, lyrics,
+    and artist information. It also provides a simple API for managing playlists and
+    controlling playback remotely. Lollypop is open-source, free, and designed to
+    run efficiently on minimal hardware, making it a lightweight yet powerful solution
+    for all your music needs.
+  category: music
+  tags:
+  - Music
+  - Player
+  - Library Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/lollypop:1.4.45
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://lollypop.app/
+- label: Documentation
+  url: https://lollypop.app/docs/
+- label: Github
+  url: https://github.com/linuxserver/lollypop
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: lollypop
+    port: $PORT:3000
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

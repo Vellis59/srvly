@@ -1,0 +1,62 @@
+metadata:
+  name: Dokuwiki
+  version: latest
+  description: DokuWiki is a highly versatile, open-source wiki software that is simple
+    to use and doesn't require a database. It is known for its clean and readable
+    syntax, making it a favorite among administrators due to its ease of maintenance,
+    backup, and integration. DokuWiki is equipped with built-in access controls and
+    authentication connectors, making it particularly useful in an enterprise context.
+    It supports a wide range of use cases beyond a traditional wiki, thanks to the
+    large number of plugins available. DokuWiki is designed for collaboration, allowing
+    quick updates and easy addition of new pages while maintaining a history of every
+    change. It can be used as a corporate knowledge base, private notebook, software
+    manual, project workspace, CMS, intranet, and more. DokuWiki supports customization
+    at all levels of expertise, from easy configuration via the admin interface to
+    developing your own extensions.
+  category: wiki
+  tags:
+  - Wiki
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/dokuwiki:2025-05-14
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://dokuwiki.org
+- label: Documentation
+  url: https://www.dokuwiki.org/manual
+- label: Github
+  url: https://github.com/splitbrain/dokuwiki
+instructions: Go to http://IP-ADDRESS:PORT/install.php to configure your install then
+  restart your container when finished to remove install.php
+install:
+- docker:
+    image: $IMAGE
+    name: dokuwiki
+    port: $PORT:80
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Go to http://IP-ADDRESS:PORT/install.php to configure your install then restart
+    your container when finished to remove install.php

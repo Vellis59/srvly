@@ -1,0 +1,65 @@
+metadata:
+  name: Ghostfolio
+  version: latest
+  description: Ghostfolio is a self-hosted wealth management application that allows
+    users to track and analyze their investment portfolios. It provides insights into
+    asset allocation, risk exposure, and financial growth, helping individuals make
+    informed decisions about their finances. With Ghostfolio, users can connect their
+    brokerage accounts, monitor their investments in real-time, and gain a comprehensive
+    overview of their financial health. The application is accessible via a web interface
+    and offers API support for integrations. Built for privacy and control, Ghostfolio
+    is an excellent solution for self-hosted personal finance management.
+  category: investment-tracking
+  tags:
+  - Investment Tracking
+  - Personal Finance
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghostfolio/ghostfolio:2.255.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Documentation
+  url: https://ghostfolio.dev/docs/
+- label: Github
+  url: https://github.com/ghostfolio/ghostfolio
+instructions: Click on get started, create account and save the generated token safely
+  for logins.
+install:
+- docker:
+    image: $IMAGE
+    name: ghostfolio
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Click on get started, create account and save the generated token safely
+    for logins.
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

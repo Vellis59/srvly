@@ -1,0 +1,57 @@
+metadata:
+  name: Calibre Web
+  version: latest
+  description: Calibre Web is a web app providing a clean interface for browsing,
+    reading and downloading eBooks using an existing Calibre database. It is a Python
+    web application that provides a web interface for the Calibre eBook library. It
+    supports multiple users, user management, and provides a modern, responsive interface
+    for accessing your eBook collection from any device.
+  category: ebook-management
+  tags:
+  - eBook Management
+  - Digital Library
+  - Reading
+  - Self-Hosted
+  - Calibre
+  - Books
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/calibre-web:0.6.26
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8083
+links:
+- label: Docker Hub
+  url: https://hub.docker.com/r/linuxserver/calibre-web
+- label: Github
+  url: https://github.com/janeczku/calibre-web
+instructions: Default login credentials are admin/admin123
+install:
+- docker:
+    image: $IMAGE
+    name: calibre-web
+    port: $PORT:8083
+    volumes:
+    - /config
+    - /books
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Default login credentials are admin/admin123

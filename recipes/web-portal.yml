@@ -1,0 +1,58 @@
+metadata:
+  name: Web Portal
+  version: latest
+  description: Web Portal is a lightweight and customizable dashboard application
+    developed by enchant97. It provides a central hub for accessing your self-hosted
+    applications and services. With a clean and intuitive interface, Web Portal helps
+    you organize and access your web applications efficiently. It features a SQLite
+    database for configuration storage and supports custom plugins for extended functionality.
+    This containerized solution is perfect for home server enthusiasts and self-hosters
+    looking for a clean, efficient way to manage their web applications.
+  category: dashboard
+  tags:
+  - Dashboard
+  - Web Portal
+  - Self-hosted
+  - Docker
+  - Application Directory
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/enchant97/web-portal:2.5.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: GitHub
+  url: https://github.com/enchant97/web-portal
+- label: Container
+  url: https://github.com/enchant97/web-portal/pkgs/container/web-portal
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: web-portal
+    port: $PORT:8000
+    volumes:
+    - /app/data
+    - /app/plugins
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

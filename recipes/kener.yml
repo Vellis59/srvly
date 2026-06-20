@@ -1,0 +1,70 @@
+metadata:
+  name: Kener
+  version: latest
+  description: Kener is an advanced, self-hosted status page system designed for individuals
+    and teams. It offers a sleek, responsive user interface for monitoring and communicating
+    the status of your services efficiently. Kener supports real-time monitoring,
+    incident management, and customizable status pages. With seamless offline access,
+    powerful search capabilities, and robust encryption, Kener ensures your service
+    status is transparent and secure. It provides a consistent experience across desktop
+    and web applications, with customization options to suit your preferences.
+  category: status-page
+  tags:
+  - Status Page
+  - Monitoring
+  - Incident Management
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/rajnandan1/kener:4.0.23
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://kener.ing/
+- label: Documentation
+  url: https://kener.ing/docs
+- label: GitHub
+  url: https://github.com/rajnandan1/kener
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: kener
+    port: $PORT:3000
+    volumes:
+    - /app/database
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest
+  mysql:
+    type: mysql
+    version: latest
+  redis:
+    type: redis
+    version: '7'

@@ -1,0 +1,49 @@
+metadata:
+  name: Raneto
+  version: latest
+  description: Raneto is an open source Knowledgebase platform that uses static Markdown
+    files to power your Knowledgebase.
+  category: self-hosted
+  tags: []
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/raneto:0.18.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://raneto.com
+- label: Documentation
+  url: https://docs.linuxserver.io/images/docker-raneto
+- label: Github
+  url: https://github.com/linuxserver/docker-raneto
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: raneto
+    port: $PORT:3000
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

@@ -1,0 +1,63 @@
+metadata:
+  name: ProjectSend
+  version: latest
+  description: ProjectSend is a self-hosted file sharing platform designed to securely
+    share files with clients and collaborators. It provides a user-friendly interface,
+    supports advanced user management, and allows for detailed activity tracking.
+    With ProjectSend, you can maintain control over your files and ensure secure access
+    for authorized users.
+  category: file-sharing
+  tags:
+  - File Sharing
+  - Self-Hosted
+  - Secure Collaboration
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/projectsend:version-r2029
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://www.projectsend.org/
+- label: Github
+  url: https://github.com/projectsend/projectsend
+instructions: After Connecting with the DB, configure the URL to be https in next
+  screen of installation wizard and run chmod 755 /app/www/public/emails in the terminal
+  after the installation.
+install:
+- docker:
+    image: $IMAGE
+    name: projectsend
+    port: $PORT:80
+    volumes:
+    - /data
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After Connecting with the DB, configure the URL to be https in next screen
+    of installation wizard and run chmod 755 /app/www/public/emails in the terminal
+    after the installation.
+services:
+  mysql:
+    type: mysql
+    version: latest

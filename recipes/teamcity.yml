@@ -1,0 +1,63 @@
+metadata:
+  name: TeamCity
+  version: latest
+  description: TeamCity is a build management and continuous integration server from
+    JetBrains.
+  category: ci/cd
+  tags:
+  - CI/CD
+  - Build Server
+  - Continuous Integration
+  - Deployment
+  - Automation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: jetbrains/teamcity-server:2025.11.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8111
+links:
+- label: Github
+  url: https://github.com/JetBrains/teamcity-docker-images
+- label: Documentation
+  url: https://www.jetbrains.com/help/teamcity/teamcity-docker.html
+instructions: After setup, connect your Git repository and create a Build Configuration.
+  If you enabled the bundled agent, it will auto-register to the server; approve it
+  in **Agents** before running your first build.
+install:
+- docker:
+    image: $IMAGE
+    name: teamcity
+    port: $PORT:8111
+    volumes:
+    - /data/teamcity_server/datadir
+    - /opt/teamcity/logs
+    - /data/teamcity_agent/conf
+    - /opt/buildagent/work
+    - /opt/buildagent/temp
+    - /opt/buildagent/tools
+    - /opt/buildagent/plugins
+    - /opt/buildagent/system
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After setup, connect your Git repository and create a Build Configuration.
+    If you enabled the bundled agent, it will auto-register to the server; approve
+    it in **Agents** before running your first build.

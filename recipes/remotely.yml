@@ -1,0 +1,63 @@
+metadata:
+  name: Remotely
+  version: latest
+  description: Remotely is a free, open-source remote support and remote access solution
+    that enables IT professionals to provide remote assistance to users and manage
+    computers remotely. Built with ASP.NET Core, it offers secure remote desktop access,
+    file transfer capabilities, remote command execution, and comprehensive device
+    management features. The platform includes a web-based dashboard for managing
+    connected devices, user authentication, and audit logging. Perfect for IT support
+    teams, managed service providers, and organizations that need to provide remote
+    technical support and system administration.
+  category: remote-access
+  tags:
+  - Remote Access
+  - IT Support
+  - Remote Desktop
+  - System Administration
+  - Remote Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: immybot/remotely:1037
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5000
+links:
+- label: Github
+  url: https://github.com/immense/Remotely
+- label: Documentation
+  url: https://github.com/immense/Remotely#readme
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: remotely
+    port: $PORT:5000
+    volumes:
+    - /app/AppData
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

@@ -1,0 +1,61 @@
+metadata:
+  name: Crawl4AI
+  version: latest
+  description: Crawl4AI is an advanced AI-powered web crawling and data extraction
+    tool designed to streamline the process of collecting, processing, and structuring
+    web data for AI applications. It allows you to efficiently crawl websites, extract
+    relevant information, and store it in structured formats such as JSON, CSV, or
+    vector databases. With Crawl4AI, you can integrate real-time web data into your
+    AI models, enhancing their knowledge base and enabling dynamic responses. It supports
+    both cloud-based and on-premise deployments, making it flexible for different
+    use cases. Crawl4AI comes with powerful features such as intelligent content filtering,
+    automated rate-limiting handling, JavaScript rendering for dynamic pages, built-in
+    APIs for seamless integration, and robust authentication support. The latest version,
+    Crawl4AI 2.1, introduces enhanced AI-based content classification, improved speed
+    optimizations, support for multi-agent crawling, and various bug fixes.
+  category: web-crawling
+  tags:
+  - Web Crawling
+  - AI Data Extraction
+  - Machine Learning
+  - Vector Database
+  - AI-Powered Search
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ''
+  port:
+    type: integer
+    title: Port HTTP
+    default: 11235
+links:
+- label: GitHub
+  url: https://github.com/unclecode/crawl4ai
+- label: Documentation
+  url: https://docs.crawl4ai.com/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: crawel4ai
+    port: $PORT:11235
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

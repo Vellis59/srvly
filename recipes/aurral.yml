@@ -1,0 +1,60 @@
+metadata:
+  name: Aurral
+  version: latest
+  description: Aurral is a self-hosted music discovery and request management app
+    for Lidarr. Search artists via MusicBrainz, add them to Lidarr with granular monitoring
+    options, browse your library, and discover new artists from recommendations. Features
+    include Weekly Flow playlists (powered by Soulseek + Navidrome), multi-user support
+    with permissions, Gotify notifications, and PWA support. Aurral is designed to
+    be safe for your collection—library changes go through Lidarr's API.
+  category: music
+  tags:
+  - Music
+  - Lidarr
+  - Self-Hosted
+  - Music Discovery
+  - Soulseek
+  - Navidrome
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/lklynet/aurral:1.51.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3001
+links:
+- label: GitHub
+  url: https://github.com/lklynet/aurral
+- label: Container Registry
+  url: https://github.com/lklynet/aurral/pkgs/container/aurral
+- label: Discord
+  url: https://discord.gg/cpPYfgVURJ
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: aurral
+    port: $PORT:3001
+    volumes:
+    - /app/downloads
+    - /app/backend/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

@@ -1,0 +1,61 @@
+metadata:
+  name: BookHeaven
+  version: latest
+  description: BookHeaven Server is a self-hosted ebook library manager that lets
+    you organize, read, and manage your ebook collection with a modern responsive
+    UI. It reads metadata directly from ebook files (title, author, cover), allows
+    editing and persists changes back into the file. Features include auto-discovery
+    by the companion Android e-ink reader app, metadata fetching from the internet,
+    reading progress tracking, font management for your devices, multiple profiles,
+    OPDS support, and book importing via a dedicated folder. Built with .NET and Blazor.
+  category: ebooks
+  tags:
+  - Ebooks
+  - Library
+  - Self-Hosted
+  - E-Reader
+  - OPDS
+  - Books
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/bookheaven/bookheaven-server:0.16.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: GitHub
+  url: https://github.com/BookHeaven/BookHeaven.Server
+- label: Website
+  url: https://bookheaven.ggarrido.dev
+- label: Documentation
+  url: https://bookheaven.ggarrido.dev/getting-started
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: bookheaven
+    port: $PORT:8080
+    volumes:
+    - /app/data
+    - /app/import
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

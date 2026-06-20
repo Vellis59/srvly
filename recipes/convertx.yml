@@ -1,0 +1,51 @@
+metadata:
+  name: Convertx
+  version: latest
+  description: Convertx is a free, open-source application designed to provide a fast,
+    lightweight media conversion tool that you can use on your desktop or integrate
+    into your workflows. It offers a range of features including support for multiple
+    file formats, batch processing, video trimming, audio extraction, and format customization.
+    It also supports hot-reloading of tasks and notifications upon completion.
+  category: media-conversion
+  tags:
+  - Media Conversion
+  - Open Source
+  - Efficiency
+  - Customization
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/c4illin/convertx:v0.17.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Github
+  url: https://github.com/C4illin/ConvertX/tree/main
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: convertx
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

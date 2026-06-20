@@ -1,0 +1,58 @@
+metadata:
+  name: Kroki
+  version: latest
+  description: Kroki is a self-hosted diagramming and visualization service that allows
+    users to generate diagrams from textual descriptions. It supports multiple diagramming
+    formats, including Mermaid, BPMN, Excalidraw, PlantUML, Graphviz, and more. With
+    Kroki, users can convert structured text into graphical representations quickly
+    and efficiently. The application provides a simple API, making it easy to integrate
+    with other tools. It is lightweight, supports multiple diagram rendering engines,
+    and ensures full control over your data with a self-hosted deployment.
+  category: diagramming
+  tags:
+  - Diagramming
+  - Visualization
+  - Self-Hosted
+  - API-Based
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: yuzutech/kroki
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Documentation
+  url: https://kroki.io/#docs
+- label: Github
+  url: https://github.com/yuzutech/kroki
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: kroki
+    port: $PORT:8000
+    volumes: []
+    extra_ports:
+    - 8002:8002
+    - 8003:8003
+    - 8004:8004
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

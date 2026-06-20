@@ -1,0 +1,73 @@
+metadata:
+  name: Ampache
+  version: latest
+  description: Ampache is a web-based audio/video streaming application and file manager
+    that allows you to access your music and videos from anywhere, anytime. With this
+    app, you can browse and manage your music collection through a simple web interface,
+    and even synchronize local and remote catalogs to create a unique, consistent
+    collection. Ampache also offers music streaming capabilities, allowing you to
+    stream your music to your preferred player, control it with Localplay, or directly
+    listen on the web page with the HTML5 player. The app is completely free and open
+    source, and it's designed to work on almost any internet-enabled device, including
+    your phone, tablet, or television. Ampache is not a media organizer, but a tool
+    that presents an already organized collection in a useful way.
+  category: media
+  tags:
+  - Media
+  - File Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ampache/ampache:7.9.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: http://ampache.org/
+- label: Github
+  url: https://github.com/ampache/ampache
+- label: Github Docker
+  url: https://github.com/ampache/ampache-docker
+- label: DockerHub
+  url: https://hub.docker.com/r/ampache/ampache
+instructions: MySQL Username is "admin". The logs will show a line that says "mysql
+  -uadmin -pjnzYXLz7cMzq -h<host> -P<port>"". The password is everything after "-p",
+  in this case "jnzYXLz7cMzq".
+install:
+- docker:
+    image: $IMAGE
+    name: ampache
+    port: $PORT:80
+    volumes:
+    - /var/www/config
+    - /var/log/ampache
+    - /var/lib/mysql
+    - /media
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: MySQL Username is "admin". The logs will show a line that says "mysql -uadmin
+    -pjnzYXLz7cMzq -h<host> -P<port>"". The password is everything after "-p", in
+    this case "jnzYXLz7cMzq".
+services:
+  mysql:
+    type: mysql
+    version: latest

@@ -1,0 +1,58 @@
+metadata:
+  name: ioBroker
+  version: latest
+  description: ioBroker is a powerful open-source IoT platform that allows you to
+    connect different smart home systems and devices into one platform. It supports
+    a wide range of protocols and devices, making it a versatile solution for home
+    automation.
+  category: iot
+  tags:
+  - IoT
+  - Home Automation
+  - Smart Home
+  - Automation
+  - Self-hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: buanet/iobroker:v11.1.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8081
+links:
+- label: Website
+  url: https://www.iobroker.net
+- label: Documentation
+  url: https://www.iobroker.net/#en/documentation
+- label: GitHub
+  url: https://github.com/ioBroker/ioBroker
+- label: Docker Hub
+  url: https://hub.docker.com/r/buanet/iobroker
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: iobroker
+    port: $PORT:8081
+    volumes:
+    - /opt/iobroker
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

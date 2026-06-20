@@ -1,0 +1,61 @@
+metadata:
+  name: Calibre
+  version: latest
+  description: Calibre is a comprehensive e-book management tool designed to organize,
+    convert, and read your e-book collection. It supports most of the major e-book
+    formats and is compatible with various e-book reader devices. Calibre can fetch
+    metadata for your books from the internet, enhancing your library with relevant
+    information. It also allows you to download newspapers and convert them into e-books
+    for a more convenient reading experience. The app is cross-platform, running on
+    Linux, Windows, and macOS. With Calibre, you can easily add books to your library,
+    convert them to a format your reader understands, and send them to your device.
+    It also offers advanced features like e-book editing, metadata editing, and e-book
+    comparison. The app is user-friendly, but also offers a Command Line Interface
+    for more power and versatility.
+  category: documents
+  tags:
+  - Documents
+  - E-Commerce
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: linuxserver/calibre:8.16.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://calibre-ebook.com/
+- label: Documentation
+  url: https://manual.calibre-ebook.com/
+- label: Github
+  url: https://github.com/kovidgoyal/calibre
+instructions: Login using user abc with your set password
+install:
+- docker:
+    image: $IMAGE
+    name: calibre
+    port: $PORT:8080
+    volumes:
+    - /books
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Login using user abc with your set password

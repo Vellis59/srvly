@@ -1,0 +1,61 @@
+metadata:
+  name: Roundcube
+  version: latest
+  description: Roundcube webmail is a browser-based, multilingual IMAP client that
+    offers an application-like user interface. It is designed to provide all the functionalities
+    you would expect from an email client. This includes MIME support, an address
+    book, folder manipulation, message searching, and spell checking. The app also
+    supports drag-and-drop message management, multiple sender identities, and a full-featured
+    address book with groups and LDAP connectors. It offers a threaded message listing,
+    IDNA and SMTPUTF8 support, and a responsive skin for multi-device support. Roundcube
+    webmail also features built-in caching for fast mailbox access, unlimited users
+    and messages, import/export functions, and support for PGP encryption.
+  category: email
+  tags:
+  - Email
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: roundcube/roundcubemail:1.6.15-apache
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://roundcube.net/
+- label: Github
+  url: https://github.com/roundcube/roundcubemail/
+- label: Docker
+  url: https://hub.docker.com/r/roundcube/roundcubemail/
+instructions: After Roundcube is installed, you can log in to the mail accounts on
+  the service where you entered the "SMTP" information.
+install:
+- docker:
+    image: $IMAGE
+    name: roundcube
+    port: $PORT:80
+    volumes:
+    - /var/www/html
+    - /var/roundcube/config
+    - /var/roundcube/db
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After Roundcube is installed, you can log in to the mail accounts on the
+    service where you entered the "SMTP" information.

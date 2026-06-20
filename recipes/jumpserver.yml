@@ -1,0 +1,74 @@
+metadata:
+  name: JumpServer
+  version: latest
+  description: JumpServer is an open-source, enterprise-grade bastion host and privileged
+    access management (PAM) solution. It provides secure access to servers, databases,
+    and other IT resources through a web-based interface. JumpServer supports multiple
+    authentication methods, session recording, command auditing, and fine-grained
+    access control. It's designed to help organizations manage and monitor privileged
+    access to critical infrastructure while maintaining security compliance and audit
+    trails.
+  category: bastion-host
+  tags:
+  - Bastion Host
+  - PAM
+  - Privileged Access Management
+  - Security
+  - SSH
+  - RDP
+  - Session Recording
+  - Audit
+  - Compliance
+  - Access Control
+  - Web Interface
+  - Enterprise
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: jumpserver/jms_all:v4.10.16
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: GitHub
+  url: https://github.com/jumpserver/jumpserver
+- label: Documentation
+  url: https://docs.jumpserver.org/
+- label: Docker Hub
+  url: https://hub.docker.com/r/jumpserver/jms_all
+instructions: Login using the default admin credentials; admin/ChangeMe.
+install:
+- docker:
+    image: $IMAGE
+    name: jumpserver
+    port: $PORT:80
+    volumes:
+    - /opt/jumpserver/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Login using the default admin credentials; admin/ChangeMe.
+services:
+  mysql:
+    type: mysql
+    version: latest
+  redis:
+    type: redis
+    version: '7'

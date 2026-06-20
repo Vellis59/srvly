@@ -1,0 +1,54 @@
+metadata:
+  name: Isaiah
+  version: latest
+  description: Isaiah is a Docker-based application that provides a simple and efficient
+    way to manage containerized applications. It offers a web interface for monitoring
+    and controlling Docker containers with a clean, user-friendly interface. Isaiah
+    allows you to view container status, logs, and resource usage, making it easier
+    to maintain your Docker infrastructure.
+  category: docker
+  tags:
+  - Docker
+  - Container Management
+  - Web Interface
+  - Monitoring
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: mosswill/isaiah:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Docker
+  url: https://hub.docker.com/r/mosswill/isaiah
+- label: GitHub
+  url: https://github.com/will-moss/isaiah
+instructions: Access the web interface to manage your Docker containers
+install:
+- docker:
+    image: $IMAGE
+    name: isaiah
+    port: $PORT:80
+    volumes:
+    - /var/run/docker.sock
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Access the web interface to manage your Docker containers

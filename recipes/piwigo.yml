@@ -1,0 +1,60 @@
+metadata:
+  name: piwigo
+  version: latest
+  description: Piwigo is a powerful, self-hosted photo gallery solution designed for
+    managing and organizing your image collections efficiently. It provides a user-friendly
+    web interface, supports a vast array of plugins for extended functionality, and
+    offers advanced photo organization features such as albums, tags, and batch processing.
+    With Piwigo, you can maintain full control over your photo storage and sharing.
+  category: photo-gallery
+  tags:
+  - Photo Gallery
+  - Self-Hosted
+  - Image Management
+  - Open Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/piwigo:16.4.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://piwigo.org/
+- label: DockerHub
+  url: https://hub.docker.com/r/linuxserver/piwigo
+instructions: Configure the database in the installation wizard.
+install:
+- docker:
+    image: $IMAGE
+    name: piwigo
+    port: $PORT:80
+    volumes:
+    - /gallery
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Configure the database in the installation wizard.
+services:
+  mysql:
+    type: mysql
+    version: latest

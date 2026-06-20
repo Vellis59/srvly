@@ -1,0 +1,62 @@
+metadata:
+  name: CodeX Docs
+  version: latest
+  description: CodeX is a comprehensive platform that brings together passionate engineers,
+    designers, students, graduates, and young specialists from around the globe. The
+    app is dedicated to creating high-quality open-source projects and providing a
+    valuable experience of developing full-fledged products for the global market.
+    CodeX offers a range of products including Editor.js, a block-styled, API-oriented
+    editor for media that generates useful JSON-output with clear data, Hawk.so, a
+    fast and lightweight error tracking service, and CodeX Notes, a simple and fast
+    cross-platform notes application based on Editor.js and Electron. The platform
+    also offers Capella, a cloud service for image storage and delivery, and a platform
+    for integration of services into messengers. With a focus on media, social networks,
+    education, augmented reality, and medicine, CodeX is a one-stop solution for tech
+    enthusiasts looking to make a mark in the global market.
+  category: developer-tools
+  tags:
+  - Developer Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/codex-team/codex.docs:v2.2.5
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://codex.so
+- label: Documentation
+  url: https://docs.codex.so
+- label: Github
+  url: https://github.com/codex-team/codex.docs
+instructions: View All Configuation on the Docs site - https://docs.codex.so/configuration
+install:
+- docker:
+    image: $IMAGE
+    name: codex-docs
+    port: $PORT:3000
+    volumes:
+    - /usr/src/app/uploads
+    - /usr/src/app/db
+    - /usr/src/app/docs-config.yaml
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: View All Configuation on the Docs site - https://docs.codex.so/configuration

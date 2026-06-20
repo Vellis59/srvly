@@ -1,0 +1,59 @@
+metadata:
+  name: Langflow
+  version: latest
+  description: Langflow is an innovative application designed to facilitate the experimentation
+    and prototyping of LangChain pipelines. It provides a user-friendly interface
+    for creating flows by simply dragging and connecting LangChain components such
+    as LLMs, prompt serializers, agents, and chains. You can easily modify prompt
+    parameters, link chains and agents, track an agent's thought process, and export
+    your flow. Once your flow is ready, you can export it as a JSON file for use with
+    LangChain. Langflow also integrates with langchain-serve for one-command deployment
+    to Jina AI Cloud. With Langflow, building and deploying LangChain pipelines has
+    never been easier.
+  category: data-science
+  tags:
+  - Data Science
+  - Developer Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: langflowai/langflow:1.9.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 7860
+links:
+- label: Github
+  url: https://github.com/logspace-ai/langflow
+instructions: Default username=admin, password=admin
+install:
+- docker:
+    image: $IMAGE
+    name: langflow
+    port: $PORT:7860
+    volumes:
+    - /var/lib/langflow
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Default username=admin, password=admin
+services:
+  postgres:
+    type: postgres
+    version: latest

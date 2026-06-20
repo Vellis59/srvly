@@ -1,0 +1,62 @@
+metadata:
+  name: ExpenseOwl
+  version: latest
+  description: ExpenseOwl is a simple, self-hosted expense tracker designed for quick
+    expense entry and essential tracking features. Built with a modern UI and user-friendly
+    interface, it makes managing your personal finances straightforward and efficient.
+    The application focuses on simplicity and ease of use, allowing you to quickly
+    log expenses, categorize spending, and track your budget without complexity. ExpenseOwl
+    stores all your financial data securely with persistent storage, ensuring your
+    expense history is always available. Perfect for individuals who want a lightweight,
+    privacy-focused expense tracking solution without the overhead of complex financial
+    management software. The application can be used with simple file-based storage
+    or connected to a PostgreSQL database for more advanced data management needs.
+  category: finance
+  tags:
+  - Finance
+  - Expense Tracking
+  - Budget
+  - Self-Hosted
+  - Personal Finance
+  - Money Management
+  - Lightweight
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: tanq16/expenseowl:v4.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: GitHub
+  url: https://github.com/Tanq16/ExpenseOwl
+- label: Docker Hub
+  url: https://hub.docker.com/r/tanq16/expenseowl
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: expenseowl
+    port: $PORT:8080
+    volumes:
+    - /app/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

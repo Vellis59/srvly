@@ -1,0 +1,76 @@
+metadata:
+  name: Keycloak
+  version: latest
+  description: Keycloak is an open-source Identity and Access Management tool that
+    adds authentication to applications and secures services with minimal effort.
+    It eliminates the need for storing or authenticating users, providing user federation,
+    robust authentication, user management, and fine-grained authorization. Keycloak
+    offers a Single-Sign On feature, allowing users to authenticate with Keycloak
+    rather than individual applications, ensuring a seamless login experience across
+    multiple applications. It also supports social login and can authenticate users
+    with existing OpenID Connect or SAML 2.0 Identity Providers. Keycloak has built-in
+    support to connect to existing LDAP or Active Directory servers and provides a
+    centralized admin console for managing all aspects of the server. It also offers
+    an account management console for users to manage their own accounts. Based on
+    standard protocols, Keycloak supports OpenID Connect, OAuth 2.0, and SAML, and
+    provides fine-grained authorization services for advanced permission management.
+  category: identity-and-access-management
+  tags:
+  - Identity and Access Management
+  - Authentication
+  - Authorization
+  - Single Sign-On
+  - User Federation
+  - Social Login
+  - Admin Console
+  - Account Management
+  - Standard Protocols
+  - Fine-Grained Authorization
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: quay.io/keycloak/keycloak:26.4.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://www.keycloak.org
+- label: Documentation
+  url: https://www.keycloak.org/documentation
+- label: Github
+  url: https://github.com/keycloak/keycloak
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: keycloak
+    port: $PORT:8080
+    volumes:
+    - /opt/keycloak
+    - /opt/bitnami/keycloak/themes
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

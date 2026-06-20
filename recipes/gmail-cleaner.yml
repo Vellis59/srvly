@@ -1,0 +1,64 @@
+metadata:
+  name: Gmail Cleaner
+  version: latest
+  description: Gmail Cleaner is a privacy-focused self-hosted tool to bulk unsubscribe,
+    delete, archive, and mark Gmail messages as read by sender. It runs locally with
+    your own Google OAuth credentials and keeps auth tokens in persistent storage.
+  category: gmail
+  tags:
+  - Gmail
+  - Email
+  - Cleanup
+  - Privacy
+  - Automation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/gururagavendra/gmail-cleaner:v1.3.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8766
+links:
+- label: Documentation
+  url: https://github.com/Gururagavendra/gmail-cleaner#readme
+- label: GitHub
+  url: https://github.com/gururagavendra/gmail-cleaner
+- label: Setup video
+  url: https://youtu.be/CmOWn8Tm5ZE
+- label: Container registry
+  url: https://github.com/gururagavendra/gmail-cleaner/pkgs/container/gmail-cleaner
+instructions: Paste your downloaded Google OAuth client JSON into Credentials JSON
+  before deploying. In Google Cloud Console, add an Authorized redirect URI that uses
+  your OAuth host and external OAuth port (for example, https://your-domain/). After
+  deploy, open the app domain, click Sign In, and complete the OAuth flow.
+install:
+- docker:
+    image: $IMAGE
+    name: gmail-cleaner
+    port: $PORT:8766
+    volumes:
+    - /app/credentials.json
+    - /app/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Paste your downloaded Google OAuth client JSON into Credentials JSON before
+    deploying. In Google Cloud Console, add an Authorized redirect URI that uses your
+    OAuth host and external OAuth port (for example, https://your-domain/). After
+    deploy, open the app domain, click Sign In, and complete the OAuth flow.

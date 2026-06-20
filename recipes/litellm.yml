@@ -1,0 +1,62 @@
+metadata:
+  name: LiteLLM
+  version: latest
+  description: LiteLLM is a lightweight, self-hosted library designed for integrating
+    language models like GPT into your applications. It provides an easy-to-use interface
+    for sending and receiving prompts and responses, with support for multiple model
+    configurations, API keys, and detailed debugging options. With LiteLLM, you can
+    streamline your AI workflows while maintaining full control over your data and
+    configurations.
+  category: language-models
+  tags:
+  - Language Models
+  - Self-Hosted
+  - AI Integration
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/berriai/litellm:v1.85.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 4000
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Documentation
+  url: https://docs.litellm.ai/docs/
+- label: Github
+  url: https://github.com/berriai/litellm
+instructions: Use the provided master-key as the password for UI login.
+install:
+- docker:
+    image: $IMAGE
+    name: litellm
+    port: $PORT:4000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Use the provided master-key as the password for UI login.
+services:
+  postgres:
+    type: postgres
+    version: latest

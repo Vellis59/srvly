@@ -1,0 +1,62 @@
+metadata:
+  name: Element
+  version: latest
+  description: Element is a secure communications platform designed to protect and
+    strengthen your business critical communications. It offers real-time trusted
+    communication across organizations, giving you the freedom to communicate on your
+    own terms. With Element, you can control your data through its open source and
+    flexible hosting, enabling data sovereignty. The app allows you to structure discussion
+    spaces, customize chat rooms, and share live data through widgets and integrations
+    to boost your productivity. It also provides instant messaging, voice/video calls,
+    location sharing, voting polls and more. Element ensures your data is secure by
+    default, allowing you to focus on getting your work done. You have complete independence
+    to own and control your entire communication platform, configure networks to suit
+    organizational requirements, and strengthen cybersecurity and business continuity
+    plans. Element is led by the creators of Matrix, the decentralized open standard
+    for secure and sovereign real time communication.
+  category: chat
+  tags:
+  - Chat
+  - Communication
+  - Security
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: vectorim/element-web:v1.12.17
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://element.io/
+- label: Documentation
+  url: https://github.com/vector-im/element-web/wiki
+- label: Github
+  url: https://github.com/vector-im/element-web
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: element
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

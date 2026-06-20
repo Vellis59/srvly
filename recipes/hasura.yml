@@ -1,0 +1,66 @@
+metadata:
+  name: Hasura
+  version: latest
+  description: Hasura is a powerful Data API Platform that automates the process of
+    building, securing, optimizing, and deploying GraphQL and REST APIs. It eliminates
+    the need for manual API creation, enabling developers to generate APIs effortlessly
+    by connecting to existing databases. This results in rapid, scalable application
+    development. Hasura is compatible with a variety of popular databases, including
+    PostgreSQL, MySQL, and MongoDB, allowing you to build GraphQL APIs on top of your
+    existing databases. It also provides comprehensive tools to secure APIs beyond
+    authentication and authorization. With Hasura, you can accelerate the development
+    of new applications or add new features to an existing application in days instead
+    of weeks. It also helps in fast-tracking cloud migration, frontend and backend
+    modernization, and application re-architecture projects by automating 80% of your
+    API development work.
+  category: developer-tools
+  tags:
+  - Developer Tools
+  - Databases
+  - API Development
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: hasura/graphql-engine:v2.48.16.ubi
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://hasura.io/
+- label: Documentation
+  url: https://hasura.io/docs/latest/deployment/deployment-guides/kubernetes
+- label: Github
+  url: https://github.com/hasura/graphql-engine
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: hasura
+    port: $PORT:8080
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

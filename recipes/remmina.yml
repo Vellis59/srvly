@@ -1,0 +1,60 @@
+metadata:
+  name: Remmina
+  version: latest
+  description: Remmina is a remote desktop client designed to be useful for system
+    administrators and travellers who need to work with multiple remote computers.
+    It supports a variety of network protocols, including RDP, VNC, SPICE, NX, XDMCP,
+    SSH and EXEC, all within an integrated and consistent user interface. The app
+    is written in GTK and is designed to be functional on both large and tiny screens.
+    It can be accessed via http://yourhost:3000/ or https://yourhost:3001/. The app
+    is based on Docker Baseimage KasmVNC, which provides additional environment variables
+    and run configurations to enable or disable specific functionality.
+  category: remote-desktop
+  tags:
+  - Remote Desktop
+  - System Administration
+  - Network Protocols
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/remmina:1.4.43
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Documentation
+  url: https://docs.linuxserver.io/images/docker-remmina
+- label: Github
+  url: https://github.com/linuxserver/docker-remmina
+- label: Website
+  url: https://remmina.org
+instructions: use abc:abc to login. To access the login interface, add ?login=true
+  to your URL.
+install:
+- docker:
+    image: $IMAGE
+    name: remmina
+    port: $PORT:3000
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: use abc:abc to login. To access the login interface, add ?login=true to your
+    URL.

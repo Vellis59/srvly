@@ -1,0 +1,63 @@
+metadata:
+  name: BlackCandy
+  version: latest
+  description: BlackCandy is a self-hosted music streaming server built with Rails
+    and Hotwire. It provides a clean, modern web interface for streaming your personal
+    music collection. The goal of the project is to create a real personal music center
+    that you can access from anywhere. It features mobile apps for iOS and Android,
+    supports multiple audio formats, and offers a beautiful, responsive interface.
+  category: music-streaming
+  tags:
+  - Music Streaming
+  - Self-hosted
+  - Ruby
+  - Rails
+  - Hotwire
+  - Media Server
+  - Audio
+  - Music Player
+  - Personal Music
+  - Mobile Apps
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: blackcandy/blackcandy:3.1.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: GitHub
+  url: https://github.com/blackcandy-org/blackcandy
+- label: Documentation
+  url: https://github.com/blackcandy-org/blackcandy#readme
+- label: Demo
+  url: https://demo.blackcandy.org
+instructions: default login is admin@admin.com and password is foobar
+install:
+- docker:
+    image: $IMAGE
+    name: blackcandy
+    port: $PORT:3000
+    volumes:
+    - /media_data
+    - /app/storage
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: default login is admin@admin.com and password is foobar

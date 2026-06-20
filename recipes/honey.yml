@@ -1,0 +1,58 @@
+metadata:
+  name: Honey
+  version: latest
+  description: Honey is a lightweight web application developed by dani3l0. It provides
+    a clean and intuitive interface for accessing and managing your data. The application
+    is containerized for easy deployment and configuration, making it ideal for self-hosted
+    environments. Honey uses a file-based configuration system, allowing for simple
+    customization and persistence across container restarts. With its efficient design
+    and minimal resource requirements, Honey is a great addition to any self-hosted
+    service collection.
+  category: web-application
+  tags:
+  - Web Application
+  - Self-hosted
+  - Docker
+  - Lightweight
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/dani3l0/honey:v2.4.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 4173
+links:
+- label: Demo
+  url: https://honeyy.vercel.app
+- label: GitHub
+  url: https://github.com/dani3l0/honey
+- label: Container
+  url: https://github.com/dani3l0/honey/pkgs/container/honey
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: honey
+    port: $PORT:4173
+    volumes:
+    - /app/dist/config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

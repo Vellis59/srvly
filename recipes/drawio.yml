@@ -1,0 +1,59 @@
+metadata:
+  name: Draw.io
+  version: latest
+  description: Draw.io is a versatile, self-hosted diagramming tool designed for individuals
+    and teams. It provides an intuitive, drag-and-drop interface for creating flowcharts,
+    network diagrams, UML diagrams, and more. Draw.io supports integrations with various
+    cloud storage solutions such as Google Drive, OneDrive, and local storage for
+    easy file management. With a focus on simplicity and functionality, Draw.io enables
+    seamless collaboration and offline access, ensuring that users can work efficiently.
+    Its rich library of shapes, templates, and customization options caters to a wide
+    range of diagramming needs.
+  category: diagramming
+  tags:
+  - Diagramming
+  - Collaboration
+  - Productivity
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: jgraph/drawio:29.7.9
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://drawio-app.com/
+- label: Documentation
+  url: https://github.com/jgraph/drawio/wiki
+- label: Github
+  url: https://github.com/jgraph/drawio
+- label: Docker Guide
+  url: https://www.drawio.com/blog/diagrams-docker-app
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: drawio
+    port: $PORT:8080
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

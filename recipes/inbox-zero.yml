@@ -1,0 +1,61 @@
+metadata:
+  name: Inbox Zero
+  version: latest
+  description: Inbox Zero is an email management platform that helps you clean your
+    inbox, manage subscriptions, and automate email workflows.
+  category: email
+  tags:
+  - Email
+  - Productivity
+  - AI
+  - Self-Hosted
+  - Automation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/elie222/inbox-zero:v1.10.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: GitHub
+  url: https://github.com/elie222/inbox-zero
+- label: Website
+  url: https://www.getinboxzero.com/
+instructions: The Google Client ID and Secret are required for the OAuth flow to work.
+  Select the LLM provider and fill the API keys for the provider.
+install:
+- docker:
+    image: $IMAGE
+    name: inbox-zero
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: The Google Client ID and Secret are required for the OAuth flow to work.
+    Select the LLM provider and fill the API keys for the provider.
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

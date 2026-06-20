@@ -1,0 +1,80 @@
+metadata:
+  name: TeamMapper
+  version: latest
+  description: TeamMapper is a powerful team mapping and visualization tool designed
+    to help organizations understand team structures, relationships, and collaboration
+    patterns. It provides an intuitive interface for creating interactive team maps
+    that visualize team members, their roles, departments, and connections. TeamMapper
+    enables teams to better understand their organizational structure, identify collaboration
+    opportunities, and optimize team dynamics. The platform supports real-time updates,
+    customizable visualizations, and comprehensive team analytics to help organizations
+    make data-driven decisions about team composition and workflow optimization.
+  category: team-management
+  tags:
+  - Team Management
+  - Visualization
+  - Organization
+  - Collaboration
+  - Analytics
+  - Web App
+  - Self-hosted
+  - PostgreSQL
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/b310-digital/teammapper:v0.2.6-1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://teammapper.io
+- label: GitHub
+  url: https://github.com/b310-digital/teammapper
+- label: Container registry
+  url: https://github.com/b310-digital/teammapper/pkgs/container/teammapper
+instructions: Deploy the stack and open your assigned domain to complete TeamMapper
+  setup. The application connects automatically to the internal PostgreSQL service
+  created by this template. On first startup, create your initial account in the web
+  interface and then configure your organization and team structure. Data is persisted
+  in /app/data and in PostgreSQL volumes, so updates and restarts keep existing content.
+  DELETE_AFTER_DAYS is set to 30 by default in this template. Change it after deploy
+  if your retention requirements differ.
+install:
+- docker:
+    image: $IMAGE
+    name: teammapper
+    port: $PORT:3000
+    volumes:
+    - /app/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Deploy the stack and open your assigned domain to complete TeamMapper setup.
+    The application connects automatically to the internal PostgreSQL service created
+    by this template. On first startup, create your initial account in the web interface
+    and then configure your organization and team structure. Data is persisted in
+    /app/data and in PostgreSQL volumes, so updates and restarts keep existing content.
+    DELETE_AFTER_DAYS is set to 30 by default in this template. Change it after deploy
+    if your retention requirements differ.
+services:
+  postgres:
+    type: postgres
+    version: latest

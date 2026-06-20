@@ -1,0 +1,58 @@
+metadata:
+  name: Neko Rooms
+  version: latest
+  description: Neko Rooms is a self-hosted, collaborative virtualized browser-sharing
+    platform that enables users to share and interact with web applications in a fully
+    isolated and secure environment. It allows multiple users to join a shared session,
+    providing seamless co-browsing experiences with synchronized interactions. Neko
+    Rooms is built for teams, support agents, and anyone needing real-time, interactive
+    browsing collaboration. It is optimized for low-latency streaming and supports
+    multiple configurations for enhanced flexibility and performance.
+  category: remote-collaboration
+  tags:
+  - Remote Collaboration
+  - Virtualized Browser
+  - Self-Hosted
+  - Secure Browsing
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: m1k1o/neko-rooms:1.6.5
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Github
+  url: https://github.com/m1k1o/neko-rooms
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: neko-rooms
+    port: $PORT:8080
+    volumes:
+    - /var/run/docker.sock
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

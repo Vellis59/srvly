@@ -1,0 +1,73 @@
+metadata:
+  name: Lingva Translate
+  version: latest
+  description: Lingva Translate is a free, open-source alternative front-end for Google
+    Translate. Supports 100+ languages via scraping—no direct Google access, no user
+    tracking. Built with Next.js and ChakraUI. Provides REST API for translation,
+    audio, and language detection. Privacy-focused translation.
+  category: translation
+  tags:
+  - Translation
+  - Google Translate
+  - Privacy
+  - Open Source
+  - Self-hosted
+  - API
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: thedaviddelta/lingva-translate:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://lingva.thedaviddelta.com
+- label: GitHub
+  url: https://github.com/TheDavidDelta/lingva-translate
+- label: Docker Hub
+  url: https://hub.docker.com/r/thedaviddelta/lingva-translate
+instructions: 'After deployment, access the web UI on your assigned domain. Set the
+  site
+
+  domain to your public URL (e.g. https://lingva.yourdomain.com) for correct
+
+  API links. Use the REST API at /api/v1/:source/:target/:query for translations.
+
+  '
+install:
+- docker:
+    image: $IMAGE
+    name: lingva
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: 'After deployment, access the web UI on your assigned domain. Set the site
+
+    domain to your public URL (e.g. https://lingva.yourdomain.com) for correct
+
+    API links. Use the REST API at /api/v1/:source/:target/:query for translations.
+
+    '

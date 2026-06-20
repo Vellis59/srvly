@@ -1,0 +1,84 @@
+metadata:
+  name: Stalwart
+  version: latest
+  description: Stalwart is a modern, all-in-one mail and collaboration server written
+    in Rust for security and performance. It bundles SMTP, IMAP, JMAP, POP3, CalDAV,
+    CardDAV, and WebDAV into a single binary with a unified configuration. Features
+    include a built-in spam and phishing filter with LLM-driven analysis, DMARC/DKIM/SPF/ARC
+    authentication, encryption at rest with S/MIME or OpenPGP, automatic TLS via ACME,
+    full-text search in 17 languages, Sieve scripting, and a web-based admin dashboard.
+    It supports pluggable storage backends (RocksDB, FoundationDB, PostgreSQL, MySQL,
+    SQLite, S3, Redis) and scales from a single instance to thousands of nodes with
+    built-in clustering, load balancing, and fault tolerance.
+  category: email
+  tags:
+  - Email
+  - Mail Server
+  - SMTP
+  - IMAP
+  - CalDAV
+  - CardDAV
+  - Self-Hosted
+  - Collaboration
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/stalwartlabs/stalwart:v0.15.5
+  port:
+    type: integer
+    title: Port HTTP
+    default: 25
+links:
+- label: Website
+  url: https://stalw.art
+- label: GitHub
+  url: https://github.com/stalwartlabs/stalwart
+- label: Documentation
+  url: https://stalw.art/docs/install/get-started
+instructions: On first boot, Stalwart auto-generates admin credentials and prints
+  them to the container logs. Check the service logs to find the admin username and
+  password. Then access the web admin at the service domain and log in. From there,
+  configure your domain under Management > Directory > Domains, and Stalwart will
+  generate the required DNS records (MX, DKIM, SPF, DMARC) for you. Set the correct
+  server hostname in Settings > Server > Network. Mail ports (SMTP 25, submission
+  587/465, IMAP 143/993, POP3 110/995, ManageSieve 4190) are exposed for direct access.
+install:
+- docker:
+    image: $IMAGE
+    name: stalwart
+    port: $PORT:25
+    volumes:
+    - /opt/stalwart
+    extra_ports:
+    - 110:110
+    - 143:143
+    - 465:465
+    - 587:587
+    - 993:993
+    - 995:995
+    - 4190:4190
+    - 8080:8080
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: On first boot, Stalwart auto-generates admin credentials and prints them
+    to the container logs. Check the service logs to find the admin username and password.
+    Then access the web admin at the service domain and log in. From there, configure
+    your domain under Management > Directory > Domains, and Stalwart will generate
+    the required DNS records (MX, DKIM, SPF, DMARC) for you. Set the correct server
+    hostname in Settings > Server > Network. Mail ports (SMTP 25, submission 587/465,
+    IMAP 143/993, POP3 110/995, ManageSieve 4190) are exposed for direct access.

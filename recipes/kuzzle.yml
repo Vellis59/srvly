@@ -1,0 +1,66 @@
+metadata:
+  name: Kuzzle
+  version: latest
+  description: Kuzzle is a free and open-source backend platform designed to accelerate
+    the development of web, mobile, and Internet of Things (IoT) applications. It
+    provides real-time features, multi-protocol API support, and robust user management,
+    enabling developers to focus on building high-level business functionalities.
+    Kuzzle is fully customizable through plugins and offers client SDKs for seamless
+    integration with various platforms. Its flexibility and scalability make it an
+    ideal choice for IoT, geolocation, and enterprise applications.
+  category: backend
+  tags:
+  - Backend
+  - IoT
+  - Real-Time
+  - API
+  - Geolocation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: kuzzleio/kuzzle:2.54.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 1883
+links:
+- label: Website
+  url: https://kuzzle.io/
+- label: Documentation
+  url: https://docs.kuzzle.io/
+- label: Github
+  url: https://github.com/kuzzleio/kuzzle
+instructions: You should connect with the Kuzzle instance using the provided domain
+  which proxying back to the HTTP/WebSocket connection.
+install:
+- docker:
+    image: $IMAGE
+    name: kuzzle
+    port: $PORT:1883
+    volumes:
+    - /usr/share/elasticsearch
+    extra_ports:
+    - 7512:7512
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: You should connect with the Kuzzle instance using the provided domain which
+    proxying back to the HTTP/WebSocket connection.
+services:
+  redis:
+    type: redis
+    version: '7'

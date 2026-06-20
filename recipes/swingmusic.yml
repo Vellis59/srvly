@@ -1,0 +1,64 @@
+metadata:
+  name: Swingmusic
+  version: latest
+  description: Swingmusic is a beautiful, self-hosted music player and streaming server
+    for your personal music collection. It provides a modern, intuitive web interface
+    that allows you to stream your music library from anywhere. With support for various
+    audio formats and a clean, responsive design, Swingmusic makes it easy to enjoy
+    your music collection across all your devices. The application offers features
+    like playlist management, search functionality, and album artwork display, making
+    it a perfect alternative to commercial streaming services for those who want to
+    keep their music library private and under their control.
+  category: music
+  tags:
+  - Music
+  - Media Server
+  - Self-Hosted
+  - Streaming
+  - Music Player
+  - Audio
+  - Entertainment
+  - Personal Media
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/swingmx/swingmusic:v2.1.10
+  port:
+    type: integer
+    title: Port HTTP
+    default: 1970
+links:
+- label: GitHub
+  url: https://github.com/swingmx/swingmusic
+- label: Documentation
+  url: https://github.com/swingmx/swingmusic#readme
+- label: Demo
+  url: https://swingmx.com
+instructions: Default credentials are admin/admin
+install:
+- docker:
+    image: $IMAGE
+    name: swingmusic
+    port: $PORT:1970
+    volumes:
+    - /music
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Default credentials are admin/admin

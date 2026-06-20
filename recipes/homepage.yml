@@ -1,0 +1,61 @@
+metadata:
+  name: Homepage
+  version: latest
+  description: Homepage is a self-hosted dashboard designed to provide a centralized
+    hub for accessing and managing your server and web services. With an intuitive
+    and customizable interface, Homepage makes it easy to organize links, monitor
+    system health, and view important metrics in one place. It supports a wide range
+    of integrations, including Docker, Kubernetes, and popular web services, making
+    it an ideal tool for individuals and teams looking to streamline access and management
+    of their infrastructure. Being open-source, Homepage offers transparency, flexibility,
+    and control to users.
+  category: dashboard
+  tags:
+  - Dashboard
+  - Self-Hosted
+  - Open Source
+  - Customizable
+  - Infrastructure Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/gethomepage/homepage:v1.12.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://gethomepage.dev/
+- label: Documentation
+  url: https://gethomepage.dev/widgets/authoring/
+- label: GitHub
+  url: https://github.com/gethomepage/homepage
+instructions: Configure settings.yaml for customization.
+install:
+- docker:
+    image: $IMAGE
+    name: homepage
+    port: $PORT:80
+    volumes:
+    - /var/run/docker.sock
+    - /app/config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Configure settings.yaml for customization.

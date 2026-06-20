@@ -1,0 +1,61 @@
+metadata:
+  name: FusionAuth
+  version: latest
+  description: FusionAuth is a powerful, self-hosted identity and access management
+    platform designed for developers. It provides a robust set of features, including
+    user authentication, authorization, and user management, all accessible through
+    a modern API or web interface. FusionAuth supports advanced features like social
+    login, SSO, passwordless login, and multi-factor authentication.
+  category: identity-management
+  tags:
+  - Identity Management
+  - Authentication
+  - Authorization
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: fusionauth/fusionauth-app:1.66.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 9011
+links:
+- label: Documentation
+  url: https://fusionauth.io/docs
+- label: Github
+  url: https://github.com/FusionAuth
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: fusionauth
+    port: $PORT:9011
+    volumes:
+    - /usr/local/fusionauth/config
+    - /usr/share/opensearch/data
+    extra_ports:
+    - 9200:9200
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

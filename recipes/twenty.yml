@@ -1,0 +1,70 @@
+metadata:
+  name: Twenty CRM
+  version: latest
+  description: Twenty is a modern, open-source CRM platform designed to help businesses
+    manage their customer relationships efficiently.  It offers a user-friendly interface
+    for tracking contacts, organizations, and opportunities while providing powerful
+    customization options.
+  category: crm
+  tags:
+  - CRM
+  - Business Apps
+  - Productivity
+  - Collaboration
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: twentycrm/twenty:v2.5.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://twenty.com/
+- label: Documentation
+  url: https://docs.twenty.com/
+- label: Github
+  url: https://github.com/twentyhq/twenty
+instructions: Twenty CRM is deployed with a server and a background worker service.
+  The SERVER_URL is automatically set to the Easypanel-generated domain. If you configure
+  a custom domain for the Twenty service, also update the SERVER_URL environment variable
+  in the worker service to match.
+install:
+- docker:
+    image: $IMAGE
+    name: twenty
+    port: $PORT:3000
+    volumes:
+    - /app/packages/twenty-server/.local-storage
+    - /app/packages/twenty-server/.local-storage
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Twenty CRM is deployed with a server and a background worker service. The
+    SERVER_URL is automatically set to the Easypanel-generated domain. If you configure
+    a custom domain for the Twenty service, also update the SERVER_URL environment
+    variable in the worker service to match.
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

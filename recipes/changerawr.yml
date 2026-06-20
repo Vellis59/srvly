@@ -1,0 +1,74 @@
+metadata:
+  name: Changerawr
+  version: latest
+  description: Changerawr is a modern, open-source change management platform designed
+    to help organizations track, manage, and implement changes efficiently. Built
+    with Next.js and PostgreSQL, it provides a comprehensive solution for change requests,
+    approval workflows, impact assessment, and rollback procedures. The platform features
+    real-time collaboration, automated notifications, audit trails, and detailed reporting
+    capabilities. Perfect for DevOps teams, IT departments, and organizations that
+    need to maintain control over their change management processes while ensuring
+    transparency and accountability.
+  category: change-management
+  tags:
+  - Change Management
+  - DevOps
+  - Project Management
+  - Workflow
+  - Compliance
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/supernova3339/changerawr:v1.0.6
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://github.com/supernova3339/changerawr
+- label: Github
+  url: https://github.com/supernova3339/changerawr
+- label: Documentation
+  url: https://github.com/supernova3339/changerawr#readme
+instructions: To enable automatic updates for Changerawr, configure the Easypanel
+  Project ID, Service ID, panel URL and API token in Environment Variables of Changerawr
+  App Service. These configurations allow the system to automatically detect and apply
+  new updates. Make sure not to use CloudFlare Zero Trust, that will causes issues.
+install:
+- docker:
+    image: $IMAGE
+    name: changerawr
+    port: $PORT:3000
+    volumes:
+    - /app/data
+    - /app/uploads
+    - /app/public/generated
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: To enable automatic updates for Changerawr, configure the Easypanel Project
+    ID, Service ID, panel URL and API token in Environment Variables of Changerawr
+    App Service. These configurations allow the system to automatically detect and
+    apply new updates. Make sure not to use CloudFlare Zero Trust, that will causes
+    issues.
+services:
+  postgres:
+    type: postgres
+    version: latest

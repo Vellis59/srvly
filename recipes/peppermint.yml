@@ -1,0 +1,58 @@
+metadata:
+  name: Peppermint
+  version: latest
+  description: Peppermint is a cutting-edge, open-source issue management and helpdesk
+    platform designed to rival Jira and Zendesk while remaining cost-effective and
+    highly customizable. Built with the user in mind, Peppermint empowers teams to
+    manage support tickets, customer requests, and projects with efficiency and ease.
+  category: issue-management
+  tags:
+  - Issue Management
+  - Helpdesk
+  - Open-Source
+  - Self-Hosted
+  - Analytics
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: pepperlabs/peppermint:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://peppermint.sh/
+- label: Github
+  url: https://github.com/Peppermint-Lab/peppermint
+instructions: Default credentials are; email; admin@admin.com, password; 1234
+install:
+- docker:
+    image: $IMAGE
+    name: peppermint
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Default credentials are; email; admin@admin.com, password; 1234
+services:
+  postgres:
+    type: postgres
+    version: latest

@@ -1,0 +1,62 @@
+metadata:
+  name: Nitropage
+  version: latest
+  description: Nitropage is an extensible, drag-and-drop website builder based on
+    SolidStart, designed for individualists who want complete control over their web
+    design. It is completely free and open source, offering a flexible and intuitive
+    platform for building visually stunning websites without coding. Nitropage supports
+    modular extensions, making it ideal for both beginners and advanced users who
+    seek a personalized and efficient web development experience.
+  category: website-builder
+  tags:
+  - Website Builder
+  - Drag-and-Drop
+  - Open Source
+  - Visual Editor
+  - SolidStart
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: codeberg.org/nitropage/nitropage:0.70.1-sqlite
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://nitropage.com/
+- label: Documentation
+  url: https://nitropage.com/docs
+- label: Github
+  url: https://codeberg.org/nitropage/nitropage
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: nitropage
+    port: $PORT:80
+    volumes:
+    - /app/.data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

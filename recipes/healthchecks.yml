@@ -1,0 +1,60 @@
+metadata:
+  name: Healthchecks.io
+  version: latest
+  description: Healthchecks.io is an open-source application designed for monitoring
+    cron jobs, periodic tasks, and application endpoints. It provides a lightweight
+    and efficient way to ensure critical processes are running as expected. Healthchecks.io
+    integrates with a wide range of notification methods, allowing users to be alerted
+    when tasks fail to execute within their expected intervals. With its user-friendly
+    interface and robust feature set, Healthchecks.io empowers users to maintain reliable
+    task execution and system monitoring.
+  category: task-monitoring
+  tags:
+  - Task Monitoring
+  - Open-Source
+  - Cron Jobs
+  - System Monitoring
+  - Notifications
+  - Self-Hosted
+  - Alerting
+  - Health Monitoring
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/healthchecks:4.2.20260428
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Website
+  url: https://healthchecks.io
+- label: Github
+  url: https://github.com/healthchecks/healthchecks
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: healthchecks
+    port: $PORT:8000
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

@@ -1,0 +1,59 @@
+metadata:
+  name: Livebook
+  version: latest
+  description: Livebook is a web application for writing interactive and collaborative
+    code notebooks for Elixir. It features an intuitive and interactive workflow for
+    data science and machine learning in Elixir, with support for rich output including
+    charts, maps, tables, and more. Livebook allows you to create, share, and collaborate
+    on notebooks that combine narrative, code, and results in a single document.
+  category: development
+  tags:
+  - Development
+  - Elixir
+  - Notebook
+  - Data Science
+  - Interactive
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/livebook-dev/livebook:0.16.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Documentation
+  url: https://livebook.dev/
+- label: GitHub
+  url: https://github.com/livebook-dev/livebook
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: livebook
+    port: $PORT:8080
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

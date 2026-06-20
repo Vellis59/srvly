@@ -1,0 +1,60 @@
+metadata:
+  name: Gonic
+  version: latest
+  description: Gonic is a music streaming server / subsonic server API implementation,
+    written in Go. It provides a simple and efficient way to stream your music collection
+    through a web interface or compatible clients. Gonic supports various audio formats
+    and offers features like transcoding, cover art, and playlist management.
+  category: media
+  tags:
+  - Media
+  - Music
+  - Streaming
+  - Subsonic
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: sentriz/gonic:4b3721b
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://github.com/sentriz/gonic/wiki
+- label: Github
+  url: https://github.com/sentriz/gonic
+- label: DockerHub
+  url: https://hub.docker.com/r/sentriz/gonic
+instructions: Login credentials are admin/admin
+install:
+- docker:
+    image: $IMAGE
+    name: gonic
+    port: $PORT:80
+    volumes:
+    - /data
+    - /cache
+    - /music
+    - /podcasts
+    - /playlists
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Login credentials are admin/admin

@@ -1,0 +1,66 @@
+metadata:
+  name: Mage-AI
+  version: latest
+  description: Mage-AI is a powerful open-source data pipeline tool designed to simplify
+    and accelerate building, deploying, and managing machine learning workflows. It
+    empowers data engineers and scientists with a unified platform to seamlessly create
+    pipelines for data ingestion, transformation, and model deployment. With Mage-AI's
+    user-friendly interface and robust features, it becomes an essential tool for
+    teams aiming to deliver AI solutions efficiently and effectively.
+  category: data-pipelines
+  tags:
+  - Data Pipelines
+  - Machine Learning
+  - AI
+  - Automation
+  - Data Engineering
+  - Model Deployment
+  - Open-Source
+  - Scalable
+  - Cloud
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: mageai/mageai:0.9.79
+  port:
+    type: integer
+    title: Port HTTP
+    default: 6789
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://docs.mage.ai/introduction/overview
+- label: Documentation
+  url: https://docs.mage.ai/
+- label: Github
+  url: https://github.com/mage-ai/mage-ai
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: mageai
+    port: $PORT:6789
+    volumes:
+    - /home/src/
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

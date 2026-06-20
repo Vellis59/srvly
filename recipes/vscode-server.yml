@@ -1,0 +1,55 @@
+metadata:
+  name: Visual Studio Code Server
+  version: latest
+  description: The LinuxServer.io team presents the docker-code-server, a powerful
+    tool that allows you to run VS Code on a remote server, accessible through your
+    browser. This means you can code on your Chromebook, tablet, and laptop with a
+    consistent development environment. If you're using a Windows or Mac workstation,
+    you can more easily develop for Linux. The app also allows you to leverage large
+    cloud servers to speed up tests, compilations, downloads, and more. It helps preserve
+    battery life when you're on the go, as all intensive computation runs on your
+    server, eliminating the need for running excess instances of Chrome.
+  category: developer-tools
+  tags:
+  - Developer Tools
+  - Code Hosting
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/code-server:4.118.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://github.com/linuxserver/docker-code-server/blob/master/README.md
+- label: Github
+  url: https://github.com/linuxserver/docker-code-server
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: vscode-server
+    port: $PORT:80
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

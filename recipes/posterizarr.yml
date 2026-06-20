@@ -1,0 +1,65 @@
+metadata:
+  name: Posterizarr
+  version: latest
+  description: Posterizarr automates creation and management of textless posters for
+    Plex, Jellyfin, and Emby libraries. This template deploys the official Posterizarr
+    container with persistent paths for config and generated assets.
+  category: media
+  tags:
+  - Media
+  - Posters
+  - Plex
+  - Jellyfin
+  - Emby
+  - Automation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/fscorrupt/posterizarr:2.2.40
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Website
+  url: https://fscorrupt.github.io/posterizarr/
+- label: Documentation
+  url: https://fscorrupt.github.io/posterizarr/installation/
+- label: GitHub
+  url: https://github.com/fscorrupt/posterizarr
+- label: Container registry
+  url: https://github.com/fscorrupt/posterizarr/pkgs/container/posterizarr
+instructions: After deployment, open your domain and complete setup in the web UI.
+  Mounts are already configured for /config, /assets, /assetsbackup, and /manualassets.
+install:
+- docker:
+    image: $IMAGE
+    name: posterizarr
+    port: $PORT:8000
+    volumes:
+    - /config
+    - /config/Logs
+    - /config/temp
+    - /assets
+    - /assetsbackup
+    - /manualassets
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After deployment, open your domain and complete setup in the web UI. Mounts
+    are already configured for /config, /assets, /assetsbackup, and /manualassets.

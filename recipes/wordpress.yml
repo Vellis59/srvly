@@ -1,0 +1,69 @@
+metadata:
+  name: Wordpress
+  version: latest
+  description: WordPress is an open-source platform that empowers you to create a
+    unique online space for your business, interests, or any other purpose. It offers
+    a real-time, intuitive editing experience, allowing you to see exactly how your
+    site will look as you add, edit, and rearrange your content. With flexible design
+    tools and powerful features, you can create any kind of custom site. You can start
+    with a blank canvas or choose from a wide variety of themes and patterns, customizing
+    every detail from color and fonts to layouts and functionality. WordPress also
+    offers over 55,000 plugins to extend your site's capabilities, whether you need
+    to add a store, mailing list, portfolio, social feed, analytics, or anything else.
+    Your content, design, and data always belong to you, and WordPress is committed
+    to keeping your site as stable and secure as possible. Whether you're a global
+    creative agency, a local business, or a personal blogger, WordPress offers endless
+    possibilities for your online presence.
+  category: cms
+  tags:
+  - CMS
+  - Website Builder
+  - Blogging
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: wordpress:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://wordpress.org/
+- label: Documentation
+  url: https://learn.wordpress.org
+- label: Github
+  url: https://github.com/WordPress/WordPress
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: wordpress
+    port: $PORT:80
+    volumes:
+    - /var/www/html
+    - /usr/local/etc/php/conf.d/custom.ini
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

@@ -1,0 +1,69 @@
+metadata:
+  name: Plausible
+  version: latest
+  description: Plausible is a simple, lightweight, and open-source web analytics tool
+    that serves as a privacy-friendly alternative to Google Analytics. It is designed
+    to be intuitive and easy to use, providing essential insights about your website's
+    traffic on a single page, without the need for complex menus or custom reports.
+    The Plausible script is 45 times smaller than Google Analytics, ensuring your
+    site loads faster and contributes to a greener web. It respects user privacy by
+    not using cookies or collecting personal data, and all data processing is carried
+    out anonymously within the EU. Plausible also allows you to track goal conversions,
+    revenue, and campaigns, segment your audience, and analyze referral sources. You
+    can share your stats publicly or privately, invite team members, and even import
+    your historical stats from Google Analytics. It's a powerful tool for understanding
+    your website's performance while respecting user privacy.
+  category: analytics
+  tags:
+  - Analytics
+  - Privacy
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: plausible/analytics:v2.0.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://plausible.io
+- label: Documentation
+  url: https://plausible.io/docs
+- label: Github
+  url: https://github.com/plausible/plausible
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: plausible
+    port: $PORT:80
+    volumes:
+    - /var/lib/clickhouse
+    - /etc/clickhouse-server/users.d/logging.xml
+    - /etc/clickhouse-server/config.d/logging.xml
+    extra_ports:
+    - 8123:8123
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

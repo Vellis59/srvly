@@ -1,0 +1,60 @@
+metadata:
+  name: Maildev
+  version: latest
+  description: Maildev is a simple, self-hosted SMTP server designed for testing and
+    debugging emails in development environments. It captures all outgoing emails
+    and provides a web-based UI to view, inspect, and test them. Maildev supports
+    real-time email updates, allowing developers to see emails as they are sent. It
+    also includes an API for programmatic access to emails and supports multiple inboxes
+    for testing different email scenarios. Maildev is lightweight, easy to set up,
+    and works seamlessly in local development and CI/CD pipelines.
+  category: email
+  tags:
+  - Email
+  - Development
+  - Testing
+  - Debugging
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: maildev/maildev:2.2.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 1025
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Documentation
+  url: https://github.com/maildev/maildev
+- label: Github
+  url: https://github.com/maildev/maildev
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: maildev
+    port: $PORT:1025
+    volumes: []
+    extra_ports:
+    - 1080:1080
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

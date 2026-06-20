@@ -1,0 +1,63 @@
+metadata:
+  name: Headphones
+  version: latest
+  description: Headphones is an open-source application designed to manage and organize
+    your music library with precision and efficiency. It provides a powerful interface
+    for searching, downloading, and managing albums and tracks, ensuring your music
+    collection is always up-to-date. Headphones integrates seamlessly with popular
+    media servers and download clients, offering an automated solution for music enthusiasts.
+    With its focus on flexibility and ease of use, Headphones empowers users to curate
+    their music library effortlessly.
+  category: music-management
+  tags:
+  - Music Management
+  - Open-Source
+  - Automated Downloads
+  - Media Servers
+  - Plex Integration
+  - Emby Integration
+  - Metadata Management
+  - Music Library
+  - Music Automation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: linuxserver/headphones:version-a78f38c1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8181
+links:
+- label: Website
+  url: https://github.com/rembo10/headphones
+- label: Github
+  url: https://github.com/rembo10/headphones
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: headphones
+    port: $PORT:8181
+    volumes:
+    - /config
+    - /downloads
+    - /music
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

@@ -1,0 +1,56 @@
+metadata:
+  name: Medama
+  version: latest
+  description: Medama Analytics is an open-source project dedicated to providing self-hostable,
+    cookie-free website analytics. With a lightweight tracker of less than 1KB, it
+    aims to offer useful analytics while prioritising user privacy.
+  category: website-tracker
+  tags:
+  - Website Tracker
+  - Live Tracking
+  - Website Monitoring
+  - Analytics
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/medama-io/medama:v0.6.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Github
+  url: https://github.com/medama-io/medama
+- label: Documentation
+  url: https://oss.medama.io/introduction
+instructions: Login credentials, username; admin and password; CHANGE_ME_ON_FIRST_LOGIN
+install:
+- docker:
+    image: $IMAGE
+    name: medama
+    port: $PORT:8080
+    volumes:
+    - /app/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Login credentials, username; admin and password; CHANGE_ME_ON_FIRST_LOGIN

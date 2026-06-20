@@ -1,0 +1,62 @@
+metadata:
+  name: FOSSFlow
+  version: latest
+  description: FOSSFlow is an open-source diagramming and flowchart application that
+    enables users to create, edit, and manage technical diagrams, flowcharts, and
+    process visualizations. Built for developers, system architects, and technical
+    teams, FOSSFlow provides an intuitive interface for designing workflows, system
+    architectures, database schemas, and network diagrams. The application supports
+    server-side storage for persistent diagram saving and optional Git backup integration
+    for version control and collaboration. With a lightweight Node.js backend and
+    modern frontend, FOSSFlow offers a self-hosted alternative to cloud-based diagramming
+    tools, giving you complete control over your technical documentation and diagrams.
+    Perfect for teams that need to document systems, design workflows, create technical
+    specifications, and maintain architectural diagrams without relying on external
+    services or sharing sensitive information with third parties.
+  category: diagramming
+  tags:
+  - Diagramming
+  - Flowchart
+  - Documentation
+  - Visualization
+  - Developer Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: stnsmith/fossflow:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Docker Hub
+  url: https://hub.docker.com/r/stnsmith/fossflow
+- label: Github
+  url: https://github.com/stan-smith/FossFLOW
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: fossflow
+    port: $PORT:80
+    volumes:
+    - /data/diagrams
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

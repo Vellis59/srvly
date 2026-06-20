@@ -1,0 +1,71 @@
+metadata:
+  name: NetBird
+  version: latest
+  description: This template deploys a headless NetBird client/peer container that
+    joins an existing NetBird network using a setup key. It does not deploy the NetBird
+    management service, signal relay, or web dashboard. Use it to bootstrap a node
+    on your private mesh for remote access, site-to-site connectivity, or secure service
+    reachability over WireGuard.
+  category: vpn
+  tags:
+  - VPN
+  - WireGuard
+  - Mesh Network
+  - Networking
+  - Security
+  - Remote Access
+  - Peer-to-Peer
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: netbirdio/netbird:0.59.6
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://netbird.io
+- label: Documentation
+  url: https://docs.netbird.io
+- label: GitHub
+  url: https://github.com/netbirdio/netbird
+instructions: This template runs only the NetBird client (peer). Before deploying,
+  create an account at https://netbird.io or run your own NetBird management stack,
+  then generate a reusable setup key. Enter that key in the NB_SETUP_KEY field during
+  deployment. The container will join your existing NetBird network and persist client
+  state in /var/lib/netbird.
+install:
+- docker:
+    image: $IMAGE
+    name: netbird
+    port: $PORT:80
+    volumes:
+    - /var/lib/netbird
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: This template runs only the NetBird client (peer). Before deploying, create
+    an account at https://netbird.io or run your own NetBird management stack, then
+    generate a reusable setup key. Enter that key in the NB_SETUP_KEY field during
+    deployment. The container will join your existing NetBird network and persist
+    client state in /var/lib/netbird.

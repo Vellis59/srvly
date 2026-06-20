@@ -1,0 +1,62 @@
+metadata:
+  name: SeatSurfing
+  version: latest
+  description: SeatSurfing is a comprehensive desk and room booking system that helps
+    organizations manage their workspace efficiently. It provides a user-friendly
+    interface for employees to book desks and meeting rooms, while giving administrators
+    powerful tools to manage spaces, users, and bookings. The system includes features
+    like real-time availability, booking management, and analytics to optimize space
+    utilization.
+  category: workspace-management
+  tags:
+  - Workspace Management
+  - Desk Booking
+  - Room Booking
+  - Space Management
+  - Workplace Analytics
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: seatsurfing/backend:1.28.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://seatsurfing.app/
+- label: Documentation
+  url: https://docs.seatsurfing.app/
+- label: Github
+  url: https://github.com/seatsurfing
+instructions: Login email admin@seatsurfing.local and password 12345678
+install:
+- docker:
+    image: $IMAGE
+    name: seatsurfing
+    port: $PORT:8080
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Login email admin@seatsurfing.local and password 12345678
+services:
+  postgres:
+    type: postgres
+    version: latest

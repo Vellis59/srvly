@@ -1,0 +1,61 @@
+metadata:
+  name: Calibre Web Automated
+  version: latest
+  description: Calibre Web Automated (CWA) is an enhanced version of Calibre Web with
+    automated book processing capabilities. It automatically adds books to your library
+    from an ingest directory, supports Hardcover API integration for enhanced metadata,
+    and provides network share compatibility. CWA processes books according to your
+    configured settings and removes them from the ingest directory after processing,
+    making it perfect for automated eBook management workflows.
+  category: ebook-management
+  tags:
+  - eBook Management
+  - Digital Library
+  - Automation
+  - Self-Hosted
+  - Calibre
+  - Books
+  - Hardcover
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: crocodilestick/calibre-web-automated:V3.1.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8083
+links:
+- label: Docker Hub
+  url: https://hub.docker.com/r/crocodilestick/calibre-web-automated
+- label: Github
+  url: https://github.com/crocodilestick/calibre-web-automated
+instructions: Default login credentials are admin/admin123
+install:
+- docker:
+    image: $IMAGE
+    name: calibre-web-automated
+    port: $PORT:8083
+    volumes:
+    - /config
+    - /cwa-book-ingest
+    - /calibre-library
+    - /config/.config/calibre/plugins
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Default login credentials are admin/admin123

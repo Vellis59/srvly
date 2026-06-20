@@ -1,0 +1,59 @@
+metadata:
+  name: Opera
+  version: latest
+  description: Opera is a multi-platform web browser developed by Opera. This app
+    is based on Chromium, but sets itself apart from other Chromium-based browsers
+    through its unique user interface and additional features. The app can be accessed
+    at http://yourhost:3000/ or https://yourhost:3001/. It provides a true lossless
+    image at a high frame rate to your web browser by changing the Stream Quality
+    preset to 'Lossless'. The app also allows you to specify one or multiple Chromium
+    CLI flags, which will be passed to the application in full. This app is designed
+    to avoid permission issues that can arise between the host OS and the container
+    by allowing you to specify the user PUID and group PGID.
+  category: web-browsers
+  tags:
+  - Web Browsers
+  - Internet
+  - Productivity
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/opera:131.0.5877
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Documentation
+  url: https://docs.linuxserver.io/images/docker-opera
+- label: Github
+  url: https://github.com/linuxserver/docker-opera
+instructions: use abc:abc to login. To access the login interface, add ?login=true
+  to your URL.
+install:
+- docker:
+    image: $IMAGE
+    name: opera
+    port: $PORT:3000
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: use abc:abc to login. To access the login interface, add ?login=true to your
+    URL.

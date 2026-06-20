@@ -1,0 +1,54 @@
+metadata:
+  name: Karakeep
+  version: latest
+  description: Knowledge management system that helps you collect, search, and retrieve
+    information efficiently.
+  category: knowledge-management
+  tags:
+  - Knowledge Management
+  - Search
+  - Web Scraping
+  - Organization
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/karakeep-app/karakeep:0.31.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://karakeep.app
+- label: Documentation
+  url: https://docs.karakeep.app
+- label: Github
+  url: https://github.com/karakeep-app/karakeep
+instructions: Please provide the OpenAI API Key and Sign Up for the user account.
+install:
+- docker:
+    image: $IMAGE
+    name: karakeep
+    port: $PORT:3000
+    volumes:
+    - /data
+    - /meili_data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Please provide the OpenAI API Key and Sign Up for the user account.

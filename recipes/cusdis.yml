@@ -1,0 +1,66 @@
+metadata:
+  name: Cusdis
+  version: latest
+  description: Cusdis is a lightweight, open-source comment system designed with privacy
+    as a priority. It serves as an alternative to Disqus, offering a simple and user-friendly
+    way to integrate a comment system into your existing website. The app is incredibly
+    lightweight, with the JS SDK embedded to your website being only around 5kb. It
+    features built-in i18n and dark-mode for a seamless user experience. Cusdis ensures
+    you stay updated with new comments through email notifications, and allows for
+    quick approval of comments directly from the notification email or webhook. You
+    can also set a webhook URL that triggers when your website receives a new comment,
+    allowing you to integrate Cusdis with your favorite tools such as Telegram. The
+    app offers flexibility with its pricing, providing a free self-hosting option,
+    a free cloud option with limited features, and a Cloud Pro option for unlimited
+    access.
+  category: comments
+  tags:
+  - Comments
+  - Privacy
+  - Open-source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: djyde/cusdis:1.3.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://cusdis.com
+- label: Documentation
+  url: https://cusdis.com/docs
+- label: Github
+  url: https://github.com/djyde/cusdis/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: cusdis
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

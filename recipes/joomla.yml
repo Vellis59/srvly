@@ -1,0 +1,60 @@
+metadata:
+  name: Joomla
+  version: latest
+  description: Joomla is a powerful, open-source content management system (CMS) that
+    allows users to build dynamic websites and applications. It offers a user-friendly
+    interface, extensive customization options through templates and extensions, and
+    robust security features. Joomla is highly scalable and supports multilingual
+    content, making it a versatile choice for businesses, organizations, and personal
+    websites. The application is accessible via your host on standard web ports and
+    is easy to deploy using containers.
+  category: cms
+  tags:
+  - CMS
+  - Website Builder
+  - Open-Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: joomla:6.1.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://docs.joomla.org
+- label: Github
+  url: https://github.com/joomla/joomla-cms
+instructions: Complete the Installation Wizard.
+install:
+- docker:
+    image: $IMAGE
+    name: joomla
+    port: $PORT:80
+    volumes:
+    - /var/www/html
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Complete the Installation Wizard.
+services:
+  mysql:
+    type: mysql
+    version: latest

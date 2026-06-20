@@ -1,0 +1,62 @@
+metadata:
+  name: HyperDX
+  version: latest
+  description: HyperDX is an open-source observability platform that unifies logs,
+    metrics, traces, and session replays in one place. Built on ClickHouse for blazing-fast
+    performance, it allows you to search terabytes of events in seconds without complex
+    syntax. Perfect for debugging production issues, monitoring application performance,
+    and correlating user sessions with backend traces. Recently acquired by ClickHouse
+    to accelerate the future of open-source observability.
+  category: observability
+  tags:
+  - Observability
+  - Monitoring
+  - Logging
+  - Tracing
+  - APM
+  - ClickHouse
+  - OpenTelemetry
+  - Session Replay
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: docker.hyperdx.io/hyperdx/hyperdx-local:2-beta
+  port:
+    type: integer
+    title: Port HTTP
+    default: 4317
+links:
+- label: HyperDX Official Site
+  url: https://www.hyperdx.io/
+- label: Documentation
+  url: https://www.hyperdx.io/docs
+- label: GitHub Repository
+  url: https://github.com/hyperdxio/hyperdx
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: hyperdx
+    port: $PORT:4317
+    volumes: []
+    extra_ports:
+    - 8080:8080
+    - 8123:8123
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

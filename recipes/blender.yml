@@ -1,0 +1,62 @@
+metadata:
+  name: Blender
+  version: latest
+  description: Blender is a comprehensive, free and open-source 3D computer graphics
+    software toolset. It is used for creating animated films, visual effects, art,
+    3D printed models, motion graphics, interactive 3D applications, virtual reality,
+    and computer games. The app is designed to be accessed at your host, providing
+    a desktop GUI for easy interaction. It supports hardware acceleration for an enhanced
+    desktop experience, although GPU rendering is not supported out of the box. The
+    app is compatible with multiple architectures, ensuring it can be used on a variety
+    of systems. Please note that while this app can run on Arm devices, it is recommended
+    not to mount in /dev/dri due to the OpenGL ES version not being high enough to
+    run Blender.
+  category: 3d-graphics
+  tags:
+  - 3D Graphics
+  - Animation
+  - Visual Effects
+  - Art
+  - Motion Graphics
+  - Virtual Reality
+  - Computer Games
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/blender:5.1.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Documentation
+  url: https://docs.linuxserver.io/images/docker-blender
+- label: Github
+  url: https://github.com/linuxserver/docker-blender
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: blender
+    port: $PORT:3000
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

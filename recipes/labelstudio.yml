@@ -1,0 +1,59 @@
+metadata:
+  name: Label Studio
+  version: latest
+  description: Label Studio is an open source data labeling tool. It lets you label
+    data types like audio, text, images, videos, and time series with a simple and
+    straightforward UI and export to various model formats. It can be used to prepare
+    raw data or improve existing training data to get more accurate ML models.
+  category: machine-learning
+  tags:
+  - Machine Learning
+  - Data Annotation
+  - Developer Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: heartexlabs/label-studio:1.23.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://labelstud.io/
+- label: Documentation
+  url: https://labelstud.io/guide/
+- label: Github
+  url: https://github.com/HumanSignal/label-studio/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: labelstudio
+    port: $PORT:80
+    volumes:
+    - /label-studio/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

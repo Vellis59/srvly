@@ -1,0 +1,64 @@
+metadata:
+  name: Maybe Finance
+  version: latest
+  description: Maybe Finance is a modern, self-hosted finance management tool designed
+    for tracking personal or business finances efficiently. It provides a clean and
+    user-friendly interface, supports integrations for extended functionality, and
+    offers detailed analytics for insights into your financial data. With Maybe Finance,
+    you can take control of your finances, track expenses, and make informed decisions.
+  category: finance-management
+  tags:
+  - Finance Management
+  - Self-Hosted
+  - Analytics
+  - Budgeting
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/maybe-finance/maybe:sha-77b5469832758d1cbee1a940f3012a1ae1c74cd3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: GitHub
+  url: https://github.com/maybe-finance/maybe
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: maybe-finance
+    port: $PORT:80
+    volumes:
+    - /rails/storage
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

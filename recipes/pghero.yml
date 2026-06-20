@@ -1,0 +1,61 @@
+metadata:
+  name: PgHero
+  version: latest
+  description: PgHero is a powerful performance dashboard for PostgreSQL databases
+    that provides real-time insights into query performance, slow queries, index usage,
+    and database health metrics. It helps database administrators and developers optimize
+    their PostgreSQL databases by identifying performance bottlenecks, unused indexes,
+    and query patterns. The dashboard features an intuitive web interface with detailed
+    analytics and recommendations for database optimization.
+  category: postgresql
+  tags:
+  - PostgreSQL
+  - Database
+  - Monitoring
+  - Performance
+  - Analytics
+  - Dashboard
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ankane/pghero:v3.8.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: GitHub
+  url: https://github.com/ankane/pghero
+- label: Documentation
+  url: https://github.com/ankane/pghero#readme
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: pghero
+    port: $PORT:8080
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

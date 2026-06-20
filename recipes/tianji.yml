@@ -1,0 +1,56 @@
+metadata:
+  name: Tianji
+  version: latest
+  description: All-in-One Insight Hub. Insight into everything, Website Analytics
+    + Uptime Monitor + Server Status. not only another GA alternatives
+  category: website-monitor
+  tags:
+  - Website Monitor
+  - Analytics
+  - Server Monitor
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: moonrailgun/tianji:1.31.24
+  port:
+    type: integer
+    title: Port HTTP
+    default: 12345
+links:
+- label: Website
+  url: https://tianji.msgbyte.com/
+- label: Documentation
+  url: https://tianji.msgbyte.com/docs/intro
+- label: Github
+  url: https://github.com/msgbyte/tianji
+instructions: Default login is "admin" / "admin".
+install:
+- docker:
+    image: $IMAGE
+    name: tianji
+    port: $PORT:12345
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Default login is "admin" / "admin".
+services:
+  postgres:
+    type: postgres
+    version: latest

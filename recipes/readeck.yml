@@ -1,0 +1,58 @@
+metadata:
+  name: Readeck
+  version: latest
+  description: Readeck is a self-hosted read-it-later service that allows you to save
+    articles, web pages, and other content for later reading. It provides a clean
+    and distraction-free reading experience with features for organizing and managing
+    your saved content.
+  category: reading
+  tags:
+  - Reading
+  - Bookmarking
+  - Self-Hosted
+  - Articles
+  - Content Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: codeberg.org/readeck/readeck:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Codeberg
+  url: https://codeberg.org/readeck/readeck
+- label: Website
+  url: https://readeck.org
+- label: Documentation
+  url: https://readeck.org/en/docs/
+instructions: After installation, access the web interface through the provided domain
+  to start saving and organizing your reading list.
+install:
+- docker:
+    image: $IMAGE
+    name: readeck
+    port: $PORT:8000
+    volumes:
+    - /readeck
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After installation, access the web interface through the provided domain
+    to start saving and organizing your reading list.

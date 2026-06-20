@@ -1,0 +1,56 @@
+metadata:
+  name: Github Desktop
+  version: latest
+  description: Github Desktop is an open-source, Electron-based application that simplifies
+    the way you interact with GitHub. Written in TypeScript and using React, this
+    app provides a user-friendly interface for managing your GitHub repositories.
+    It allows you to access your GitHub account, manage your repositories, make changes,
+    and track updates, all from the convenience of your desktop. The app is accessible
+    via http://yourhost:3000/ or https://yourhost:3001/. It supports multiple architectures
+    and can be easily deployed using Docker. Please note that this app requires specific
+    environment variables and run configurations for optimal functionality.
+  category: developer-tools
+  tags:
+  - Developer Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/github-desktop:3.4.13
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Documentation
+  url: https://docs.linuxserver.io/images/docker-github-desktop
+- label: Github
+  url: https://github.com/desktop/desktop
+instructions: use abc:abc to login. To access the login interface, add ?login=true
+  to your URL.
+install:
+- docker:
+    image: $IMAGE
+    name: github-desktop
+    port: $PORT:3000
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: use abc:abc to login. To access the login interface, add ?login=true to your
+    URL.

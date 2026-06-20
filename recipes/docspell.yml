@@ -1,0 +1,63 @@
+metadata:
+  name: Docspell
+  version: latest
+  description: Docspell is a personal document management system designed to archive
+    and organize your digital documents. It helps you scan, organize, search, and
+    retrieve your documents with ease. Docspell automatically processes documents,
+    extracts text via OCR, and makes your documents searchable through full-text search
+    powered by Solr. The system consists of multiple components a REST server for
+    the web interface, a job executor (joex) for background processing, a directory
+    consumer for automatic document ingestion, and Solr for powerful search capabilities.
+    Docspell helps you categorize documents, add metadata, and efficiently manage
+    your paperwork in a secure, self-hosted environment.
+  category: document-management
+  tags:
+  - Document Management
+  - OCR
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/docspell/restserver:v0.43
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://docspell.org/docs/
+- label: Github
+  url: https://github.com/eikek/docspell
+instructions: The initial setup requires creating a user account.
+install:
+- docker:
+    image: $IMAGE
+    name: docspell
+    port: $PORT:80
+    volumes:
+    - /opt/docs
+    extra_ports:
+    - 7880:7880
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: The initial setup requires creating a user account.
+services:
+  postgres:
+    type: postgres
+    version: latest

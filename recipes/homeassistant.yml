@@ -1,0 +1,57 @@
+metadata:
+  name: Home Assistant
+  version: latest
+  description: Home Assistant is an open-source home automation app that prioritizes
+    local control and privacy. It allows you to manage and automate a wide range of
+    devices and services in your home, from electricity grids and solar panels to
+    voice-controlled devices. With its advanced configuration options, you can customize
+    your home automation to suit your needs. It also offers features like multi-factor
+    authentication for added security. Home Assistant is perfect to run on a Raspberry
+    Pi or a local server, providing a comprehensive solution for your home automation
+    needs.
+  category: home-automation
+  tags:
+  - Home Automation
+  - Open Source
+  - Privacy
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/homeassistant:2026.4.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8123
+links:
+- label: Documentation
+  url: https://www.home-assistant.io/docs/
+- label: Github
+  url: https://github.com/home-assistant
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: homeassistant
+    port: $PORT:8123
+    volumes:
+    - /config
+    - /config/configuration.yaml
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

@@ -1,0 +1,64 @@
+metadata:
+  name: Botpress
+  version: latest
+  description: Botpress is a revolutionary platform that allows you to build next-generation
+    chatbots powered by OpenAI. It offers an intuitive visual flow editor to bring
+    your users’ conversations to life. With Botpress, you can create chatbots that
+    are always on brand, thanks to ChatGPT’s copywriting abilities. The platform also
+    provides a range of GPT-first tools and features such as dynamic knowledge ingestion,
+    sentiment analysis, automatic self-improvement, data enhancements, and AI recommendations.
+    Botpress supports 100+ languages, enabling you to launch your chatbot globally.
+    It also offers one-click deployment across various channels. With Botpress, building
+    human-like chatbots has never been this easy.
+  category: chat
+  tags:
+  - Chat
+  - AI
+  - Automation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: botpress/server:12.31.10
+  port:
+    type: integer
+    title: Port HTTP
+    default: 81
+links:
+- label: Website
+  url: https://botpress.com
+- label: Documentation
+  url: https://botpress.com/docs
+- label: Github
+  url: https://github.com/botpress/botpress
+instructions: Botpress needs at least 10 GB of RAM to run!
+install:
+- docker:
+    image: $IMAGE
+    name: botpress
+    port: $PORT:81
+    volumes:
+    - /botpress/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Botpress needs at least 10 GB of RAM to run!
+services:
+  postgres:
+    type: postgres
+    version: latest

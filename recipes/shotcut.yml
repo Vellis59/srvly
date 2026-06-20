@@ -1,0 +1,58 @@
+metadata:
+  name: Shotcut
+  version: latest
+  description: Shotcut is a free, open-source, cross-platform video editor that enables
+    users to create and edit professional-quality videos. Written in C++, it supports
+    a wide range of video formats and codecs thanks to FFmpeg integration. Shotcut
+    provides powerful features such as multi-format timeline editing, 4K resolution
+    support, and advanced video effects and filters. The app offers intuitive drag-and-drop
+    functionality, customizable UI, and support for hardware acceleration. It also
+    includes audio editing tools, frame-accurate seeking, and video compositing capabilities.
+    Shotcut is designed to be user-friendly while offering advanced tools for video
+    enthusiasts and professionals alike. Additional features include support for network
+    stream playback, webcam capture, and external monitoring.
+  category: video-editing
+  tags:
+  - Video Editing
+  - Media
+  - Productivity
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/shotcut:26.4.30
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://www.shotcut.org/
+- label: Github
+  url: https://github.com/mltframework/shotcut
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: shotcut
+    port: $PORT:3000
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

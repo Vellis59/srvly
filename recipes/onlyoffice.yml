@@ -1,0 +1,59 @@
+metadata:
+  name: OnlyOffice
+  version: latest
+  description: OnlyOffice is a self-hosted office suite that provides powerful document,
+    spreadsheet, and presentation editing capabilities. It offers full compatibility
+    with Microsoft Office formats and allows real-time document collaboration. Designed
+    for businesses, teams, and individuals, OnlyOffice ensures secure, private, and
+    efficient document management. It includes integration with various cloud storage
+    services, supports plugins for extended functionality, and provides a modern web-based
+    interface. OnlyOffice can be deployed on-premise or in the cloud and is ideal
+    for organizations that need control over their document workflow. Additional features
+    include a built-in document management system, mail integration, calendar, CRM
+    tools, and a powerful API for automation.
+  category: office-suite
+  tags:
+  - Office Suite
+  - Productivity
+  - Collaboration
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: onlyoffice/documentserver:9.3.1.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://helpcenter.onlyoffice.com/
+- label: Github
+  url: https://github.com/ONLYOFFICE
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: onlyoffice
+    port: $PORT:80
+    volumes:
+    - /var/log/onlyoffice
+    - /var/www/onlyoffice/Data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

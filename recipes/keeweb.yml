@@ -1,0 +1,57 @@
+metadata:
+  name: KeeWeb
+  version: latest
+  description: KeeWeb is a modern, fast, and self-hosted password manager designed
+    for individuals and teams. It provides a sleek, responsive user interface for
+    managing and securing your passwords efficiently. KeeWeb supports importing and
+    syncing password databases from various sources such as Dropbox, OneDrive, or
+    local storage. It offers seamless offline access, powerful search capabilities,
+    and advanced encryption to protect your sensitive data. KeeWeb ensures a consistent
+    experience across desktop and web applications, with customization options to
+    suit your preferences.
+  category: security
+  tags:
+  - Security
+  - Password Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/keeweb/keeweb:1.19.0-amd64
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://keeweb.info/
+- label: Documentation
+  url: https://github.com/keeweb/keeweb/wiki
+- label: Github
+  url: https://github.com/keeweb/keeweb
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: keeweb
+    port: $PORT:80
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

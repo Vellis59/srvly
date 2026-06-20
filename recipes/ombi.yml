@@ -1,0 +1,54 @@
+metadata:
+  name: Ombi
+  version: latest
+  description: Ombi allows you to host your own Plex Request and user management system.
+    If you are sharing your Plex server with other users, allow them to request new
+    content using an easy to manage interface! Manage all your requests for Movies
+    and TV with ease, leave notes for the user and get notification when a user requests
+    something. Allow your users to post issues against their requests so you know
+    there is a problem with the audio etc. Even automatically send them weekly newsletters
+    of new content that has been added to your Plex server!
+  category: self-hosted
+  tags: []
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: linuxserver/ombi:4.53.5
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3579
+links:
+- label: Website
+  url: https://ombi.io/
+- label: Documentation
+  url: https://docs.linuxserver.io/images/docker-ombi/
+- label: Github
+  url: https://github.com/linuxserver/docker-ombi
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: ombi
+    port: $PORT:3579
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

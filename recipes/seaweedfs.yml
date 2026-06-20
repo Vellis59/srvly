@@ -1,0 +1,69 @@
+metadata:
+  name: SeaweedFS
+  version: latest
+  description: SeaweedFS is a fast, simple, and highly scalable distributed file system
+    for storing and serving billions of files. Starting as an object store with O(1)
+    disk seek performance, it has grown into a full-featured storage platform supporting
+    S3 API, WebDAV, FUSE mount, HDFS, and Hadoop integration. The architecture separates
+    concerns into a master server for volume management, a volume server for blob
+    storage, a filer for directory/file abstraction, an S3 gateway for S3 compatibility,
+    and a WebDAV server for mounted drive access. Features include erasure coding,
+    cloud tiering, cross-datacenter replication, AES-256-GCM encryption, automatic
+    compaction, file TTL, and a built-in admin UI. Licensed under Apache 2.0 with
+    30k+ GitHub stars.
+  category: object-storage
+  tags:
+  - Object Storage
+  - Distributed Storage
+  - S3
+  - WebDAV
+  - Self-Hosted
+  - File System
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: chrislusf/seaweedfs:4.23
+  port:
+    type: integer
+    title: Port HTTP
+    default: 7333
+links:
+- label: GitHub
+  url: https://github.com/seaweedfs/seaweedfs
+- label: Documentation
+  url: https://github.com/seaweedfs/seaweedfs/wiki
+- label: Website
+  url: https://seaweedfs.com
+instructions: Open the admin UI.
+install:
+- docker:
+    image: $IMAGE
+    name: seaweedfs
+    port: $PORT:7333
+    volumes:
+    - /data
+    - /data
+    - /data
+    extra_ports:
+    - 8333:8333
+    - 8888:8888
+    - 9333:9333
+    - 23646:23646
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Open the admin UI.

@@ -1,0 +1,64 @@
+metadata:
+  name: Cryptpad
+  version: latest
+  description: CryptPad is an open-source collaborative office suite that offers end-to-end
+    encryption, ensuring your data remains private and secure. It provides a full
+    suite of applications, allowing you to work on various projects in real-time with
+    your colleagues or friends. Whether you're planning a camping trip or setting
+    up client briefs, CryptPad makes it easy to share files and collaborate without
+    the need for account creation or app downloads. It's more than just a document
+    editor; it's a secure platform for all your collaborative needs.
+  category: collaboration
+  tags:
+  - Collaboration
+  - Privacy
+  - Office Suite
+  - Encryption
+  - Open-source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: promasu/cryptpad:v5.2.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://cryptpad.org
+- label: Docs
+  url: https://docs.cryptpad.org
+- label: Github
+  url: https://github.com/cryptpad
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: cryptpad
+    port: $PORT:80
+    volumes:
+    - /cryptpad/blob
+    - /cryptpad/block
+    - /cryptpad/customize
+    - /cryptpad/data
+    - /cryptpad/datastore
+    - /cryptpad/config/config.js
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

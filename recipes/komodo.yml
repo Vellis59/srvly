@@ -1,0 +1,62 @@
+metadata:
+  name: Komodo
+  version: latest
+  description: Komodo is a comprehensive server management platform that provides
+    monitoring and control capabilities for Docker containers and system processes.
+    It offers a unified dashboard to manage your infrastructure, with features including
+    container management, process monitoring, resource tracking, and system metrics
+    visualization.
+  category: server-management
+  tags:
+  - Server Management
+  - Docker
+  - Monitoring
+  - Automation
+  - MongoDB
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/moghtech/komodo-core:2.2.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 9120
+links:
+- label: Website
+  url: https://komo.do
+- label: GitHub
+  url: https://github.com/moghtech/komodo
+- label: Documentation
+  url: https://komo.do/docs/intro
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: komodo
+    port: $PORT:9120
+    volumes:
+    - /backups
+    - /config/keys
+    - /var/run/docker.sock
+    - /proc
+    - /etc/komodo
+    - /config/keys
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

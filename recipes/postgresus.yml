@@ -1,0 +1,67 @@
+metadata:
+  name: PostgresUS
+  version: latest
+  description: PostgresUS is a self-hosted PostgreSQL management and administration
+    tool that provides a web-based interface for managing PostgreSQL databases. The
+    application offers a user-friendly dashboard for database operations, query execution,
+    schema management, and database administration tasks. With its intuitive interface,
+    PostgresUS makes it easy to interact with PostgreSQL databases without requiring
+    command-line tools or complex database management software. The application supports
+    multiple database connections, query building, data visualization, and common
+    database administration operations. Perfect for database administrators who need
+    a simple web interface for PostgreSQL management, developers looking for a lightweight
+    database tool, teams requiring a self-hosted alternative to cloud database management
+    platforms, or anyone who wants a convenient way to manage PostgreSQL databases
+    through a browser.
+  category: database
+  tags:
+  - Database
+  - PostgreSQL
+  - Database Management
+  - Self-Hosted
+  - Admin Tool
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/rostislavdugin/charts/postgresus:2.15.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 4005
+links:
+- label: Docker Hub
+  url: https://hub.docker.com/r/rostislavdugin/postgresus
+- label: GitHub
+  url: https://github.com/RostislavDugin/postgresus
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: postgresus
+    port: $PORT:4005
+    volumes:
+    - /postgresus-data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

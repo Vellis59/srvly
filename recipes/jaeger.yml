@@ -1,0 +1,62 @@
+metadata:
+  name: Jaeger
+  version: latest
+  description: Jaeger is an end-to-end distributed tracing system used for monitoring
+    and troubleshooting microservices-based architectures. It helps developers track
+    requests across complex systems, visualize latencies, and diagnose performance
+    issues. Jaeger supports multiple storage backends and provides powerful querying
+    and visualization capabilities. It is designed to be scalable and production-ready,
+    making it a valuable tool for debugging and optimizing distributed applications.
+  category: observability
+  tags:
+  - Observability
+  - Monitoring
+  - Distributed Tracing
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: jaegertracing/all-in-one:1.76.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5775
+links:
+- label: Website
+  url: https://www.jaegertracing.io
+- label: Documentation
+  url: https://www.jaegertracing.io/docs/latest
+- label: Github
+  url: https://github.com/jaegertracing/jaeger
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: jaeger
+    port: $PORT:5775
+    volumes:
+    - /tmp
+    extra_ports:
+    - 5778:5778
+    - 6831:6831
+    - 6832:6832
+    - 9411:9411
+    - 14268:14268
+    - 16686:16686
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

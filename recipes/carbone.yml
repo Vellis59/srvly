@@ -1,0 +1,56 @@
+metadata:
+  name: Carbone
+  version: latest
+  description: Carbone is a high-performance, self-hosted document generation engine.
+    It allows you to generate reports, invoices, and documents in various formats
+    (e.g., PDF, DOCX, XLSX) using JSON data and template-based rendering. Carbone
+    is designed for scalability and speed, making it ideal for automation, bulk document
+    generation, and seamless integration into various systems and workflows. It supports
+    custom templates and advanced features like charts, sub-reports, and conditional
+    formatting to meet a wide range of business needs.
+  category: document-generation
+  tags:
+  - Document Generation
+  - Automation
+  - Reporting
+  - Productivity
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: carbone/carbone-ee:full-5.4.5
+  port:
+    type: integer
+    title: Port HTTP
+    default: 4000
+links:
+- label: Documentation
+  url: https://carbone.io/documentation/design/overview/getting-started.html
+- label: Github
+  url: https://github.com/carboneio/carbone
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: carbone
+    port: $PORT:4000
+    volumes:
+    - /app/template
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

@@ -1,0 +1,50 @@
+metadata:
+  name: Dify
+  version: latest
+  description: Dify is an open-source platform designed to simplify the development
+    and operation of AI applications using large language models (LLMs). It provides
+    features like visual prompt orchestration, RAG pipeline, agent capabilities, model
+    management, and LLMOps for efficient monitoring and analysis.
+  category: self-hosted
+  tags: []
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ''
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://dify.ai
+- label: Documentation
+  url: https://docs.dify.ai
+- label: Github
+  url: https://github.com/langgenius/dify
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: dify
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

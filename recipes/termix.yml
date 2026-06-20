@@ -1,0 +1,59 @@
+metadata:
+  name: Termix
+  version: latest
+  description: Termix is a lightweight, web-based terminal emulator and SSH client
+    that allows you to access and manage remote servers directly from your browser.
+    It provides a modern, intuitive interface for executing commands, managing files,
+    and administering systems without needing a traditional terminal application.
+    Termix features session persistence, multiple connection management, customizable
+    themes, and secure SSH connections. The web interface is responsive and works
+    seamlessly across desktop and mobile devices, making it perfect for system administrators
+    who need remote access on the go. All connection data is stored locally, ensuring
+    your credentials and sessions remain private and secure.
+  category: terminal
+  tags:
+  - Terminal
+  - SSH
+  - Remote Access
+  - Web Terminal
+  - System Admin
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/lukegus/termix:release-1.11.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Github
+  url: https://github.com/lukegus/termix
+- label: Documentation
+  url: https://docs.termix.site
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: termix
+    port: $PORT:8080
+    volumes:
+    - /app/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

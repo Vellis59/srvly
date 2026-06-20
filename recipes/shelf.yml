@@ -1,0 +1,61 @@
+metadata:
+  name: Shelf
+  version: latest
+  description: Shelf.nu is an open-source asset management platform designed to help
+    organizations track and manage their physical assets efficiently. It provides
+    features for asset tracking, inventory management, check-in/check-out functionality,
+    and reporting. The platform includes location tracking with maps, user management,
+    and email notifications for asset-related activities.
+  category: asset-management
+  tags:
+  - Asset Management
+  - Inventory
+  - Tracking
+  - Business
+  - PostgreSQL
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/shelf-nu/shelf.nu:main-e54458e
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Documentation
+  url: https://docs.shelf.nu/
+- label: GitHub
+  url: https://github.com/shelf-nu/shelf.nu
+- label: Website
+  url: https://www.shelf.nu
+instructions: Make sure to setup your Supabase instance before deploying this template.
+install:
+- docker:
+    image: $IMAGE
+    name: shelf
+    port: $PORT:8080
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Make sure to setup your Supabase instance before deploying this template.
+services:
+  postgres:
+    type: postgres
+    version: latest

@@ -1,0 +1,60 @@
+metadata:
+  name: KitchenOwl
+  version: latest
+  description: KitchenOwl is a self-hosted grocery list and recipe manager designed
+    to help you organize your kitchen and meal planning. It provides a clean web interface
+    for managing shopping lists, recipes, and inventory. Perfect for families and
+    individuals who want to streamline their grocery shopping and meal preparation.
+  category: grocery-lists
+  tags:
+  - Grocery Lists
+  - Recipe Management
+  - Meal Planning
+  - Family
+  - Web Interface
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: tombursch/kitchenowl-web:v0.7.8
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://kitchenowl.org/
+- label: GitHub
+  url: https://github.com/Tombursch/kitchenowl
+- label: Documentation
+  url: https://docs.kitchenowl.org/latest/
+- label: DockerHub Frontend
+  url: https://hub.docker.com/r/tombursch/kitchenowl-web
+- label: DockerHub Backend
+  url: https://hub.docker.com/r/tombursch/kitchenowl-backend
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: kitchenowl
+    port: $PORT:80
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

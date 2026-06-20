@@ -1,0 +1,58 @@
+metadata:
+  name: Redlib
+  version: latest
+  description: Redlib is a privacy-focused and lightweight alternative frontend for
+    Reddit, designed to enhance user experience by removing ads, tracking, and unnecessary
+    JavaScript. Built using Rust, Redlib delivers a fast and efficient browsing experience
+    while ensuring user privacy by proxying all requests, including media, through
+    its server. It provides an ad-free, clutter-free interface inspired by Reddit's
+    modern design, making it an ideal choice for users seeking a secure and streamlined
+    way to browse Reddit content.
+  category: privacy
+  tags:
+  - Privacy
+  - Reddit
+  - Alternative Frontend
+  - Lightweight
+  - Open Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: quay.io/redlib/redlib:sha-ba98178
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://github.com/redlib-org/redlib
+- label: Documentation
+  url: https://github.com/redlib-org/redlib#readme
+- label: Public Instances
+  url: https://github.com/redlib-org/redlib-instances
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: redlib
+    port: $PORT:8080
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

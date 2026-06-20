@@ -1,0 +1,62 @@
+metadata:
+  name: Pinchflat
+  version: latest
+  description: Pinchflat is a modern, self-hosted media management and download application
+    designed for organizing and managing your digital media collection. It provides
+    an intuitive web interface for downloading, organizing, and accessing your media
+    files with support for various formats and sources. Pinchflat offers powerful
+    features for media discovery, automated downloads, and collection management in
+    a clean, user-friendly environment.
+  category: media-management
+  tags:
+  - Media Management
+  - Download Manager
+  - Self-Hosted
+  - Web Interface
+  - File Organization
+  - Media Collection
+  - Automation
+  - Search
+  - Multi-Format
+  - API
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/kieraneglin/pinchflat:v2025.6.6
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8945
+links:
+- label: GitHub
+  url: https://github.com/kieraneglin/pinchflat
+- label: Docker Hub
+  url: https://hub.docker.com/r/kieraneglin/pinchflat
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: pinchflat
+    port: $PORT:8945
+    volumes:
+    - /config
+    - /downloads
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

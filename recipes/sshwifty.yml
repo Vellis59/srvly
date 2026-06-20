@@ -1,0 +1,54 @@
+metadata:
+  name: Sshwifty
+  version: latest
+  description: Sshwifty is a web-based SSH and Telnet client that allows you to access
+    these services directly from any standard web browser. It can be deployed on your
+    computer or server, providing a convenient and accessible interface for SSH and
+    Telnet connections. Sshwifty is designed to be highly configurable, allowing you
+    to set up multiple servers, define presets for known remotes, and even restrict
+    connections to preset remotes only. It also supports secure connections through
+    TLS, and can be configured to connect through a Socks5 proxy. Whether you need
+    to connect to a remote server or a local machine, Sshwifty provides a flexible
+    and user-friendly solution.
+  category: developer-tools
+  tags:
+  - Developer Tools
+  - SSH
+  - Telnet
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: niruix/sshwifty:0.4.5-beta-release
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8182
+links:
+- label: Github
+  url: https://github.com/nirui/sshwifty
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: sshwifty
+    port: $PORT:8182
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

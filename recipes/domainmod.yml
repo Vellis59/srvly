@@ -1,0 +1,65 @@
+metadata:
+  name: DomainMod
+  version: latest
+  description: DomainMOD is a comprehensive open-source application designed to help
+    you manage your domains and other internet assets in one central location. With
+    DomainMOD, you can keep track of your domains, SSL certificates, registrar and
+    SSL accounts, web hosting, DNS servers, IP addresses, and more. The application
+    also offers a Bulk Domain Updater, allowing you to modify multiple domains at
+    once, saving you time and effort. DomainMOD also includes a Data Warehouse feature,
+    which lets you import data from your WHM web servers for analysis and reporting.
+    The app is mobile-friendly, ensuring you can access your data anytime, anywhere.
+    Furthermore, DomainMOD respects your privacy, ensuring only you have access to
+    your data.
+  category: domain-management
+  tags:
+  - Domain Management
+  - Web Hosting
+  - Data Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: domainmod/domainmod:4.23
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://domainmod.org/
+- label: Documentation
+  url: https://domainmod.org/docs/
+- label: Github
+  url: https://github.com/domainmod/domainmod/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: domainmod
+    port: $PORT:80
+    volumes:
+    - /var/www/html
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

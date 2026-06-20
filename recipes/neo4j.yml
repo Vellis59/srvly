@@ -1,0 +1,64 @@
+metadata:
+  name: Neo4j
+  version: latest
+  description: Neo4j is a native graph database that brings data relationships to
+    the foreground. It's designed to store, manage, and analyze connected data efficiently.
+    Neo4j is particularly well-suited for applications that need to model complex
+    relationships between entities, such as social networks, recommendation engines,
+    fraud detection, and knowledge graphs.
+  category: database
+  tags:
+  - Database
+  - Graph Database
+  - NoSQL
+  - Analytics
+  - Knowledge Graph
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: neo4j:5.26.19
+  port:
+    type: integer
+    title: Port HTTP
+    default: 7474
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://neo4j.com/
+- label: Documentation
+  url: https://neo4j.com/docs/
+- label: Docker Hub
+  url: https://hub.docker.com/_/neo4j
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: neo4j
+    port: $PORT:7474
+    volumes:
+    - /logs
+    - /config
+    - /data
+    - /plugins
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

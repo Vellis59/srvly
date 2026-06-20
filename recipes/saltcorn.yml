@@ -1,0 +1,59 @@
+metadata:
+  name: Saltcorn
+  version: latest
+  description: Saltcorn is an extensible open-source no-code database application
+    builder. It allows you to build web applications based on relational data with
+    flexible views, data types, and layouts. With Saltcorn, you can create dynamic
+    applications without writing code, making it a powerful tool for both developers
+    and non-developers alike.
+  category: no-code
+  tags:
+  - No-Code
+  - Self-Hosted
+  - Database Management
+  - Web Applications
+  - Multi-Tenant
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: saltcorn/saltcorn:1.5.6
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Documentation
+  url: https://saltcorn.com/
+- label: Github
+  url: https://github.com/saltcorn/saltcorn
+instructions: Delete the migration container, once that is done with migrations.
+install:
+- docker:
+    image: $IMAGE
+    name: saltcorn
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Delete the migration container, once that is done with migrations.
+services:
+  postgres:
+    type: postgres
+    version: latest

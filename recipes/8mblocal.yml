@@ -1,0 +1,58 @@
+metadata:
+  name: 8MB Local
+  version: latest
+  description: 8MB Local is a self-hosted file processing and conversion application
+    that provides tools for handling files and generating outputs. Built with modern
+    architecture, 8MB Local offers a web-based interface accessible on port 8001 for
+    processing files and managing uploads and outputs. The system stores uploaded
+    files and generated outputs in separate persistent volumes, ensuring your data
+    is preserved across container restarts. Perfect for individuals and organizations
+    looking for a self-hosted solution for file processing and management.
+  category: file-processing
+  tags:
+  - File Processing
+  - Self-Hosted
+  - File Management
+  - Conversion
+  - Docker
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: jms1717/8mblocal:v137
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8001
+links:
+- label: Website
+  url: https://8mb.campuscal.tech/
+- label: GitHub
+  url: https://github.com/JMS1717/8mb.local
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: 8mblocal
+    port: $PORT:8001
+    volumes:
+    - /app/uploads
+    - /app/outputs
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

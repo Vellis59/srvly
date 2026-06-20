@@ -1,0 +1,57 @@
+metadata:
+  name: WBO
+  version: latest
+  description: WBO (Whiteboard Online) is an open-source, self-hosted, collaborative
+    whiteboard tool that allows users to draw, brainstorm, and share ideas in real-time.
+    It provides a flexible and accessible platform for teams, classrooms, or personal
+    use, enabling simultaneous collaboration on a shared digital canvas. WBO offers
+    tools for free-hand drawing, adding shapes, text, and images, making it ideal
+    for team brainstorming sessions, remote meetings, and educational activities.
+    With a clean and intuitive interface, WBO enhances remote collaboration and facilitates
+    interactive learning.
+  category: collaboration
+  tags:
+  - Collaboration
+  - Whiteboard
+  - Self-hosted
+  - Open-source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lovasoa/wbo:v1.22.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://wbo.ophir.dev
+- label: GitHub
+  url: https://github.com/lovasoa/whitebophir
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: wbo
+    port: $PORT:80
+    volumes:
+    - /opt/app/server-data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

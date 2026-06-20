@@ -1,0 +1,78 @@
+metadata:
+  name: Paaster
+  version: latest
+  description: Paaster is a secure and user-friendly pastebin application with end-to-end
+    encryption. Content is encrypted locally in your browser—the key never reaches
+    the server. Features paste history, delete-after-view, file drag & drop, and API.
+    Supports MinIO, S3, R2, and other S3-compatible storage.
+  category: pastebin
+  tags:
+  - Pastebin
+  - Privacy
+  - Encryption
+  - Open Source
+  - Self-hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: wardpearce/paaster:3.2.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: GitHub
+  url: https://github.com/WardPearce/paaster
+- label: Website
+  url: https://paaster.com
+- label: Documentation
+  url: https://github.com/WardPearce/paaster/blob/main/README.md
+instructions: 'After deployment, access Paaster via the main domain. Pastes are E2EE
+  by
+
+  default. Uses built-in MinIO for storage. If using MinIO, create the bucket
+
+  "paaster" in the MinIO console (minio-$(domain):9001) or via mc CLI:
+
+  mc mb minio_instance/paaster; mc anonymous set none minio_instance/paaster.
+
+  For external S3/R2, set S3 env vars on the Paaster service.
+
+  '
+install:
+- docker:
+    image: $IMAGE
+    name: paaster
+    port: $PORT:3000
+    volumes:
+    - /data
+    extra_ports:
+    - 9001:9001
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: 'After deployment, access Paaster via the main domain. Pastes are E2EE by
+
+    default. Uses built-in MinIO for storage. If using MinIO, create the bucket
+
+    "paaster" in the MinIO console (minio-$(domain):9001) or via mc CLI:
+
+    mc mb minio_instance/paaster; mc anonymous set none minio_instance/paaster.
+
+    For external S3/R2, set S3 env vars on the Paaster service.
+
+    '

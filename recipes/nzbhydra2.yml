@@ -1,0 +1,61 @@
+metadata:
+  name: Nzbhydra2
+  version: latest
+  description: NZBHydra2 is an advanced meta search application designed to unify
+    and manage searches across multiple Usenet and torrent indexers. It acts as a
+    single access point for all your NZB and torrent needs, aggregating search results
+    from various indexers to save time and improve efficiency. NZBHydra2 offers powerful
+    filtering, duplicate management, and easy integration with automation tools like
+    Sonarr, Radarr, and Lidarr. It provides a web-based interface for seamless configuration
+    and search management, making it a must-have for Usenet and torrent enthusiasts.
+  category: nzb
+  tags:
+  - NZB
+  - Usenet
+  - Torrents
+  - Meta Search
+  - Automation
+  - Media Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/nzbhydra2:8.8.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5076
+links:
+- label: Website
+  url: https://github.com/theotherp/nzbhydra2
+- label: Documentation
+  url: https://github.com/theotherp/nzbhydra2/wiki
+- label: Github
+  url: https://github.com/theotherp/nzbhydra2
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: nzbhydra2
+    port: $PORT:5076
+    volumes:
+    - /config
+    - /downloads
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

@@ -1,0 +1,60 @@
+metadata:
+  name: Offen
+  version: latest
+  description: Offen is a fair and open alternative to common web analytics tools.
+    It gives users access to their data and respects their privacy while providing
+    website owners with the insights they need.
+  category: analytics
+  tags:
+  - Analytics
+  - Privacy
+  - GDPR
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: offen/offen:v1.4.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://www.offen.dev
+- label: Documentation
+  url: https://docs.offen.dev
+- label: Github
+  url: https://github.com/offen/offen
+instructions: After deployment, access your Offen instance through your browser to
+  complete the setup process.
+install:
+- docker:
+    image: $IMAGE
+    name: offen
+    port: $PORT:80
+    volumes:
+    - /var/www/.cache
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After deployment, access your Offen instance through your browser to complete
+    the setup process.
+services:
+  postgres:
+    type: postgres
+    version: latest

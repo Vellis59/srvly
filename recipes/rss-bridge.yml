@@ -1,0 +1,57 @@
+metadata:
+  name: RSS-Bridge
+  version: latest
+  description: RSS-Bridge is a self-hosted, open-source tool that generates RSS and
+    Atom feeds for websites that do not provide them natively. It enables users to
+    extract and aggregate content from various web pages, social media platforms,
+    and other online sources into a single, unified RSS feed. This allows users to
+    stay updated with the latest content from multiple sources without manually visiting
+    each site. RSS-Bridge supports various website connectors, filtering options,
+    and output formats to provide a customized feed experience.
+  category: rss
+  tags:
+  - RSS
+  - Feed Aggregation
+  - News
+  - Content Filtering
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: rssbridge/rss-bridge:sha-ac2608a
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://rss-bridge.github.io/rss-bridge/
+- label: GitHub
+  url: https://github.com/RSS-Bridge/rss-bridge
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: rss-bridge
+    port: $PORT:80
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

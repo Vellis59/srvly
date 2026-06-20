@@ -1,0 +1,67 @@
+metadata:
+  name: NetAlertX
+  version: latest
+  description: NetAlertX is a network monitoring and notification framework that scans
+    your Wi-Fi/LAN network and alerts you when new or unknown devices are detected.
+    It provides real-time network device discovery, ARP scanning, and customizable
+    alert notifications. Built for network administrators and security-conscious users,
+    NetAlertX helps you maintain visibility over your network by tracking connected
+    devices and identifying unauthorized access. The application features a web-based
+    dashboard, GraphQL API, and supports various notification methods to keep you
+    informed about network changes.
+  category: network-monitoring
+  tags:
+  - Network Monitoring
+  - Security
+  - Device Discovery
+  - ARP Scanning
+  - Self-Hosted
+  - Network Management
+  - Alerts
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/jokob-sk/netalertx:26.5.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 20211
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://netalertx.com
+- label: GitHub
+  url: https://github.com/jokob-sk/NetAlertX
+- label: Documentation
+  url: https://docs.netalertx.com
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: netalertx
+    port: $PORT:20211
+    volumes:
+    - /data
+    - /etc/localtime
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

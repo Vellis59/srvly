@@ -1,0 +1,62 @@
+metadata:
+  name: SerpBear
+  version: latest
+  description: SerpBear is an open-source search engine position tracking app designed
+    to help you monitor your website's keyword positions in Google. With SerpBear,
+    you can add unlimited domains and keywords to track their Search Engine Results
+    Page (SERP) positions. The app provides email notifications to keep you updated
+    on your keyword position changes on a daily, weekly, or monthly basis. It also
+    features a built-in SERP API for integration with your marketing and data reporting
+    tools. SerpBear integrates with Google Search Console, allowing you to get actual
+    visit counts, impressions, and more for each keyword. You can discover new keywords,
+    identify the most performing ones, and find the most visited pages and countries.
+    The app also allows you to export your domain keywords and their data in CSV files.
+    For a better mobile experience, you can add the PWA app to your mobile. SerpBear
+    is free to run on platforms like mogenius.com or Fly.io. The app uses third-party
+    website scrapers like ScrapingAnt, ScrapingRobot, or your given Proxy IPs to scrape
+    Google search results to see if your domain appears in the search result for the
+    given keyword.
+  category: analytics
+  tags:
+  - Analytics
+  - SEO
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: towfiqi/serpbear:2.0.7
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://docs.serpbear.com
+- label: Github
+  url: https://github.com/towfiqi/serpbear
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: serpbear
+    port: $PORT:80
+    volumes:
+    - /app/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

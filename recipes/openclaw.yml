@@ -1,0 +1,73 @@
+metadata:
+  name: OpenClaw
+  version: latest
+  description: OpenClaw is your own personal AI assistant. Any OS. Any Platform. The
+    lobster way. 🦞 An open-source personal AI assistant platform that gives you complete
+    control over your data and AI interactions. Built for Molty, OpenClaw provides
+    a gateway service for WebSocket connections, CLI tools for management, and support
+    for multiple channels including WhatsApp, Telegram, Slack, Discord, and more.
+    Deploy your personal AI assistant with full data ownership and privacy.
+  category: ai-assistant
+  tags:
+  - AI Assistant
+  - Personal Assistant
+  - Self-Hosted
+  - Open Source
+  - Privacy
+  - Claude
+  - WhatsApp
+  - Telegram
+  - Slack
+  - Discord
+  - WebSocket
+  - Automation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/openclaw/openclaw:2026.5.3-1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 18790
+links:
+- label: Website
+  url: https://openclaw.ai
+- label: GitHub
+  url: https://github.com/openclaw/openclaw
+- label: Documentation
+  url: https://docs.openclaw.ai
+instructions: Once deployed, the gateway service will start automatically. To complete
+  setup, you can run the onboarding wizard by executing `node dist/index.js onboard
+  --no-install-daemon` in the gateway service console. The gateway runs with `--allow-unconfigured`
+  flag to enable initial setup.
+install:
+- docker:
+    image: $IMAGE
+    name: openclaw
+    port: $PORT:18790
+    volumes:
+    - /home/node/.openclaw
+    - /home/node/.openclaw/workspace
+    - /var/run/docker.sock
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Once deployed, the gateway service will start automatically. To complete
+    setup, you can run the onboarding wizard by executing `node dist/index.js onboard
+    --no-install-daemon` in the gateway service console. The gateway runs with `--allow-unconfigured`
+    flag to enable initial setup.

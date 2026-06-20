@@ -1,0 +1,52 @@
+metadata:
+  name: Cryptgeon
+  version: latest
+  description: Cryptgeon is a secure, open source sharing note or file service inspired
+    by PrivNote. It includes a server, a web page and a CLI client.
+  category: secure-sharing
+  tags:
+  - Secure Sharing
+  - File Sharing
+  - Notes
+  - Open Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: cupcakearmy/cryptgeon:2.9.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Github
+  url: https://github.com/cupcakearmy/cryptgeon
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: cryptgeon
+    port: $PORT:8000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  redis:
+    type: redis
+    version: '7'

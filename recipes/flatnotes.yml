@@ -1,0 +1,55 @@
+metadata:
+  name: Flatnotes
+  version: latest
+  description: Flatnotes is an open-source, self-hosted note-taking platform designed
+    to help individuals and teams manage their notes efficiently. It provides a lightweight
+    and intuitive interface for creating, organizing, and sharing notes. With robust
+    customization options, Flatnotes supports markdown editing, tagging, and a responsive
+    design, making it a versatile solution for note management.
+  category: note-taking
+  tags:
+  - Note-Taking
+  - Markdown
+  - Open Source
+  - Self-Hosted
+  - Productivity
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: dullage/flatnotes:v5.5.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Github
+  url: https://github.com/dullage/flatnotes
+- label: Demo
+  url: https://flatnotes.dullage.com/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: flatnotes
+    port: $PORT:8080
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

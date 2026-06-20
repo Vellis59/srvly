@@ -1,0 +1,56 @@
+metadata:
+  name: Filezilla Client
+  version: latest
+  description: FileZilla Client is a fast and reliable cross-platform FTP, FTPS and
+    SFTP client. It is designed with a lot of useful features and an intuitive graphical
+    user interface. The app is capable of delivering a true lossless image at a high
+    framerate to your web browser. It supports multiple architectures and can be accessed
+    via HTTP or HTTPS. The app also allows you to specify the user PUID and group
+    PGID to avoid permission issues between the host OS and the container. It also
+    provides the ability to override the default umask settings for services started
+    within the containers.
+  category: file-management
+  tags:
+  - File Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/filezilla:3.68.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Documentation
+  url: https://docs.linuxserver.io/images/docker-filezilla
+- label: Github
+  url: https://github.com/linuxserver/docker-filezilla
+instructions: use abc:abc to login. To access the login interface, add ?login=true
+  to your URL.
+install:
+- docker:
+    image: $IMAGE
+    name: filezilla
+    port: $PORT:3000
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: use abc:abc to login. To access the login interface, add ?login=true to your
+    URL.

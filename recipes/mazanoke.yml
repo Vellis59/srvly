@@ -1,0 +1,58 @@
+metadata:
+  name: Mazanoke
+  version: latest
+  description: Mazanoke is a self-hosted local image optimizer that runs in your browser.
+    It works offline and keeps your images private without ever leaving your device.
+    Created for everyday people and designed to be shared with family and friends,
+    it serves as an alternative to questionable "free" online tools.
+  category: image-optimization
+  tags:
+  - Image Optimization
+  - Image Compression
+  - Image Converter
+  - Self-Hosted
+  - Privacy
+  - Offline
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/civilblur/mazanoke:v1.1.5
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Documentation
+  url: https://github.com/civilblur/mazanoke
+- label: Github
+  url: https://github.com/civilblur/mazanoke
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: mazanoke
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

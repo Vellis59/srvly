@@ -1,0 +1,57 @@
+metadata:
+  name: FireFlyIII
+  version: latest
+  description: Firefly III is a self-hosted personal finance manager designed to help
+    you take control of your finances. It provides a simple and intuitive interface
+    for tracking expenses, creating budgets, and generating insightful reports. With
+    its robust features, Firefly III enables you to analyze your financial data effectively.
+  category: personal-finance
+  tags:
+  - Personal Finance
+  - Self-Hosted
+  - Budgeting
+  - Expense Tracking
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: fireflyiii/core:version-6.6.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Documentation
+  url: https://firefly-iii.org/documentation/
+- label: Github
+  url: https://github.com/firefly-iii/firefly-iii
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: fireflyiii
+    port: $PORT:8080
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

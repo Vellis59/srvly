@@ -1,0 +1,54 @@
+metadata:
+  name: Jackett
+  version: latest
+  description: Jackett is a versatile, open-source indexer proxy for torrenting and
+    Usenet, enabling users to integrate popular trackers with applications like Sonarr,
+    Radarr, and more. Designed to be lightweight and efficient, Jackett streamlines
+    the process of accessing trackers, offering a seamless experience for managing
+    and automating downloads.
+  category: torrenting
+  tags:
+  - Torrenting
+  - Usenet
+  - Indexer Proxy
+  - Open-Source
+  - Automation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/jackett:0.24.1815
+  port:
+    type: integer
+    title: Port HTTP
+    default: 9117
+links:
+- label: Website
+  url: https://jackett.sh/
+- label: Github
+  url: https://github.com/Jackett/Jackett
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: jackett
+    port: $PORT:9117
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

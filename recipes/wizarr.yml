@@ -1,0 +1,56 @@
+metadata:
+  name: Wizarr
+  version: latest
+  description: Wizarr is an automatic user invitation system designed to streamline
+    the process of inviting users to your media server. Whether you're using Plex,
+    Jellyfin, or Emby, Wizarr allows you to create a unique link to share with users,
+    automatically inviting them to your server. The app also guides users on how to
+    download the necessary client and provides instructions on how to use your request
+    software. Wizarr offers a secure invitation environment, plug and play SSO support,
+    multi-tiered invitations, and customizable duration for membership. It also integrates
+    with Discord, allowing you to invite users to your Discord server. The app is
+    customizable, allowing you to add any custom HTML as needed.
+  category: media
+  tags:
+  - Media
+  - Documentation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/wizarrrr/wizarr:v2026.2.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5690
+links:
+- label: Documentation
+  url: https://docs.wizarr.dev
+- label: Github
+  url: https://github.com/Wizarrrr/wizarr
+instructions: The timezone format should be Continent/City
+install:
+- docker:
+    image: $IMAGE
+    name: wizarr
+    port: $PORT:5690
+    volumes:
+    - /data/database
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: The timezone format should be Continent/City

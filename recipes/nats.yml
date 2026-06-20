@@ -1,0 +1,61 @@
+metadata:
+  name: NATS
+  version: latest
+  description: NATS is a simple, secure and performant messaging system for cloud
+    native applications, IoT messaging, and microservices architectures. It provides
+    lightweight publish-subscribe, request-reply, and point-to-point messaging patterns
+    with high performance and minimal footprint.
+  category: messaging
+  tags:
+  - Messaging
+  - Message Broker
+  - Pub-Sub
+  - Microservices
+  - Cloud Native
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: nats:2.14.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 4222
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Documentation
+  url: https://docs.nats.io/
+- label: Github
+  url: https://github.com/nats-io/nats-server
+- label: Website
+  url: https://nats.io
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: nats
+    port: $PORT:4222
+    volumes: []
+    extra_ports:
+    - 6222:6222
+    - 8222:8222
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

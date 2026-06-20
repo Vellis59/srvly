@@ -1,0 +1,77 @@
+metadata:
+  name: Ryot
+  version: latest
+  description: Ryot is a self-hosted platform for tracking and managing your media
+    consumption across movies, TV shows, books, anime, manga, video games, podcasts,
+    and more. Designed as an all-in-one solution for media enthusiasts, Ryot lets
+    you maintain a comprehensive record of everything you've watched, read, played,
+    or listened to. The application provides powerful tracking features including
+    progress monitoring, ratings, reviews, and custom lists to organize your media
+    library. With integrations for popular platforms like Trakt, Goodreads, and various
+    media databases, Ryot can automatically fetch metadata, cover images, and detailed
+    information for your media entries. The clean, modern interface works seamlessly
+    across devices, allowing you to update your progress from anywhere. Key features
+    include import capabilities from other tracking services, detailed statistics
+    and insights about your media consumption habits, calendar views for upcoming
+    releases, and recommendation suggestions based on your history. Built with performance
+    in mind, Ryot uses PostgreSQL for reliable data storage and provides a fast, responsive
+    experience. Perfect for media enthusiasts who want complete control over their
+    tracking data, users migrating from commercial tracking services who want privacy
+    and ownership, collectors who want to catalog their media libraries, or anyone
+    who enjoys keeping detailed records of their entertainment consumption without
+    relying on third-party platforms.
+  category: media-tracking
+  tags:
+  - Media Tracking
+  - Movies
+  - TV Shows
+  - Books
+  - Video Games
+  - Self-Hosted
+  - Entertainment
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ignisda/ryot:v10.3.10
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Website
+  url: https://ryot.io
+- label: GitHub
+  url: https://github.com/ignisda/ryot
+- label: Documentation
+  url: https://docs.ryot.io
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: ryot
+    port: $PORT:8000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

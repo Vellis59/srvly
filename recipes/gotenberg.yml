@@ -1,0 +1,58 @@
+metadata:
+  name: Gotenberg
+  version: latest
+  description: Gotenberg is a Docker-powered stateless API designed to handle PDF
+    files. It offers a developer-friendly interface to interact with robust tools
+    like Chromium and LibreOffice, enabling the conversion of various document formats
+    such as HTML, Markdown, Word, Excel, and more into PDF files. The app also supports
+    an asynchronous workflow with a webhook feature, allowing you to upload the output
+    file to your preferred destination. Gotenberg is a modular platform, meaning you
+    can customize each module according to your needs. Additionally, it provides the
+    option to build your own Docker image by adding new tools and creating modules
+    that offer new routes to the API.
+  category: developer-tools
+  tags:
+  - Developer Tools
+  - Documents
+  - Productivity
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: gotenberg/gotenberg:8.32.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://gotenberg.dev/
+- label: Documentation
+  url: https://gotenberg.dev/docs/get-started/live-demo
+- label: Github
+  url: https://github.com/gotenberg/gotenberg
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: gotenberg
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

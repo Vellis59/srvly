@@ -1,0 +1,64 @@
+metadata:
+  name: Syncthing
+  version: latest
+  description: Syncthing is a powerful, real-time file synchronization program designed
+    to keep your data secure and under your control. It enables the synchronization
+    of files between two or more computers, ensuring your data is always up-to-date
+    across your devices. Syncthing prioritizes your privacy and security, with no
+    data ever stored on a central server that could be compromised. All communication
+    is encrypted and authenticated, with only devices you have explicitly allowed
+    able to connect to your other devices. The app is easy to use, with a responsive
+    and powerful interface accessible via your browser. It works across various operating
+    systems including Mac OS X, Windows, Linux, FreeBSD, Solaris, OpenBSD, and many
+    others. Syncthing doesn't require complex configuration or IP addresses, it simply
+    works, over LAN and over the Internet. You can synchronize as many folders as
+    you need with different people or just between your own devices.
+  category: file-management
+  tags:
+  - File Management
+  - Security
+  - Privacy
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: syncthing/syncthing:1.30
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8384
+links:
+- label: Website
+  url: https://syncthing.net
+- label: Docs
+  url: https://docs.syncthing.net
+- label: GitHub
+  url: https://github.com/syncthing/syncthing
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: syncthing
+    port: $PORT:8384
+    volumes:
+    - /var/syncthing
+    extra_ports:
+    - 21027:21027
+    - 22000:22000
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

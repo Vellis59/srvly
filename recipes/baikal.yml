@@ -1,0 +1,57 @@
+metadata:
+  name: Baikal
+  version: latest
+  description: Baikal is a lightweight, self-hosted CalDAV and CardDAV server that
+    enables users to manage calendars and contacts efficiently. It provides a simple
+    and effective solution for syncing and sharing events, tasks, and address books
+    across multiple devices. Baikal is designed to be easy to install and maintain,
+    making it an excellent choice for individuals and organizations looking for a
+    private, secure, and open-source alternative to cloud-based calendar and contact
+    management services.
+  category: calendar
+  tags:
+  - Calendar
+  - Contacts
+  - Self-Hosting
+  - Productivity
+  - Privacy
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ckulka/baikal:nginx-php8.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://sabre.io/baikal/
+- label: Documentation
+  url: https://sabre.io/baikal/install/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: baikal
+    port: $PORT:80
+    volumes:
+    - /var/www/baikal
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

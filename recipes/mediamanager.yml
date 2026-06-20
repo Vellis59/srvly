@@ -1,0 +1,102 @@
+metadata:
+  name: MediaManager
+  version: latest
+  description: MediaManager is a self-hosted media management application designed
+    to help you organize, catalog, and manage your media collection. The application
+    provides a clean web interface for browsing and managing your media files including
+    movies, TV shows, music, and other digital content. With support for custom metadata,
+    tagging, and categorization, MediaManager makes it easy to keep your media library
+    organized and accessible. The application features automatic media scanning, metadata
+    extraction, thumbnail generation, and search capabilities to quickly find content
+    in large collections. Built with a PostgreSQL backend for reliable data storage,
+    MediaManager can handle extensive media libraries with thousands of items. The
+    flexible configuration system allows you to customize media directories, scanning
+    behavior, and display preferences to match your needs. Perfect for home media
+    enthusiasts who want to organize their digital collections, content creators managing
+    large media archives, small organizations needing a simple media asset management
+    solution, or anyone looking for a lightweight self-hosted alternative to complex
+    media management systems.
+  category: media
+  tags:
+  - Media
+  - File Management
+  - Organization
+  - Self-Hosted
+  - Library
+  - Metadata
+  - TV Shows
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/maxdorninger/mediamanager:1.12.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://maxdorninger.github.io/MediaManager/
+- label: Documentation
+  url: https://maxdorninger.github.io/MediaManager/introduction.html
+- label: GitHub
+  url: https://github.com/maxdorninger/mediamanager
+instructions: 'After deploy, edit the mounted config.toml on the MediaManager app
+  service.
+
+  Set [auth].admin_emails and [misc] library paths to match your setup.
+
+  Configure SMTP, OpenID, torrents, or indexers only if you use those features.
+
+  See https://maxdorninger.github.io/MediaManager/configuration-overview.html for
+  details.
+
+  '
+install:
+- docker:
+    image: $IMAGE
+    name: mediamanager
+    port: $PORT:8000
+    volumes:
+    - /data
+    - /data/images
+    - /data/tv
+    - /data/movies
+    - /data/torrents
+    - /app/config/config.toml
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: 'After deploy, edit the mounted config.toml on the MediaManager app service.
+
+    Set [auth].admin_emails and [misc] library paths to match your setup.
+
+    Configure SMTP, OpenID, torrents, or indexers only if you use those features.
+
+    See https://maxdorninger.github.io/MediaManager/configuration-overview.html for
+    details.
+
+    '
+services:
+  postgres:
+    type: postgres
+    version: latest

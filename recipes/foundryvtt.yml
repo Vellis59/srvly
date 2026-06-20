@@ -1,0 +1,77 @@
+metadata:
+  name: FoundryVTT
+  version: latest
+  description: Foundry Virtual Tabletop is a modern, self-hosted virtual tabletop
+    platform designed for playing tabletop roleplaying games online. It provides a
+    comprehensive suite of tools for game masters and players, including dynamic lighting,
+    fog of war, automated combat systems, and extensive customization options. FoundryVTT
+    supports multiple game systems and offers a rich ecosystem of community-created
+    modules and content. With its powerful JavaScript API and intuitive interface,
+    FoundryVTT delivers an immersive gaming experience that rivals traditional tabletop
+    gaming.
+  category: gaming
+  tags:
+  - Gaming
+  - Virtual Tabletop
+  - RPG
+  - Self-Hosted
+  - Multiplayer
+  - Game Master Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: felddy/foundryvtt:14.361.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 30000
+links:
+- label: Website
+  url: https://foundryvtt.com/
+- label: Documentation
+  url: https://foundryvtt.com/kb/
+- label: GitHub (container source)
+  url: https://github.com/felddy/foundryvtt-docker
+- label: Docker Hub (container image)
+  url: https://hub.docker.com/r/felddy/foundryvtt
+- label: Community
+  url: https://discord.gg/foundryvtt
+instructions: FoundryVTT is proprietary software, so there is no official public `foundryvtt/foundryvtt`
+  Docker image on Docker Hub. This template uses `felddy/foundryvtt`, which is the
+  widely used community container maintained specifically for licensed FoundryVTT
+  deployments. You must provide a valid FoundryVTT release URL and your foundryvtt.com
+  account credentials so the container can download your licensed build. Keep these
+  credentials private. On first startup, complete setup in the web UI, set an admin
+  key, and activate your FoundryVTT license. All persistent data is stored in `/data`.
+install:
+- docker:
+    image: $IMAGE
+    name: foundryvtt
+    port: $PORT:30000
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: FoundryVTT is proprietary software, so there is no official public `foundryvtt/foundryvtt`
+    Docker image on Docker Hub. This template uses `felddy/foundryvtt`, which is the
+    widely used community container maintained specifically for licensed FoundryVTT
+    deployments. You must provide a valid FoundryVTT release URL and your foundryvtt.com
+    account credentials so the container can download your licensed build. Keep these
+    credentials private. On first startup, complete setup in the web UI, set an admin
+    key, and activate your FoundryVTT license. All persistent data is stored in `/data`.

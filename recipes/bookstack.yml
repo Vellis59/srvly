@@ -1,0 +1,71 @@
+metadata:
+  name: Bookstack
+  version: latest
+  description: 'BookStack is a free and open-source platform designed to help you
+    organize and store information in a simple and efficient way. It is a self-hosted
+    solution that allows you to create, edit, and manage content through an easy-to-use
+    interface. The content is divided into three real-world groups: Books, Chapters,
+    and Pages, making it easy to navigate and find the information you need. The platform
+    also includes a powerful search feature that allows you to search at the book
+    level or across all books, chapters, and pages. You can also link directly to
+    any paragraph, keeping your documentation interconnected. BookStack offers configuration
+    options that let you customize the system to suit your needs, including changing
+    the name, logo, and registration options. It also includes built-in diagrams.net
+    drawing capability for creating diagrams within your documentation, a markdown
+    editor for those who prefer to write in markdown, and integrated authentication
+    options. The platform supports multiple languages and offers both dark and light
+    modes for a comfortable user experience. It also includes a full role and permission
+    system, multi-factor authentication, and features like cross-book sorting, page
+    revisions, and image management.'
+  category: wiki
+  tags:
+  - Wiki
+  - Documentation
+  - Open Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/bookstack:26.03.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://www.bookstackapp.com/
+- label: Documentation
+  url: https://www.bookstackapp.com/docs/
+- label: Github
+  url: https://github.com/BookStackApp/BookStack
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: bookstack
+    port: $PORT:80
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

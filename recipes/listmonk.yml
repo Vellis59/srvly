@@ -1,0 +1,71 @@
+metadata:
+  name: Listmonk
+  version: latest
+  description: Listmonk is a self-hosted, high-performance mailing list and newsletter
+    manager. It is designed to manage millions of subscribers across various single
+    and double opt-in lists, with custom JSON attributes for each subscriber. The
+    app allows you to query and segment subscribers with SQL expressions and offers
+    a fast bulk importer for easy integration with external CRMs and subscriber databases.
+    Listmonk also provides a simple API for sending transactional messages to subscribers
+    using pre-defined templates. These messages can be sent via email, SMS, Whatsapp,
+    or any medium via Messenger interfaces. The app also includes simple analytics
+    and visualization tools, a powerful templating system for creating dynamic email
+    templates, and a media manager for uploading images for email campaigns. Listmonk
+    is free, open-source, and designed for high performance, with a single binary
+    application that runs everywhere with a minimal CPU and memory footprint.
+  category: email
+  tags:
+  - Email
+  - Analytics
+  - Privacy
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: listmonk/listmonk:v5.1.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 9000
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://listmonk.app/
+- label: Documentation
+  url: https://listmonk.app/docs/
+- label: Github
+  url: https://github.com/knadh/listmonk
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: listmonk
+    port: $PORT:9000
+    volumes:
+    - /listmonk/uploads
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

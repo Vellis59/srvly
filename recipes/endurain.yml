@@ -1,0 +1,67 @@
+metadata:
+  name: Endurain
+  version: latest
+  description: Endurain is a cutting-edge endurance tracking and training platform
+    designed for athletes and fitness enthusiasts. It offers a user-friendly interface
+    to track workouts, set goals, and analyze performance metrics. With Endurain,
+    you can manage your training routines using detailed analytics, route planning,
+    and personalized coaching features. It supports integrations with fitness devices
+    and third-party tools, making it a versatile solution for athletes at any level.
+    Its emphasis on data-driven insights and seamless user experience ensures athletes
+    stay motivated and achieve their fitness goals. Endurain is distributed under
+    an open-source license, allowing for customization to meet unique training needs.
+  category: endurance-training
+  tags:
+  - Endurance Training
+  - Open Source
+  - Fitness Tracking
+  - Workout Analytics
+  - Route Planning
+  - Performance Metrics
+  - Goal Setting
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/joaovitoriasilva/endurain:v0.16.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Github
+  url: https://github.com/joaovitoriasilva/endurain
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: endurain
+    port: $PORT:8080
+    volumes:
+    - /app/backend/user_images
+    - /app/backend/files/bulk_import
+    - /app/backend/files/processed
+    - /app/backend/logs
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

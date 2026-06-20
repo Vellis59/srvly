@@ -1,0 +1,64 @@
+metadata:
+  name: Ziit
+  version: latest
+  description: Ziit (pronounced 'tseet') is an open-source, self-hostable alternative
+    to WakaTime. It provides a clean, minimal, and fast dashboard for displaying coding
+    statistics, while ensuring privacy by keeping all data on your own server. Ziit
+    tracks coding activity such as projects, languages, editors, files, branches,
+    operating systems, and time spent coding, all presented in a familiar interface
+    inspired by Plausible Analytics.
+  category: time-tracking
+  tags:
+  - Time Tracking
+  - Developer Tools
+  - Coding Statistics
+  - Self-Hosted
+  - WakaTime Alternative
+  - Productivity
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/0pandadev/ziit:v1.0.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Web App
+  url: https://ziit.app/login
+- label: Documentation
+  url: https://docs.ziit.app
+- label: Github
+  url: https://github.com/0pandadev/ziit
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: ziit
+    port: $PORT:3000
+    volumes:
+    - /app/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

@@ -1,0 +1,69 @@
+metadata:
+  name: Manticore Search
+  version: latest
+  description: Manticore Search is an easy to use open source fast database for search.
+    It helps thousands of companies from small to large, such as Craigslist, to search
+    and filter petabytes of text data on a single or hundreds of nodes, do stream
+    full-text filtering, add auto-complete, spell correction, more-like-this, faceting
+    and other search-related technologies to their websites and applications.
+  category: search
+  tags:
+  - Search
+  - Database
+  - Full-text Search
+  - Analytics
+  - Open Source
+  - High Performance
+  - Scalable
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: manticoresearch/manticore:17.5.100
+  port:
+    type: integer
+    title: Port HTTP
+    default: 9308
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://manticoresearch.com/
+- label: Documentation
+  url: https://manual.manticoresearch.com/
+- label: GitHub
+  url: https://github.com/manticoresoftware/manticoresearch
+instructions: The configuration file within the instance can be found at /etc/manticoresearch/manticore.conf.
+  To apply custom settings, ensure that this file is mounted to your own configuration
+  file. The ports are 9306/9308/9312 for SQL/HTTP/Binary, expose them depending on
+  how you are going to use Manticore.
+install:
+- docker:
+    image: $IMAGE
+    name: manticore-search
+    port: $PORT:9308
+    volumes:
+    - /var/lib/manticore
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: The configuration file within the instance can be found at /etc/manticoresearch/manticore.conf.
+    To apply custom settings, ensure that this file is mounted to your own configuration
+    file. The ports are 9306/9308/9312 for SQL/HTTP/Binary, expose them depending
+    on how you are going to use Manticore.

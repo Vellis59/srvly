@@ -1,0 +1,58 @@
+metadata:
+  name: Coder
+  version: latest
+  description: Coder is an open source cloud development environment (CDE) that you
+    download and host in your cloud. Deploy a single solution in seconds that provisions
+    the infrastructure, IDE, language, and tools your developers desire. Upgrade to
+    the Enterprise version and add security, governance, and observability capabilities
+    for Platform teams.
+  category: self-hosted
+  tags: []
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/coder/coder:v2.31.10
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://coder.com
+- label: Documentation
+  url: https://coder.com/docs/v2/latest
+- label: Github
+  url: https://github.com/coder/coder
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: coder
+    port: $PORT:80
+    volumes:
+    - /var/run/docker.sock
+    - /home/coder/.config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

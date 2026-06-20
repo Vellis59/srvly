@@ -1,0 +1,64 @@
+metadata:
+  name: SHM
+  version: latest
+  description: SHM (Self-Hosted Metrics) is privacy-first, agnostic telemetry for
+    self-hosted software—collect usage stats, verify active instances, and understand
+    adoption without spying on users. Instances sign payloads with Ed25519; PostgreSQL
+    stores JSON metrics behind a single Go binary with an embedded dashboard (port
+    8080). AGPL-3.0; upstream lives under the kOlapsis GitHub organization.
+  category: telemetry
+  tags:
+  - Telemetry
+  - Metrics
+  - Self-Hosted
+  - PostgreSQL
+  - Privacy
+  - Go
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/kolapsis/shm:sha-fd3affa
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://self-hosted-metrics.com/
+- label: GitHub
+  url: https://github.com/kOlapsis/shm
+- label: Documentation
+  url: https://github.com/kOlapsis/shm/blob/main/docs/DEPLOYMENT.md
+- label: Container registry
+  url: https://github.com/kOlapsis/shm/pkgs/container/shm
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: shm
+    port: $PORT:8080
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

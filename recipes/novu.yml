@@ -1,0 +1,72 @@
+metadata:
+  name: Novu
+  version: latest
+  description: Novu is an open-source notification infrastructure platform that provides
+    a unified API for managing notifications across multiple channels including email,
+    SMS, push notifications, in-app notifications, and chat. This template deploys
+    a complete Novu infrastructure with separate services for API, Worker, WebSocket,
+    and Dashboard components, backed by MongoDB and Redis. Built for developers who
+    need reliable, scalable notification delivery with features like workflow automation,
+    template management, subscriber management, and real-time analytics. Perfect for
+    applications that require sophisticated notification systems with multi-channel
+    delivery, personalization, and comprehensive tracking capabilities.
+  category: notifications
+  tags:
+  - Notifications
+  - Multi-Channel
+  - Email
+  - SMS
+  - Push Notifications
+  - In-App Messaging
+  - Workflow Automation
+  - API
+  - Open Source
+  - Developer Tools
+  - Analytics
+  - Templates
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/novuhq/novu/dashboard:3.15.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Github
+  url: https://github.com/novuhq/novu
+- label: Website
+  url: https://novu.co
+- label: Documentation
+  url: https://docs.novu.co
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: novu
+    port: $PORT:3000
+    volumes: []
+    extra_ports:
+    - 3002:3002
+    - 4000:4000
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp

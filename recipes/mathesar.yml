@@ -1,0 +1,74 @@
+metadata:
+  name: Mathesar
+  version: latest
+  description: Mathesar is an open-source database GUI that makes PostgreSQL accessible
+    to non-technical users. It provides an intuitive interface for working with databases
+    without requiring SQL knowledge. Users can visually create and edit tables, modify
+    schemas, browse and manipulate data, and collaborate with team members. Built
+    on PostgreSQL, it leverages the power and reliability of this proven database
+    while adding user-friendly features like spreadsheet-like data editing, relationship
+    visualization, and automated schema management. Mathesar is perfect for teams
+    that need to work with data collaboratively but don't have extensive database
+    expertise. As a self-hosted solution, it gives organizations complete control
+    over their data and infrastructure. Whether you're managing content, organizing
+    research data, or building internal tools, Mathesar makes database operations
+    approachable while maintaining the full capabilities of PostgreSQL.
+  category: database-gui
+  tags:
+  - Database GUI
+  - PostgreSQL
+  - No-code/Low-code
+  - Self-hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: mathesar/mathesar:0.10.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://www.mathesar.org
+- label: Documentation
+  url: https://docs.mathesar.org
+- label: Github
+  url: https://github.com/mathesar-foundation/mathesar
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: mathesar
+    port: $PORT:8000
+    volumes:
+    - /code/static
+    - /code/media
+    - /code/.secrets
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

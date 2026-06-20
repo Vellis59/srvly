@@ -1,0 +1,58 @@
+metadata:
+  name: AnonymousOverflow
+  version: latest
+  description: AnonymousOverflow is an anonymous question and answer platform inspired
+    by Stack Overflow, designed for creating a safe space where users can ask questions
+    without revealing their identity. The platform provides a community-driven Q&A
+    experience with features like upvoting, downvoting, question categorization, and
+    answer moderation. Built with privacy in mind, AnonymousOverflow allows users
+    to participate in discussions and share knowledge while maintaining complete anonymity.
+    Perfect for organizations wanting to create internal Q&A forums, educational institutions
+    seeking anonymous student feedback platforms, or communities that value privacy
+    in knowledge sharing.
+  category: q&a
+  tags:
+  - Q&A
+  - Forum
+  - Anonymous
+  - Community
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/httpjamesm/anonymousoverflow:release
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: GitHub
+  url: https://github.com/httpjamesm/anonymousoverflow
+- label: Demo
+  url: https://aohub.httpjames.space
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: anonymousoverflow
+    port: $PORT:8080
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

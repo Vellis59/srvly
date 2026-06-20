@@ -1,0 +1,65 @@
+metadata:
+  name: Papercups
+  version: latest
+  description: Papercups is a privacy-focused, open-source app designed to streamline
+    communication with your customers. It provides a powerful dashboard to coordinate
+    and reply to messages over various platforms including chat, email, Slack, and
+    SMS. The app offers a customizable widget that you can tailor to your brand's
+    aesthetics, without the need for any coding. Papercups also integrates seamlessly
+    with your existing work environment, eliminating the need to log in to another
+    dashboard. It supports HTML, React, React Native, and Flutter integrations. The
+    app is built with Elixir on top of BEAM for incredible scalability, making it
+    a suitable choice for businesses of all sizes. It also offers personalized support,
+    managing your deployment on your infrastructure while providing the benefits of
+    self-hosting with the reliability and scalability of the cloud.
+  category: customer-support
+  tags:
+  - Customer Support
+  - Communication
+  - Privacy
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: papercups/papercups:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://papercups.io
+- label: Documentation
+  url: https://docs.papercups.io/
+- label: Github
+  url: https://github.com/papercups-io/papercups
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: papercups
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

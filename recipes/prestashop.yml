@@ -1,0 +1,65 @@
+metadata:
+  name: Prestashop
+  version: latest
+  description: Prestashop is an open-source e-commerce platform that empowers businesses
+    to build and manage their online stores. It provides a user-friendly interface,
+    a robust product catalog system, order management, and customizable themes, making
+    it an ideal choice for merchants of all sizes. Prestashop supports multiple payment
+    gateways, multilingual and multi-currency features, and SEO optimization to ensure
+    a global reach and enhanced online visibility. Additionally, it offers a vibrant
+    marketplace for modules and themes, enabling seamless customization and integration
+    with third-party services.
+  category: e-commerce
+  tags:
+  - E-commerce
+  - Web Development
+  - Online Store
+  - CMS
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: prestashop/prestashop:9.1.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://www.prestashop.com
+- label: Documentation
+  url: https://devdocs.prestashop.com
+- label: Github
+  url: https://github.com/PrestaShop/PrestaShop
+instructions: Configure the database during the installation wizard. Use the provided
+  domains for the admin panel and storefront setup.
+install:
+- docker:
+    image: $IMAGE
+    name: prestashop
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Configure the database during the installation wizard. Use the provided domains
+    for the admin panel and storefront setup.
+services:
+  mysql:
+    type: mysql
+    version: latest

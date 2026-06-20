@@ -1,0 +1,56 @@
+metadata:
+  name: Webcord
+  version: latest
+  description: 'WebCord is an application designed to enhance your Discord experience.
+    It is a pack of security and privacy hardenings, Discord features reimplementations,
+    Electron / Chromium / Discord bugs workarounds, stylesheets, internal pages and
+    wrapped https://discord.com page. It is designed to conform with ToS as much as
+    it is possible. The application can be accessed at: http://yourhost:3000/ or https://yourhost:3001/.
+    This container is based on Docker Baseimage KasmVNC which means there are additional
+    environment variables and run configurations to enable or disable specific functionality.'
+  category: chat
+  tags:
+  - Chat
+  - Privacy
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/webcord:4.13.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Documentation
+  url: https://docs.linuxserver.io/images/docker-webcord
+- label: Github
+  url: https://github.com/SpacingBat3/WebCord
+instructions: use abc:abc to login. To access the login interface, add ?login=true
+  to your URL.
+install:
+- docker:
+    image: $IMAGE
+    name: webcord
+    port: $PORT:3000
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: use abc:abc to login. To access the login interface, add ?login=true to your
+    URL.

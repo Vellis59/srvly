@@ -1,0 +1,56 @@
+metadata:
+  name: Xwiki
+  version: latest
+  description: XWiki is a powerful, open source enterprise wiki platform designed
+    for collaboration and content management. It offers extensive features to create,
+    manage, and share knowledge effectively.
+  category: wiki
+  tags:
+  - Wiki
+  - Collaboration
+  - Documentation
+  - Open Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: xwiki:18.2.1-postgres-tomcat
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Github
+  url: https://github.com/xwiki/xwiki-platform
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: xwiki
+    port: $PORT:8080
+    volumes:
+    - /usr/local/xwiki
+    - /var/lib/postgresql/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

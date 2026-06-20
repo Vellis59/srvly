@@ -1,0 +1,59 @@
+metadata:
+  name: Daptin
+  version: latest
+  description: Daptin is an open-source backend development framework that enables
+    rapid development and deployment of production-ready JSONAPI microservices. Design
+    your data model and have a production-ready JSON API online in minutes.
+  category: backend
+  tags:
+  - Backend
+  - API
+  - Microservices
+  - JSON:API
+  - Database
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: daptin/daptin:v0.11.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Documentation
+  url: https://daptin.github.io/docs/
+- label: Website
+  url: https://daptin.github.io/daptin/
+- label: GitHub
+  url: https://github.com/daptin/daptin
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: daptin
+    port: $PORT:8080
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

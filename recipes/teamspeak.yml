@@ -1,0 +1,65 @@
+metadata:
+  name: Teamspeak
+  version: latest
+  description: TeamSpeak is a powerful and flexible VoIP (Voice over Internet Protocol)
+    application designed for online gaming, business communication, and remote collaboration.
+    It provides crystal-clear voice communication with minimal latency, making it
+    ideal for teams that require real-time coordination. TeamSpeak offers a secure
+    and scalable environment, allowing users to create and manage their own servers
+    with customizable permissions and roles. The application supports a wide range
+    of integrations and plugins, providing extended functionality. TeamSpeak is widely
+    used in gaming communities, corporate environments, and educational institutions
+    for efficient communication.
+  category: voip
+  tags:
+  - VoIP
+  - Communication
+  - Gaming
+  - Business
+  - Secure
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: teamspeak:3.13.7
+  port:
+    type: integer
+    title: Port HTTP
+    default: 9987
+links:
+- label: Website
+  url: https://www.teamspeak.com/
+- label: Github
+  url: https://github.com/TeamSpeak-Systems
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: teamspeak
+    port: $PORT:9987
+    volumes: []
+    extra_ports:
+    - 10011:10011
+    - 30033:30033
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

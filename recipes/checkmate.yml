@@ -1,0 +1,61 @@
+metadata:
+  name: Checkmate
+  version: latest
+  description: Checkmate is a modern, open-source uptime monitoring solution designed
+    to keep track of your websites, APIs, and services. Built with a focus on simplicity
+    and reliability, it provides real-time monitoring capabilities with instant notifications
+    when your services go down. The application features a clean, intuitive dashboard
+    that displays the current status of all monitored services, historical uptime
+    data, and detailed analytics. Perfect for businesses, developers, and system administrators
+    who need to ensure their digital services remain accessible to users.
+  category: monitoring
+  tags:
+  - Monitoring
+  - Uptime
+  - Analytics
+  - DevOps
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/bluewave-labs/checkmate-backend-mono:v3.6.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 52345
+links:
+- label: Github
+  url: https://github.com/bluewave-labs/checkmate
+- label: Documentation
+  url: https://github.com/bluewave-labs/checkmate#readme
+- label: Website
+  url: https://checkmate.so
+instructions: Go to the /register path to register your user.
+install:
+- docker:
+    image: $IMAGE
+    name: checkmate
+    port: $PORT:52345
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Go to the /register path to register your user.
+services:
+  redis:
+    type: redis
+    version: '7'

@@ -1,0 +1,54 @@
+metadata:
+  name: Homer
+  version: latest
+  description: Homer is a straightforward, static homepage for your server, designed
+    to keep all your services easily accessible. It operates based on a simple yaml
+    configuration file. This app serves as a full static HTML/JS dashboard, providing
+    a centralized platform where you can manage and access all your services. It features
+    a search function, grouping, theme customization, and offline health checks. It
+    also supports keyboard shortcuts for quick navigation. Homer is designed to be
+    served by an HTTP server and is perfect for those who want to keep their services
+    organized and within reach.
+  category: dashboard
+  tags:
+  - Dashboard
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: b4bz/homer:v26.4.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Github
+  url: https://github.com/bastienwirtz/homer
+- label: Demo
+  url: https://homer-demo.netlify.app
+instructions: The config files can be found under "/etc/easypanel/projects/PROJECT_NAME/homer/volumes/assets"
+install:
+- docker:
+    image: $IMAGE
+    name: homer
+    port: $PORT:8080
+    volumes:
+    - /www/assets
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: The config files can be found under "/etc/easypanel/projects/PROJECT_NAME/homer/volumes/assets"

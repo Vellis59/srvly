@@ -1,0 +1,54 @@
+metadata:
+  name: RSSHub
+  version: latest
+  description: RSSHub is an open-source, user-friendly, and extensible RSS feed generator.
+    It is designed to create RSS feeds from virtually any content. With the ability
+    to aggregate millions of contents from various sources, RSSHub ensures the delivery
+    of new routes, features, and bug fixes. The app is compatible with the browser
+    extension RSSHub Radar and mobile auxiliary apps RSSBud (iOS) and RSSAid (Android).
+    It has adapted to hundreds of websites and thousands of content types, making
+    it a versatile tool for generating RSS feeds.
+  category: rss
+  tags:
+  - RSS
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: diygod/rsshub:2026-05-04
+  port:
+    type: integer
+    title: Port HTTP
+    default: 1200
+links:
+- label: Website
+  url: https://rsshub.app/
+- label: Documentation
+  url: https://docs.rsshub.app/
+- label: Github
+  url: https://github.com/DIYgod/RSSHub
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: rsshub
+    port: $PORT:1200
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

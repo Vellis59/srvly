@@ -1,0 +1,71 @@
+metadata:
+  name: Kimai
+  version: latest
+  description: Kimai is an open-source time-tracking solution designed for freelancers,
+    small businesses, and enterprises to manage time-tracking needs efficiently. It
+    enables users to track work hours, manage projects, and create accurate reports
+    and invoices based on time entries. With a focus on simplicity and flexibility,
+    Kimai is ideal for organizations looking to improve productivity, manage employee
+    timesheets, and handle client billing without the complexity of traditional ERP
+    systems. Kimai offers a modular architecture, allowing for easy customization
+    to meet unique requirements, and it supports multi-user environments with permissions
+    to manage data access.
+  category: time-tracking
+  tags:
+  - Time Tracking
+  - Project Management
+  - Invoicing
+  - Reporting
+  - Multi-User
+  - Multi-Currency
+  - Plugins
+  - Analytics
+  - Multi-Language
+  - Secure Data Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: kimai/kimai2:apache-2.56.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8001
+links:
+- label: Website
+  url: https://www.kimai.org
+- label: Documentation
+  url: https://www.kimai.org/documentation
+- label: GitHub
+  url: https://github.com/kimai/kimai
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: kimai
+    port: $PORT:8001
+    volumes:
+    - /opt/kimai/var/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

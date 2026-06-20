@@ -1,0 +1,79 @@
+metadata:
+  name: WAHA
+  version: latest
+  description: WAHA (WhatsApp HTTP API) is a self-hosted, privacy-focused WhatsApp
+    API that you can run in a click! It provides a REST API to send and receive WhatsApp
+    messages, manage groups, channels, and status updates. WAHA runs a real instance
+    of WhatsApp Web to avoid getting blocked and supports automation through HTTP
+    API. The core version is completely free with no limits on messages or time, making
+    it perfect for WhatsApp automation, chatbots, and integrations.
+  category: whatsapp
+  tags:
+  - WhatsApp
+  - API
+  - Messaging
+  - Automation
+  - Chatbot
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: devlikeapro/waha:latest-2026.4.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://waha.devlike.pro/
+- label: Github
+  url: https://github.com/devlikeapro/waha
+- label: Documentation
+  url: https://waha.devlike.pro/docs
+instructions: 'After deployment, access the WAHA dashboard at your service domain.
+  The
+
+  default username is "admin" and the password is auto-generated — check
+
+  the WAHA_DASHBOARD_PASSWORD environment variable in the service settings.
+
+  The same credentials are used for the Swagger API docs. The WAHA_API_KEY
+
+  is also auto-generated and required for API authentication.
+
+  '
+install:
+- docker:
+    image: $IMAGE
+    name: waha
+    port: $PORT:3000
+    volumes:
+    - /app/.sessions
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: 'After deployment, access the WAHA dashboard at your service domain. The
+
+    default username is "admin" and the password is auto-generated — check
+
+    the WAHA_DASHBOARD_PASSWORD environment variable in the service settings.
+
+    The same credentials are used for the Swagger API docs. The WAHA_API_KEY
+
+    is also auto-generated and required for API authentication.
+
+    '

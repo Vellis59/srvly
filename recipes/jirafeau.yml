@@ -1,0 +1,57 @@
+metadata:
+  name: Jirafeau
+  version: latest
+  description: Jirafeau is an open-source software designed for simple and efficient
+    file sharing. It operates on a 'one-click-filesharing' principle, where you select
+    your file, upload it, and share a link. The app allows you to send large files
+    without any size limit, thanks to the HTML5 file API. It also provides a real-time
+    progress report, showing speed, percentage, and remaining upload time. Jirafeau
+    offers optional password protection for both uploading and downloading, and you
+    can set an expiration time for downloads. The app also has a self-destruct feature,
+    which deletes the file after the first download. It uses base 64 encoding to shorten
+    URLs and allows for maximal upload size configuration. Jirafeau also features
+    optional data encryption and a small administration interface.
+  category: file-management
+  tags:
+  - File Management
+  - Data Science
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: jgeusebroek/jirafeau:20221008
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Github
+  url: https://gitlab.com/mojo42/Jirafeau
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: jirafeau
+    port: $PORT:80
+    volumes:
+    - /data
+    - /cfg
+    - /jirafeau
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

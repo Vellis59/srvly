@@ -1,0 +1,57 @@
+metadata:
+  name: Speedtest Tracker
+  version: latest
+  description: Speedtest Tracker is a self-hosted internet performance tracking application
+    that runs speedtests and displays the results in a clean web interface. It automatically
+    runs periodic speed tests using various providers like Ookla Speedtest, and stores
+    historical data to track your internet connection performance over time. Perfect
+    for monitoring ISP performance, network troubleshooting, and keeping records of
+    internet speed changes.
+  category: network-monitoring
+  tags:
+  - Network Monitoring
+  - Speed Test
+  - Performance
+  - Self-Hosted
+  - Tracking
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/speedtest-tracker:1.14.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://docs.speedtest-tracker.dev/
+- label: GitHub
+  url: https://github.com/alexjustesen/speedtest-tracker
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: speedtest-tracker
+    port: $PORT:80
+    volumes:
+    - /config
+    - /config/keys
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

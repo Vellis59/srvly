@@ -1,0 +1,51 @@
+metadata:
+  name: Barrage
+  version: latest
+  description: Barrage is a minimalistic Deluge WebUI app with full mobile support.
+    It features a responsive mobile-first design, allowing you to manage your torrents
+    with ease from any device. With Barrage, you can add torrents by URL or magnet,
+    sort and filter your torrents, and set global upload and download speed limits.
+    It also allows you to change file priorities and modify torrent options. The app
+    is designed to be deployed with Docker, making it a convenient and efficient tool
+    for managing your torrents.
+  category: file-management
+  tags:
+  - File Management
+  - Developer Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: maulik9898/barrage:0.3.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Github
+  url: https://github.com/maulik9898/barrage
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: barrage
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

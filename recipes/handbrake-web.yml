@@ -1,0 +1,66 @@
+metadata:
+  name: Handbrake Web
+  version: latest
+  description: Handbrake Web is a self-hosted video transcoding solution that provides
+    a web-based interface for managing and processing video encoding jobs using the
+    powerful HandBrake video transcoder. The application features a distributed architecture
+    with a central server for job management and dedicated workers for processing,
+    allowing you to scale encoding capacity by adding more workers. The web interface
+    enables you to upload videos, configure encoding presets, monitor job progress,
+    and manage your transcoding queue from any browser. Handbrake Web supports all
+    the encoding formats and options available in HandBrake, including H.264, H.265/HEVC,
+    VP9, and AV1 codecs, as well as various container formats like MP4, MKV, and WebM.
+    The worker-based architecture allows for parallel processing of multiple videos
+    and can leverage hardware acceleration when available. Perfect for media enthusiasts
+    who need to convert video collections to different formats, content creators preparing
+    videos for multiple platforms, home server administrators managing media libraries,
+    or anyone who needs a reliable self-hosted solution for batch video transcoding
+    without installing desktop applications.
+  category: video
+  tags:
+  - Video
+  - Transcoding
+  - Media
+  - HandBrake
+  - Encoding
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/thenickoftime/handbrake-web-server:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 9999
+links:
+- label: GitHub
+  url: https://github.com/TheNickOfTime/handbrake-web
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: handbrake-web
+    port: $PORT:9999
+    volumes:
+    - /data
+    - /video
+    - /video
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

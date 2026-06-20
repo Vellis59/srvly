@@ -1,0 +1,65 @@
+metadata:
+  name: Sessy
+  version: latest
+  description: Sessy is a self-hosted web application built with Ruby on Rails designed
+    for managing and interacting with AWS Simple Email Service (SES). The application
+    provides a user-friendly interface for managing email sending operations, monitoring
+    email delivery, and working with AWS SES configurations. With persistent storage
+    for application data, Sessy ensures your settings and configurations are retained
+    across container restarts. The application offers a straightforward deployment
+    model with minimal configuration requirements, making it easy to set up and operate.
+    Built on the robust Ruby on Rails framework, Sessy provides a reliable foundation
+    for email service management. Perfect for developers and teams working with AWS
+    SES who want a self-hosted management interface, organizations needing a simple
+    way to interact with their email service infrastructure, or anyone looking for
+    a lightweight self-hosted solution for AWS SES operations without relying on external
+    services.
+  category: aws
+  tags:
+  - AWS
+  - SES
+  - Web Application
+  - Rails
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/marckohlbrugge/sessy:sha-8d93bde
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://sessy.do
+- label: GitHub
+  url: https://github.com/marckohlbrugge/sessy
+- label: Docker Hub
+  url: https://hub.docker.com/r/marckohlbrugge/sessy
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: sessy
+    port: $PORT:80
+    volumes:
+    - /rails/storage
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

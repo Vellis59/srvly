@@ -1,0 +1,74 @@
+metadata:
+  name: Passbolt
+  version: latest
+  description: Passbolt is a security-first, open source password manager designed
+    for teams and businesses. It is trusted by thousands of organizations worldwide,
+    including Fortune 500 companies, defense industry, universities, startups, and
+    many others. The app puts security first, with top penetration testers regularly
+    assessing its software. It supports user-owned secret keys and end-to-end encryption
+    even in complex scenarios. Passbolt is also built for collaboration, allowing
+    organizations and teams to securely share credentials with powerful auditing tools.
+    It offers unparalleled granularity for both access controls and encrypted data.
+    The app is headquartered in the EU, ensuring that privacy is not only a top priority
+    but also guaranteed by law. Passbolt can be used from your browser or mobile phone,
+    with real-time sharing. It also supports programmatic password retrieval, storage,
+    and sharing with its JSON API.
+  category: security
+  tags:
+  - Security
+  - Password Manager
+  - Collaboration
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: passbolt/passbolt:5.11.0-1-ce
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://passbolt.com
+- label: Documentation
+  url: https://help.passbolt.com
+- label: Github
+  url: https://github.com/passbolt/
+instructions: In order to create the first admin account, the following needs to be
+  executed inside the passpolt container "su -m -c "bin/cake passbolt register_user
+  -u YOUR@EMAIL.COM -f YOURNAME -l SURNAME -r admin" -s /bin/sh www-data". Please
+  follow further instructions of the command output.
+install:
+- docker:
+    image: $IMAGE
+    name: passbolt
+    port: $PORT:80
+    volumes:
+    - /etc/passbolt/gpg
+    - /etc/passbolt/jwt
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: In order to create the first admin account, the following needs to be executed
+    inside the passpolt container "su -m -c "bin/cake passbolt register_user -u YOUR@EMAIL.COM
+    -f YOURNAME -l SURNAME -r admin" -s /bin/sh www-data". Please follow further instructions
+    of the command output.
+services:
+  mysql:
+    type: mysql
+    version: latest

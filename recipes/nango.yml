@@ -1,0 +1,72 @@
+metadata:
+  name: Nango
+  version: latest
+  description: Nango is a powerful app designed to simplify and accelerate the process
+    of building integrations. It provides a unified API, allowing you to drastically
+    simplify your integration code and avoid dealing with each external API's schema
+    and quirks. With Nango, you can authorize any integration using our drop-in UI,
+    and securely manage your users' credentials. The app also enables continuous data
+    synchronization with external APIs, using one of 100+ pre-built integrations,
+    or you can customize them or build your own. Nango also supports 2-way syncs,
+    write-backs, and real-time webhooks. It's designed for engineering teams that
+    want full control without the hassle, allowing you to build exactly the integration
+    your customers need, in code. With Nango, you can leave the maintenance, scaling,
+    and API specific quirks to us, and focus on what you do best.
+  category: developer-tools
+  tags:
+  - Developer Tools
+  - Integration
+  - API
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: nango.docker.scarf.sh/nangohq/nango-server:0.36.78
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3003
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://nango.dev
+- label: Documentation
+  url: https://docs.nango.dev
+- label: Github
+  url: https://github.com/NangoHQ/nango
+instructions: Check the environment tab for your API key. Follow the instructions
+  in the FILE mount.
+install:
+- docker:
+    image: $IMAGE
+    name: nango
+    port: $PORT:3003
+    volumes:
+    - /usr/nango-server/src/packages/server/providers.yaml
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Check the environment tab for your API key. Follow the instructions in the
+    FILE mount.
+services:
+  postgres:
+    type: postgres
+    version: latest

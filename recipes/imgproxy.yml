@@ -1,0 +1,65 @@
+metadata:
+  name: imgproxy
+  version: latest
+  description: imgproxy is a powerful app designed to optimize images for web use,
+    making websites and apps run faster while saving storage and SaaS costs. It works
+    by resizing and processing images on the fly, eliminating the need for disk space
+    and reducing the cost of conforming all saved images to specific formats. imgproxy
+    offers a wide range of features for editing images, including resizing, cropping,
+    contrast adjustment, pixelization, saturation, rotating, and more. It also provides
+    security features to protect against common attack vectors in image processing.
+    With imgproxy, you can upload images directly to the cloud or your cluster and
+    request images by specifying parameters in the request URL. The app uses the world’s
+    fastest image processing library, libvips, ensuring quick processing and a small
+    memory footprint. imgproxy Pro plans offer advanced features and vary by capacity
+    and types of support.
+  category: image-processing
+  tags:
+  - Image Processing
+  - Optimization
+  - Web Development
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: darthsim/imgproxy:v3.31.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://imgproxy.net/
+- label: Documentation
+  url: https://docs.imgproxy.net/
+- label: Github
+  url: https://www.github.com/imgproxy/imgproxy
+instructions: 'To generate a image URL you can use the following link: https://progapandist.github.io/imgproxy-form/#.
+  Your Salt and Key can be found in the environment variables once you create the
+  service. You can also find more environment variables here: https://docs.imgproxy.net/configuration'
+install:
+- docker:
+    image: $IMAGE
+    name: imgproxy
+    port: $PORT:8080
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: 'To generate a image URL you can use the following link: https://progapandist.github.io/imgproxy-form/#.
+    Your Salt and Key can be found in the environment variables once you create the
+    service. You can also find more environment variables here: https://docs.imgproxy.net/configuration'

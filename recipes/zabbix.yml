@@ -1,0 +1,64 @@
+metadata:
+  name: Zabbix
+  version: latest
+  description: Zabbix is a powerful, self-hosted monitoring solution designed for
+    tracking and analyzing system performance, network utilization, and application
+    health. It provides real-time monitoring, customizable alerts, and detailed visualization
+    tools to help administrators maintain system reliability. Zabbix supports agent-based
+    and agentless monitoring, automation capabilities, and integration with third-party
+    tools. With its flexible architecture, Zabbix is suitable for small to enterprise-level
+    environments. The application includes a web-based dashboard and supports a variety
+    of database backends, making it a robust solution for IT infrastructure monitoring.
+  category: monitoring
+  tags:
+  - Monitoring
+  - Network Management
+  - IT Infrastructure
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: zabbix/zabbix-web-nginx-pgsql:alpine-trunk
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Documentation
+  url: https://www.zabbix.com/documentation
+- label: Github
+  url: https://github.com/zabbix/zabbix-docker
+instructions: Use the default credentials (Admin/zabbix) to log in.
+install:
+- docker:
+    image: $IMAGE
+    name: zabbix
+    port: $PORT:8080
+    volumes:
+    - /var/lib/zabbix
+    - /var/lib/zabbix/snmptraps
+    - /var/lib/zabbix/export
+    - /usr/share/zabbix
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Use the default credentials (Admin/zabbix) to log in.
+services:
+  postgres:
+    type: postgres
+    version: latest

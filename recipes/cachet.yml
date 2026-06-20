@@ -1,0 +1,64 @@
+metadata:
+  name: Cachet
+  version: latest
+  description: Meet Cachet, the open-source status page system designed to improve
+    downtime communication. Used by great companies worldwide, Cachet allows you to
+    effectively communicate downtime and system outages to your customers, teams,
+    and shareholders. It comes with a beautifully crafted design that is responsive
+    and works seamlessly on your desktop, tablet, and phone. Cachet supports multiple
+    languages and comes with a powerful JSON API for updating your status page with
+    incidents and component status changes. It also allows you to schedule maintenance
+    events ahead of time and provides a dashboard for setting up metrics to measure
+    various aspects such as uptime, error rates, etc. For added security, Cachet supports
+    two-factor authentication. It's a beautifully simple service for managing your
+    service statuses.
+  category: monitoring
+  tags:
+  - Monitoring
+  - Communication
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/supernova3339/docker-cachet-hq:2.3.18
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Website
+  url: https://cachethq.io
+- label: Documentation
+  url: https://docs.cachethq.io/
+- label: Github
+  url: https://github.com/cachethq/cachet
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: cachet
+    port: $PORT:8000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

@@ -1,0 +1,55 @@
+metadata:
+  name: Word Mastermind
+  version: latest
+  description: Word Mastermind is a word-guessing game inspired by the classic Mastermind
+    puzzle and games like Wordle. Players attempt to guess a hidden word within a
+    limited number of attempts, receiving feedback after each guess to help narrow
+    down the solution. This containerized version provides a clean web interface that
+    allows you to host your own instance of the game for personal use, educational
+    purposes, or family entertainment.
+  category: gaming
+  tags:
+  - Gaming
+  - Word Games
+  - Educational
+  - Browser Game
+  - Puzzle
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/clupasq/word-mastermind:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: GitHub
+  url: https://github.com/clupasq/word-mastermind
+- label: Container
+  url: https://github.com/clupasq/word-mastermind/pkgs/container/word-mastermind
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: word-mastermind
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

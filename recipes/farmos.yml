@@ -1,0 +1,65 @@
+metadata:
+  name: farmOS
+  version: latest
+  description: farmOS is a web-based farm management and record-keeping platform built
+    on Drupal. It helps track assets, logs, plans, and maps for agricultural operations
+    while remaining fully self-hosted and extensible.
+  category: agriculture
+  tags:
+  - Agriculture
+  - Farm Management
+  - Record Keeping
+  - Drupal
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: farmos/farmos:4.0.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://farmos.org/
+- label: Documentation
+  url: https://farmos.org/hosting/install/
+- label: Github
+  url: https://github.com/farmOS/farmOS
+- label: Docker Hub
+  url: https://hub.docker.com/r/farmos/farmos
+instructions: After deployment, open your domain and complete the farmOS web installer.
+  In the database step, choose SQLite and use a database file path under `sites/default/files`
+  so it remains persistent. This template persists the farmOS `sites` and `keys` directories
+  for settings, uploaded files, SQLite database storage, and key material across upgrades.
+install:
+- docker:
+    image: $IMAGE
+    name: farmos
+    port: $PORT:80
+    volumes:
+    - /opt/drupal/web/sites
+    - /opt/drupal/keys
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After deployment, open your domain and complete the farmOS web installer.
+    In the database step, choose SQLite and use a database file path under `sites/default/files`
+    so it remains persistent. This template persists the farmOS `sites` and `keys`
+    directories for settings, uploaded files, SQLite database storage, and key material
+    across upgrades.

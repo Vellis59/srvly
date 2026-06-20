@@ -1,0 +1,78 @@
+metadata:
+  name: Backrest
+  version: latest
+  description: Backrest is a web UI and orchestrator for restic backups. It supports
+    scheduling, browsing snapshots, restores, notifications, and any restic-backed
+    storage (S3, B2, rclone remotes, local, etc.). This template keeps the standard
+    data/config/cache/tmp/rclone volumes and optionally bind-mounts host paths at
+    /userdata and /repos like the upstream Docker Compose examples.
+  category: backup
+  tags:
+  - Backup
+  - Restore
+  - Data Protection
+  - Self-hosted
+  - Web Interface
+  - Cloud Storage
+  - Rclone
+  - Scheduling
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/garethgeorge/backrest:v1.13.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 9898
+links:
+- label: Website
+  url: https://garethgeorge.github.io/backrest/
+- label: Documentation
+  url: https://garethgeorge.github.io/backrest/introduction/getting-started
+- label: GitHub
+  url: https://github.com/garethgeorge/backrest
+- label: Docker Hub
+  url: https://hub.docker.com/r/garethgeorge/backrest
+instructions: Backup sources; Use template fields Host path → /userdata and/or Host
+  path → /repos for directories you want visible inside the container (same as path/to/backup/data:/userdata
+  and path/to/local/repos:/repos in the official compose). You can also add more bind
+  mounts in Easypanel for other paths, then reference them in backup plans inside
+  Backrest. First run; Open the UI, complete setup (credentials), and configure repos
+  and schedules per the documentation.
+install:
+- docker:
+    image: $IMAGE
+    name: backrest
+    port: $PORT:9898
+    volumes:
+    - /data
+    - /config
+    - /cache
+    - /tmp
+    - /root/.config/rclone
+    - /userdata
+    - /repos
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Backup sources; Use template fields Host path → /userdata and/or Host path
+    → /repos for directories you want visible inside the container (same as path/to/backup/data:/userdata
+    and path/to/local/repos:/repos in the official compose). You can also add more
+    bind mounts in Easypanel for other paths, then reference them in backup plans
+    inside Backrest. First run; Open the UI, complete setup (credentials), and configure
+    repos and schedules per the documentation.

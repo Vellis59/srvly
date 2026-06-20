@@ -1,0 +1,65 @@
+metadata:
+  name: Cypht
+  version: latest
+  description: Cypht is a modern, open-source webmail client that allows you to access
+    multiple email accounts from a single interface. It supports various email protocols
+    and provides a clean, intuitive user experience.
+  category: email
+  tags:
+  - Email
+  - Webmail
+  - Self-hosted
+  - Open Source
+  - Communication
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: cypht/cypht:2.7.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://cypht.org
+- label: Documentation
+  url: https://www.cypht.org/documentation/
+- label: GitHub
+  url: https://github.com/jasonmunro/cypht
+- label: Docker Hub
+  url: https://hub.docker.com/r/cypht/cypht
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: cypht
+    port: $PORT:80
+    volumes:
+    - /var/log/nginx
+    - /var/log/php
+    - /var/log/supervisord
+    - /usr/local/share/cypht/site/fonts
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

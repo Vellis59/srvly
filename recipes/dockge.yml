@@ -1,0 +1,65 @@
+metadata:
+  name: Dockge
+  version: latest
+  description: Dockge is a modern, self-hosted Docker Compose management tool that
+    provides a beautiful and intuitive web interface for managing your Docker Compose
+    stacks. It allows you to create, edit, start, stop, and monitor your Docker Compose
+    applications through a user-friendly dashboard. Dockge simplifies Docker Compose
+    management with features like real-time logs, stack monitoring, and easy configuration
+    editing.
+  category: docker-compose
+  tags:
+  - Docker Compose
+  - Container Management
+  - Self-Hosted
+  - Web Interface
+  - Monitoring
+  - DevOps
+  - Infrastructure
+  - YAML Editor
+  - Logs
+  - Stack Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: louislam/dockge:1.5.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5001
+links:
+- label: GitHub
+  url: https://github.com/louislam/dockge
+- label: Documentation
+  url: https://dockge.kuma.pet/
+- label: Docker Hub
+  url: https://hub.docker.com/r/louislam/dockge
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: dockge
+    port: $PORT:5001
+    volumes:
+    - /var/run/docker.sock
+    - /app/data
+    - /root/dockge/stacks
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

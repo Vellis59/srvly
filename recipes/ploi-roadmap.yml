@@ -1,0 +1,61 @@
+metadata:
+  name: Ploi Roadmap
+  version: latest
+  description: Roadmap is an open-source software designed to streamline your roadmapping
+    process. It offers a completely customizable platform where you can mention users
+    in comments, upvote items to prioritize them, and generate automatic slugs. The
+    software also features a Filament admin panel and a simplified role system that
+    includes administrator, employee, and user roles. Roadmap supports OAuth 2 single
+    sign-on with your own application and automatically generates OG images, including
+    the branding color you've set up. It also integrates with GitHub, allowing you
+    to assign a repository to each project and manage issues directly from the roadmap
+    admin. The software is built with PHP and requires a database to function.
+  category: project-management
+  tags:
+  - Project Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/easypanel-community/docker-ploi-roadmap:1.44.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Github
+  url: https://github.com/ploi-deploy/roadmap
+instructions: After First Deployment, run "php artisan roadmap:install" to setup the
+  inital user account.
+install:
+- docker:
+    image: $IMAGE
+    name: ploi-roadmap
+    port: $PORT:80
+    volumes:
+    - /vendor
+    - /app
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After First Deployment, run "php artisan roadmap:install" to setup the inital
+    user account.
+services:
+  mysql:
+    type: mysql
+    version: latest

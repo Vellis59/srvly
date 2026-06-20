@@ -1,0 +1,55 @@
+metadata:
+  name: CyberChef
+  version: latest
+  description: CyberChef, also known as the Cyber Swiss Army Knife, is a versatile
+    web app designed to perform a wide array of 'cyber' operations within a web browser.
+    It offers simple encoding methods like XOR and Base64, alongside more complex
+    encryption techniques such as AES, DES, and Blowfish. CyberChef also provides
+    tools for creating binary and hexdumps, compressing and decompressing data, calculating
+    hashes and checksums, parsing IPv6 and X.509, changing character encodings, and
+    much more. The app is designed to be user-friendly, enabling both technical and
+    non-technical analysts to manipulate data in complex ways without the need for
+    intricate tools or algorithms. CyberChef is still under active development, with
+    ongoing testing, bug fixing, new feature additions, and documentation improvements.
+  category: developer-tools
+  tags:
+  - Developer Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: mpepping/cyberchef:v10.24.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Documentation
+  url: https://github.com/gchq/CyberChef/wiki
+- label: Github
+  url: https://github.com/gchq/CyberChef
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: cyberchef
+    port: $PORT:8000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

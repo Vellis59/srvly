@@ -1,0 +1,75 @@
+metadata:
+  name: Sharkord
+  version: latest
+  description: Sharkord is a lightweight, open-source, self-hosted chat platform designed
+    as a privacy-focused alternative to Discord for small groups. It provides voice,
+    video, text chat, and screen sharing—all running on your own server. Supports
+    screen sharing up to 4K@60fps. Designed for 5-25 users.
+  category: chat
+  tags:
+  - Chat
+  - Voice
+  - Video
+  - Open Source
+  - Self-hosted
+  - Discord Alternative
+  - Privacy
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: sharkord/sharkord:v0.0.19
+  port:
+    type: integer
+    title: Port HTTP
+    default: 4991
+links:
+- label: Website
+  url: https://sharkord.com/
+- label: Documentation
+  url: https://sharkord.com/docs
+- label: GitHub
+  url: https://github.com/Sharkord/sharkord
+- label: Demo
+  url: https://demo.sharkord.com/
+instructions: 'After deployment, access Sharkord via the main domain. Create your
+  server and
+
+  invite others. Voice and video use port 40000. Data is stored in the data volume.
+
+  Note: Sharkord is in alpha—expect bugs and breaking changes.
+
+  '
+install:
+- docker:
+    image: $IMAGE
+    name: sharkord
+    port: $PORT:4991
+    volumes:
+    - /home/bun/.config/sharkord
+    extra_ports:
+    - 40000:40000
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: 'After deployment, access Sharkord via the main domain. Create your server
+    and
+
+    invite others. Voice and video use port 40000. Data is stored in the data volume.
+
+    Note: Sharkord is in alpha—expect bugs and breaking changes.
+
+    '

@@ -1,0 +1,60 @@
+metadata:
+  name: Tautuilli
+  version: latest
+  description: Tautulli is a powerful web application designed to monitor, analyze,
+    and notify you about your Plex Media Server's activities. It runs alongside your
+    Plex Media Server, tracking a variety of statistics including what has been watched,
+    who watched it, when and where it was watched, and how it was watched. The app
+    presents all these statistics in a clean, user-friendly interface with tables
+    and graphs. Tautulli also allows you to monitor current activity on your Plex
+    Media Server, log watch history for all your users, view streaming trends with
+    intuitive graphs, trigger notifications or scripts from events on your Plex server,
+    and keep track of when content is added to your Plex library. You can also create
+    and send newsletters for recently added media, view and delete all synced content
+    from your server, see detailed information on all of your media, and even download
+    the official app to view activity and stats on the go. Tautulli is compatible
+    with any system that supports python.
+  category: monitoring
+  tags:
+  - Monitoring
+  - Media
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/tautulli:2.17.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8181
+links:
+- label: Website
+  url: https://tautulli.com/
+- label: Github
+  url: https://github.com/Tautulli/Tautulli
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: tautulli
+    port: $PORT:8181
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

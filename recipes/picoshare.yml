@@ -1,0 +1,57 @@
+metadata:
+  name: Picoshare
+  version: latest
+  description: Picoshare is a lightweight, self-hosted file-sharing platform designed
+    for simplicity and privacy. It provides a minimalistic interface for uploading,
+    sharing, and managing files, without the complexity of traditional cloud storage
+    services. Picoshare emphasizes ease of use and security, making it an ideal solution
+    for personal or small team file-sharing needs. It supports a variety of file types
+    and provides a secure, private environment for sharing files with full control
+    over your data.
+  category: file-sharing
+  tags:
+  - File Sharing
+  - Privacy
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: mtlynch/picoshare:1.5.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 4001
+links:
+- label: Website
+  url: https://picoshare.net/
+- label: Documentation
+  url: https://github.com/mtlynch/picoshare/wiki
+- label: Github
+  url: https://github.com/mtlynch/picoshare
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: picoshare
+    port: $PORT:4001
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

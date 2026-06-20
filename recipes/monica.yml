@@ -1,0 +1,75 @@
+metadata:
+  name: Monica
+  version: latest
+  description: OfficeLife is an all-in-one tool designed to manage a company efficiently.
+    It serves as your personal CRM, helping you organize and follow-up on your social
+    interactions, thereby strengthening your relationships. With Monica, you can easily
+    log and remember important details about your friends, family, and colleagues.
+    It allows you to store everything you know about your loved ones in one place,
+    from their work information, family details, activities you've done together,
+    to reminders about important dates. Monica is designed for busy individuals striving
+    to maintain a good work-life balance. It's a private space, free from ads or malicious
+    software, where you can safely document what you know about who you love. Monica
+    is open source, ensuring transparency and security.
+  category: crm
+  tags:
+  - CRM
+  - Productivity
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: monica:5.0-apache
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://monicahq.com
+- label: Github
+  url: https://github.com/monicahq/monica
+- label: Docker
+  url: https://hub.docker.com/_/monica
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: monica
+    port: $PORT:80
+    volumes:
+    - /var/www/html/storage
+    - /var/www/html/app
+    - /var/www/html/database
+    - /var/www/html/resources
+    - /var/www/html/routes
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest
+  redis:
+    type: redis
+    version: '7'

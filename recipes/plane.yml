@@ -1,0 +1,49 @@
+metadata:
+  name: Plane
+  version: latest
+  description: Plane is an open-source project management tool designed to help teams
+    manage tasks, sprints, and product roadmaps efficiently. It offers features like
+    issue tracking, cycles, modules, custom views, pages, and real-time analytics.
+  category: self-hosted
+  tags: []
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ''
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://plane.so
+- label: Documentation
+  url: https://docs.plane.so/introduction/home
+- label: Github
+  url: https://github.com/makeplane/plane
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: plane
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

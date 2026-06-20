@@ -1,0 +1,57 @@
+metadata:
+  name: Ferron
+  version: latest
+  description: Ferron is a fast, memory-safe web server written in Rust. This template
+    deploys Ferron with the official Docker image and exposes it through your Easypanel
+    domain so you can start serving web traffic quickly.
+  category: web-server
+  tags:
+  - Web Server
+  - Reverse Proxy
+  - Rust
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ferronserver/ferron:2-debian
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://www.ferronweb.org/
+- label: Documentation
+  url: https://www.ferronweb.org/docs/
+- label: GitHub
+  url: https://github.com/ferronweb/ferron
+- label: Docker Hub
+  url: https://hub.docker.com/r/ferronserver/ferron
+instructions: Deploy the template, then configure Ferron by mounting your own configuration
+  and content files as needed for your use case.
+install:
+- docker:
+    image: $IMAGE
+    name: ferron
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Deploy the template, then configure Ferron by mounting your own configuration
+    and content files as needed for your use case.

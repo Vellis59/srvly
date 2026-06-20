@@ -1,0 +1,62 @@
+metadata:
+  name: QloApps
+  version: latest
+  description: QloApps is a comprehensive hotel booking and property management system
+    built on PrestaShop. It provides a complete solution for hoteliers to manage their
+    properties, bookings, and customers. The system includes features like room management,
+    booking engine, customer management, and payment processing. QloApps is designed
+    to help hotels streamline their operations and improve guest experience.
+  category: hotel-management
+  tags:
+  - Hotel Management
+  - Booking System
+  - Property Management
+  - Hospitality
+  - E-commerce
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: webkul/qloapps_docker:1.6.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://qloapps.com/
+- label: Documentation
+  url: https://qloapps.com/hotel-website/
+- label: Github
+  url: https://github.com/Qloapps/QloApps
+instructions: Login email admin@qloapps.local and password 12345678
+install:
+- docker:
+    image: $IMAGE
+    name: qloapps
+    port: $PORT:80
+    volumes:
+    - /var/www/html
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Login email admin@qloapps.local and password 12345678
+services:
+  mysql:
+    type: mysql
+    version: latest

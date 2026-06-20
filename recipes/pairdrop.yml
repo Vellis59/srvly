@@ -1,0 +1,56 @@
+metadata:
+  name: PairDrop
+  version: latest
+  description: PairDrop is an open-source peer-to-peer file sharing application designed
+    for seamless and secure data transfer between devices on the same network. With
+    its minimalist design and cross-platform compatibility, PairDrop ensures a user-friendly
+    and efficient file sharing experience. It eliminates the need for third-party
+    cloud services, offering a direct and private solution for sharing files, links,
+    and other data securely.
+  category: file-sharing
+  tags:
+  - File Sharing
+  - Peer-to-Peer
+  - Cross-Platform
+  - Open Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/pairdrop:1.11.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://pairdrop.net
+- label: Documentation
+  url: https://pairdrop.net/docs
+- label: Github
+  url: https://github.com/schlagmichdoch/pairdrop
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: pairdrop
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

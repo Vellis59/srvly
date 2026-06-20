@@ -1,0 +1,60 @@
+metadata:
+  name: Grocy
+  version: latest
+  description: Grocy is a self-hosted groceries and household management solution.
+    It helps you streamline your daily chores, track inventory, manage shopping lists,
+    plan meals, and keep tabs on household tasks. With Grocy, you can efficiently
+    manage your pantry, reduce waste, and optimize your shopping experience. Grocy
+    provides a user-friendly interface to organize your household activities and track
+    consumables with expiration dates, giving you better control over your time and
+    resources.
+  category: erp
+  tags:
+  - ERP
+  - Groceries
+  - Household Management
+  - Inventory
+  - Meal Planning
+  - Tasks
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/grocy:4.6.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://grocy.info/
+- label: Documentation
+  url: https://github.com/grocy/docs
+- label: Github
+  url: https://github.com/grocy/grocy
+instructions: default credentials; username; admin, password; admin
+install:
+- docker:
+    image: $IMAGE
+    name: grocy
+    port: $PORT:80
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: default credentials; username; admin, password; admin

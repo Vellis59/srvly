@@ -1,0 +1,62 @@
+metadata:
+  name: DrawDB
+  version: latest
+  description: DrawDB is a free, simple, and intuitive online database schema editor
+    and SQL generator.  It provides a robust and user-friendly database entity relationship
+    (ER) editor that runs  directly in your browser. With DrawDB, you can build database
+    diagrams with a few clicks,  export SQL scripts, customize your editor, and manage
+    database schemas without creating an  account. The tool supports multiple database
+    types including MySQL, PostgreSQL, SQLite, SQL Server, and more.
+  category: database
+  tags:
+  - Database
+  - Schema Design
+  - ER Diagram
+  - SQL Generator
+  - Database Design
+  - Entity Relationship
+  - MySQL
+  - PostgreSQL
+  - SQLite
+  - Visual Editor
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/drawdb-io/drawdb:v1.6.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: GitHub
+  url: https://github.com/drawdb-io/drawdb
+- label: Documentation
+  url: https://github.com/drawdb-io/drawdb#readme
+- label: Demo
+  url: https://drawdb.app
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: drawdb
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

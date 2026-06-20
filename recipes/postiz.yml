@@ -1,0 +1,68 @@
+metadata:
+  name: Postiz
+  version: latest
+  description: Postiz is a modern, self-hosted social media management platform that
+    helps you schedule, publish, and analyze content across multiple social networks.
+    It provides a unified dashboard for managing posts, tracking engagement, and optimizing
+    your social media strategy.
+  category: social-media
+  tags:
+  - Social Media
+  - Content Management
+  - Scheduling
+  - Analytics
+  - Marketing
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/gitroomhq/postiz-app:v2.21.7
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5000
+links:
+- label: Website
+  url: https://postiz.com
+- label: Documentation
+  url: https://docs.postiz.com
+- label: GitHub
+  url: https://github.com/postiz/postiz
+- label: Docker Hub
+  url: https://hub.docker.com/r/postiz/postiz
+- label: Environment Variables
+  url: https://github.com/gitroomhq/postiz-app/blob/main/.env.example
+instructions: You can modify the settings by adding the env variables provided.
+install:
+- docker:
+    image: $IMAGE
+    name: postiz
+    port: $PORT:5000
+    volumes:
+    - /app/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: You can modify the settings by adding the env variables provided.
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

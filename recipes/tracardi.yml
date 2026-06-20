@@ -1,0 +1,62 @@
+metadata:
+  name: Tracardi
+  version: latest
+  description: Tracardi is an open-source customer data platform (CDP) designed for
+    real-time data processing, customer segmentation, and workflow automation. It
+    enables businesses to collect, process, and analyze customer data while offering
+    actionable insights. Tracardi provides a powerful visual interface, robust API
+    support, and scalable deployment options.
+  category: customer-data-platform
+  tags:
+  - Customer Data Platform
+  - Real-Time Analytics
+  - Workflow Automation
+  - Open-Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ''
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://docs.tracardi.com
+- label: GitHub
+  url: https://github.com/Tracardi/tracardi
+instructions: Configure the API Domain in the GUI.
+install:
+- docker:
+    image: $IMAGE
+    name: tracardi
+    port: $PORT:80
+    volumes:
+    - /usr/share/elasticsearch/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Configure the API Domain in the GUI.
+services:
+  mysql:
+    type: mysql
+    version: latest
+  redis:
+    type: redis
+    version: '7'

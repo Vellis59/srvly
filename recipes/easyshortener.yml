@@ -1,0 +1,59 @@
+metadata:
+  name: Easyshortener
+  version: latest
+  description: Easyshortener is a multi-user link shortening application designed
+    for simplicity and security. It allows multiple users to manage their links from
+    a built-in administration panel. The app is built with a focus on user experience,
+    ensuring it is easy to use. It also features built-in two-factor authentication,
+    providing an extra layer of security for your peace of mind. Easyshortener is
+    built for Docker, making it easy to deploy with your favorite container engine.
+    Additionally, the app allows for registration and redirect tracking for all links,
+    and can be set to force HTTPS connection for enhanced security.
+  category: url-shortener
+  tags:
+  - URL Shortener
+  - Link Management
+  - Security
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/easypanel-community/easyshortener:1.1.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Github
+  url: https://github.com/easypanel-community/easyshortener
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: easyshortener
+    port: $PORT:80
+    volumes:
+    - /var/www/html
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

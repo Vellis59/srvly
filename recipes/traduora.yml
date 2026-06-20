@@ -1,0 +1,61 @@
+metadata:
+  name: Traduora
+  version: latest
+  description: Traduora is a modern, self-hosted translation management platform designed
+    for teams and developers. It provides a clean and intuitive interface for managing
+    translation projects across multiple languages. With Traduora, you can easily
+    import and export translations in various formats, collaborate with translators,
+    and integrate translations into your applications via API. The platform supports
+    real-time updates, version control of translations, and role-based access control
+    to manage translator permissions. Traduora helps streamline the localization workflow
+    by providing a centralized place to manage all your translation needs while maintaining
+    full control over your translation data and processes.
+  category: translation-management
+  tags:
+  - Translation Management
+  - Self-Hosted
+  - Localization
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: everco/ever-traduora:v0.21.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Documentation
+  url: https://docs.traduora.co/docs/getting-started
+- label: Github
+  url: https://github.com/traduora/traduora
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: traduora
+    port: $PORT:8080
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

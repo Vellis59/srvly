@@ -1,0 +1,56 @@
+metadata:
+  name: Apache Solr
+  version: latest
+  description: Apache Solr is a highly reliable, scalable and fault-tolerant search
+    platform that provides distributed indexing, replication and load-balanced querying,
+    automated failover and recovery, centralized configuration and more. Solr powers
+    the search and navigation features of many of the world's largest internet sites.
+  category: search-engine
+  tags:
+  - Search Engine
+  - Full-Text Search
+  - Apache
+  - Indexing
+  - Enterprise Search
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: solr:10.0.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8983
+links:
+- label: Official Website
+  url: https://solr.apache.org/
+- label: Documentation
+  url: https://solr.apache.org/guide/
+- label: GitHub
+  url: https://github.com/apache/solr
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: solr
+    port: $PORT:8983
+    volumes:
+    - /var/solr
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

@@ -1,0 +1,62 @@
+metadata:
+  name: Dashy
+  version: latest
+  description: Dashy is the ultimate homepage for your homelab, designed to be your
+    personal, privacy-respecting dashboard. It is highly customizable and easy to
+    use, offering a unique user experience with its built-in themes and UI color palette
+    editor. Dashy can auto-fetch icons from the favicon of each of your apps or services,
+    and it provides an instant overview of the health of each of your apps with status
+    indicators. It also features a simple authentication feature for protecting your
+    dashboard, and supports multiple users with granular controls. Dashy comes with
+    50+ pre-built widgets for displaying dynamic content from any API-enabled service.
+    It offers alternate views for a minimal view or a workspace view, and allows you
+    to choose how to launch your apps. Dashy also includes a search and shortcuts
+    feature for easy navigation, and an optional cloud backup and sync service for
+    off-site config backup. The app supports multiple languages and is easily configurable
+    through a simple YAML file or directly through the UI.
+  category: dashboard
+  tags:
+  - Dashboard
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lissy93/dashy:3.3.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://dashy.to/
+- label: Documentation
+  url: https://dashy.to/docs/
+- label: Github
+  url: https://github.com/lissy93/dashy
+instructions: After deploying the project, it may take a while before the app is available
+  (5 minutes).
+install:
+- docker:
+    image: $IMAGE
+    name: dashy
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After deploying the project, it may take a while before the app is available
+    (5 minutes).

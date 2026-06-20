@@ -1,0 +1,55 @@
+metadata:
+  name: pyLoad-NG
+  version: latest
+  description: pyLoad-NG is a modern download manager with a web interface, supporting
+    various download services and protocols. It features a clean interface, download
+    scheduling, and extensive plugin support.
+  category: download-manager
+  tags:
+  - Download Manager
+  - File Transfer
+  - Self-hosted
+  - Open Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/pyload-ng:develop-version-3c5e1c66
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: GitHub
+  url: https://github.com/pyload/pyload
+- label: Documentation
+  url: https://github.com/pyload/pyload/wiki
+- label: Docker Hub
+  url: https://hub.docker.com/r/linuxserver/pyload-ng
+instructions: Default credentials are pyload/pyload.
+install:
+- docker:
+    image: $IMAGE
+    name: pyload-ng
+    port: $PORT:8000
+    volumes:
+    - /config
+    - /downloads
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Default credentials are pyload/pyload.

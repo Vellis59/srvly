@@ -1,0 +1,55 @@
+metadata:
+  name: Apprise-API
+  version: latest
+  description: Apprise-API is an open-source notification gateway that provides a
+    unified and straightforward way to send notifications to a variety of services,
+    including email, SMS, chat apps, and more. It supports dozens of platforms out
+    of the box, making it an ideal solution for developers and organizations seeking
+    a robust, flexible, and extensible notification system. With a lightweight and
+    API-driven design, Apprise-API simplifies integration into any project.
+  category: notifications
+  tags:
+  - Notifications
+  - Open Source
+  - API
+  - Email
+  - SMS
+  - Chat Apps
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: linuxserver/apprise-api:1.4.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Github
+  url: https://github.com/caronc/apprise-api
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: apprise-api
+    port: $PORT:8000
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

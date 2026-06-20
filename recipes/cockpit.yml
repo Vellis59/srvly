@@ -1,0 +1,59 @@
+metadata:
+  name: Cockpit
+  version: latest
+  description: Cockpit is a headless content platform designed to streamline the creation,
+    connection, and delivery of content for creators, marketers, and developers. It
+    is built with an API-first approach, enabling limitless digital solutions. Cockpit
+    offers a range of features including a content hub, multichannel localization,
+    roles & permissions, and revisions. It also comes with a set of ready-to-use addons
+    to support your projects. These include flexible structured content models, an
+    assets manager, SEO and menu routes, content migration, custom action triggers,
+    component-based layouts, full-text search for your content, form submissions collection,
+    and localization. Cockpit is designed to fit your favorite tech stack, making
+    it a versatile tool for all your content needs.
+  category: cms
+  tags:
+  - CMS
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: cockpithq/cockpit:core-2.14.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://getcockpit.com
+- label: Documentation
+  url: https://getcockpit.com/documentation
+- label: Github
+  url: https://github.com/Cockpit-HQ
+instructions: Navigate to /install to create the initial user account.
+install:
+- docker:
+    image: $IMAGE
+    name: cockpit
+    port: $PORT:80
+    volumes:
+    - /var/www/html
+    - /var/www/html/storage/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Navigate to /install to create the initial user account.

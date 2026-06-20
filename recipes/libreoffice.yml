@@ -1,0 +1,60 @@
+metadata:
+  name: LibreOffice
+  version: latest
+  description: LibreOffice is a free and powerful office suite app that serves as
+    a successor to OpenOffice.org. It features a clean interface and feature-rich
+    tools that help you unleash your creativity and enhance your productivity. The
+    app can be accessed at http://yourhost:3000/ or https://yourhost:3001/. It is
+    designed to deliver a true lossless image at a high framerate to your web browser.
+    The app also supports multiple architectures, ensuring that it can be used on
+    a variety of platforms. This app is perfect for those who need a comprehensive
+    office suite for their daily tasks.
+  category: productivity
+  tags:
+  - Productivity
+  - Documents
+  - Office Suite
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/libreoffice:25.8.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Documentation
+  url: https://docs.linuxserver.io/images/docker-libreoffice
+- label: Github
+  url: https://github.com/linuxserver/docker-libreoffice
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: libreoffice
+    port: $PORT:3000
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

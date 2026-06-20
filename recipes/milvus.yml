@@ -1,0 +1,63 @@
+metadata:
+  name: Milvus
+  version: latest
+  description: Milvus is an open-source vector database designed for AI applications
+    and similarity search. It provides high-performance vector search capabilities
+    and is optimized for handling large-scale vector data. Milvus supports various
+    index types and search methods, making it ideal for applications like recommendation
+    systems, image search, and natural language processing.
+  category: database
+  tags:
+  - Database
+  - Vector Database
+  - AI
+  - Search
+  - Machine Learning
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: milvusdb/milvus:v2.6.11
+  port:
+    type: integer
+    title: Port HTTP
+    default: 2379
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://milvus.io/
+- label: Documentation
+  url: https://milvus.io/docs/
+- label: GitHub
+  url: https://github.com/milvus-io/milvus
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: milvus
+    port: $PORT:2379
+    volumes:
+    - /var/lib/milvus
+    - /etcd
+    - /minio_data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

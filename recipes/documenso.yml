@@ -1,0 +1,62 @@
+metadata:
+  name: Documenso
+  version: latest
+  description: The open source DocuSign alternative. Securely sign documents without
+    giving up your privacy or freedom.
+  category: document-management
+  tags:
+  - Document Management
+  - E-Signatures
+  - Business Tools
+  - Legal
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: documenso/documenso:v2.9.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://documenso.com/
+- label: Documentation
+  url: https://docs.documenso.com/
+- label: Github
+  url: https://github.com/documenso/documenso
+- label: Stackoverflow
+  url: https://stackoverflow.com/questions/21141215/creating-a-p12-file
+instructions: Please follow the below given stackoverflow instructions to create the
+  .p12 file and provide the path of that file to the required field.
+install:
+- docker:
+    image: $IMAGE
+    name: documenso
+    port: $PORT:3000
+    volumes:
+    - /app/certs/cert.p12
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Please follow the below given stackoverflow instructions to create the .p12
+    file and provide the path of that file to the required field.
+services:
+  postgres:
+    type: postgres
+    version: latest

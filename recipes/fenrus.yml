@@ -1,0 +1,58 @@
+metadata:
+  name: Fenrus
+  version: latest
+  description: Fenrus is a sleek and modern dashboard application designed to provide
+    a centralized hub for accessing your self-hosted services and applications. It
+    offers a clean, customizable interface that allows you to organize your various
+    web applications and resources in a single, easy-to-navigate dashboard. Fenrus
+    supports both dark and light themes, custom backgrounds, and different layout
+    options to match your preferences. It's perfect for home server enthusiasts who
+    want a beautiful and functional starting point for their self-hosted ecosystem.
+  category: dashboard
+  tags:
+  - Dashboard
+  - Home Lab
+  - Self-hosted
+  - Web Interface
+  - Organization
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: revenz/fenrus:23.08
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Docker
+  url: https://hub.docker.com/r/revenz/fenrus
+- label: GitHub
+  url: https://github.com/revenz/Fenrus
+instructions: Access the dashboard at the configured port to start customizing your
+  experience
+install:
+- docker:
+    image: $IMAGE
+    name: fenrus
+    port: $PORT:3000
+    volumes:
+    - /app/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Access the dashboard at the configured port to start customizing your experience

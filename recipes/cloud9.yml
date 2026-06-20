@@ -1,0 +1,60 @@
+metadata:
+  name: Cloud9
+  version: latest
+  description: Cloud9 is a cloud-based integrated development environment (IDE) designed
+    for developers to code, build, and debug applications collaboratively in real
+    time. It supports a wide range of programming languages and provides a full-featured
+    development environment directly in the browser. Cloud9 allows developers to work
+    on their projects from anywhere, using any device, with the power of a full Linux
+    server behind it. It includes features like built-in terminal, code editor, and
+    support for debugging and running applications seamlessly. Cloud9 is trusted by
+    developers for its efficiency, collaboration tools, and ability to streamline
+    the development workflow.
+  category: ide
+  tags:
+  - IDE
+  - Development
+  - Cloud-Based
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/cloud9:1.29.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Website
+  url: https://aws.amazon.com/cloud9/
+- label: Documentation
+  url: https://docs.aws.amazon.com/cloud9/
+- label: Github
+  url: https://github.com/c9
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: cloud9
+    port: $PORT:8000
+    volumes:
+    - /var/run/docker.sock
+    - /code
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

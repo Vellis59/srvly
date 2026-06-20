@@ -1,0 +1,63 @@
+metadata:
+  name: Evo AI
+  version: latest
+  description: AI-powered API platform for conversational applications
+  category: ai
+  tags:
+  - AI
+  - API
+  - Conversational
+  - NLP
+  - Machine Learning
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: evoapicloud/evo-ai:0.1.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://evoai.co/
+- label: Documentation
+  url: https://docs.evoai.co/
+- label: GitHub
+  url: https://github.com/EvolutionAPI/evo-ai
+instructions: Use admin email - admin@evoai.com and password admin123 to login.
+install:
+- docker:
+    image: $IMAGE
+    name: evo-ai
+    port: $PORT:80
+    volumes:
+    - /app/logs
+    - /app/static
+    extra_ports:
+    - 8000:8000
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Use admin email - admin@evoai.com and password admin123 to login.
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

@@ -1,0 +1,64 @@
+metadata:
+  name: Mealie
+  version: latest
+  description: Mealie is a self-hosted recipe manager and meal planner designed to
+    provide a pleasant user experience for the whole family. It features a RestAPI
+    backend and a reactive frontend application built in Vue. With Mealie, you can
+    quickly and easily import recipes from various websites using the built-in recipe
+    scraper. The app ensures the safety of your data with automatic backups in any
+    format supported by Jinja2 templates. It offers a rich and intuitive user interface
+    that allows you to create, edit, and delete recipes with ease. The recipe editor
+    supports markdown syntax for added convenience. Mealie also enables you to create
+    meal plans for the week, month, or year. You can add new users, sort them into
+    groups to share recipes and meal plans, and schedule webhooks to send notifications
+    to 3rd party services with today's meal plan data. The open API gives you full
+    control of the backend server with interactive documentation.
+  category: food-&-drink
+  tags:
+  - Food & Drink
+  - Recipe Manager
+  - Meal Planner
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: hkotel/mealie:v3.16.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 9000
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Documentation
+  url: https://nightly.mealie.io/
+- label: Github
+  url: https://github.com/hay-kot/mealie/
+instructions: Please use the following credentials to login. changeme@easypanel.io|MyPassword
+install:
+- docker:
+    image: $IMAGE
+    name: mealie
+    port: $PORT:9000
+    volumes:
+    - /app/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Please use the following credentials to login. changeme@easypanel.io|MyPassword

@@ -1,0 +1,77 @@
+metadata:
+  name: OxiCloud
+  version: latest
+  description: OxiCloud is an ultra-fast, secure, and lightweight self-hosted cloud
+    storage written in Rust. It serves as a lightweight alternative to NextCloud,
+    designed for low-resource environments. OxiCloud runs on just 512MB RAM with sub-second
+    response times, offering file management, user authentication, file deduplication,
+    search, CalDAV calendars, CardDAV contacts, and multi-language support. Built
+    with Clean Architecture, it provides a clean UI that works on desktop and mobile.
+  category: file-storage
+  tags:
+  - File Storage
+  - Cloud Storage
+  - Self-Hosted
+  - NextCloud Alternative
+  - CalDAV
+  - CardDAV
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: diocrafts/oxicloud:0.5.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8086
+links:
+- label: Github
+  url: https://github.com/DioCrafts/OxiCloud
+- label: Documentation
+  url: https://github.com/DioCrafts/OxiCloud/tree/main/doc
+- label: Docker Hub
+  url: https://hub.docker.com/r/diocrafts/oxicloud
+instructions: 'Set OXICLOUD_BASE_URL on the app service to your public URL (e.g. https://cloud.example.com)
+
+  if you access OxiCloud via a domain; otherwise auth and share links can break. Database
+
+  migrations run automatically on first start. JWT signing uses a generated OXICLOUD_JWT_SECRET.
+
+  '
+install:
+- docker:
+    image: $IMAGE
+    name: oxicloud
+    port: $PORT:8086
+    volumes:
+    - /app/storage
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: 'Set OXICLOUD_BASE_URL on the app service to your public URL (e.g. https://cloud.example.com)
+
+    if you access OxiCloud via a domain; otherwise auth and share links can break.
+    Database
+
+    migrations run automatically on first start. JWT signing uses a generated OXICLOUD_JWT_SECRET.
+
+    '
+services:
+  postgres:
+    type: postgres
+    version: latest

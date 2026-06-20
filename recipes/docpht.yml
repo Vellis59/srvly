@@ -1,0 +1,57 @@
+metadata:
+  name: DocPHT
+  version: latest
+  description: DocPHT is a document management system that helps you organize and
+    manage your documents. It provides a simple and intuitive interface for storing,
+    organizing, and sharing documents.
+  category: document-management
+  tags:
+  - Document Management
+  - Organization
+  - Self-Hosted
+  - Web Application
+  - Productivity
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: docpht/docpht:v1.3.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: GitHub
+  url: https://github.com/docpht/docpht
+- label: Website
+  url: https://docpht.org
+- label: Documentation
+  url: https://docs.docpht.org
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: docpht
+    port: $PORT:80
+    volumes:
+    - /var/www/app/src/config
+    - /var/www/app/data
+    - /var/www/app/pages
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

@@ -1,0 +1,55 @@
+metadata:
+  name: StandardNotes
+  version: latest
+  description: StandardNotes is a private, end-to-end encrypted notes app that provides
+    a secure platform for writing and organizing your thoughts. It offers a clean,
+    distraction-free interface with strong encryption to protect your privacy. The
+    self-hosted version gives you complete control over your data while maintaining
+    all the security features of the cloud version.
+  category: notes-app
+  tags:
+  - Notes App
+  - Encryption
+  - Self-Hosted
+  - Privacy
+  - Writing
+  - Productivity
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: standardnotes/web:f4a94811848ea19550703d5dcd2b446091bf9536
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://docs.standardnotes.com/self-hosting/getting-started
+- label: Github
+  url: https://github.com/standardnotes/app
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: standardnotes
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

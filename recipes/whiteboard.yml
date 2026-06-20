@@ -1,0 +1,58 @@
+metadata:
+  name: Whiteboard
+  version: latest
+  description: Whiteboard is a lightweight, NodeJS-based collaborative sketchboard
+    that can be easily customized to your needs. It allows multiple users to draw
+    and write together in real-time, with each user's cursor visible to others. The
+    app provides a range of features including the ability to undo and redo actions,
+    drag and drop or copy and paste images or PDFs, resize, move, rotate and draw
+    images, write text and sticky notes, and save the whiteboard to an image or JSON.
+    You can also draw angle lines and squares by pressing 'Shift' while drawing. The
+    app is compatible with PC, tablet, and mobile devices, and can be used in various
+    projects such as WebRTC conference tools and online collaboration learning activities.
+  category: productivity
+  tags:
+  - Productivity
+  - Collaboration
+  - Whiteboard
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: rofl256/whiteboard:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://github.com/cracker0dks/whiteboard
+- label: Documentation
+  url: https://github.com/cracker0dks/whiteboard
+- label: Github
+  url: https://github.com/cracker0dks/whiteboard
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: whiteboard
+    port: $PORT:8080
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

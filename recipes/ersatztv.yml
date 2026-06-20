@@ -1,0 +1,66 @@
+metadata:
+  name: ErsatzTV
+  version: latest
+  description: ErsatzTV is a modern, web-based IPTV server that creates custom TV
+    channels from your local media library. It streams your movies, TV shows, and
+    other content as continuous TV channels that can be watched on any IPTV-compatible
+    device or application. ErsatzTV provides a sophisticated scheduling system, allowing
+    you to create program guides, manage commercial breaks, and simulate a real TV
+    experience with your personal media collection. Perfect for home entertainment
+    setups, media centers, and creating personalized TV channels from your existing
+    content library.
+  category: iptv
+  tags:
+  - IPTV
+  - Media Server
+  - TV Channels
+  - Streaming
+  - Home Entertainment
+  - Media Center
+  - Plex Alternative
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/ersatztv/ersatztv:v26.3.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8409
+links:
+- label: Website
+  url: https://ersatztv.org
+- label: GitHub
+  url: https://github.com/ersatztv/ersatztv
+- label: Documentation
+  url: https://ersatztv.github.io/ersatztv/
+instructions: The application uses /transcode as a temporary directory for processing
+  media files, which is mounted as a volume for optimal performance.
+install:
+- docker:
+    image: $IMAGE
+    name: ersatztv
+    port: $PORT:8409
+    volumes:
+    - /config
+    - /media
+    - /transcode
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: The application uses /transcode as a temporary directory for processing media
+    files, which is mounted as a volume for optimal performance.

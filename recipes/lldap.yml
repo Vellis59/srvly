@@ -1,0 +1,63 @@
+metadata:
+  name: LLDAP
+  version: latest
+  description: LLDAP (Lightweight LDAP) is a simple, lightweight, high-performance
+    LDAP server designed for authentication in small to medium-sized deployments.
+    It provides an intuitive web UI for user management and a complete implementation
+    of LDAP search and bind operations. LLDAP is perfect for self-hosted applications
+    that require LDAP authentication without the complexity of full-featured LDAP
+    servers like OpenLDAP. It stores user data in an embedded SQLite database by default
+    but also supports PostgreSQL, making it easy to set up and maintain. With features
+    like password hashing, account creation/deletion, group management, and MFA support,
+    LLDAP offers a modern solution for identity management in your self-hosted infrastructure.
+  category: ldap
+  tags:
+  - LDAP
+  - Authentication
+  - Identity Management
+  - User Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lldap/lldap:2026-05-05
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3890
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: GitHub
+  url: https://github.com/nitnelave/lldap
+- label: Docker Hub
+  url: https://hub.docker.com/r/nitnelave/lldap
+instructions: Login using the username "admin" and the password you would decide.
+install:
+- docker:
+    image: $IMAGE
+    name: lldap
+    port: $PORT:3890
+    volumes:
+    - /data
+    extra_ports:
+    - 17170:17170
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Login using the username "admin" and the password you would decide.

@@ -1,0 +1,59 @@
+metadata:
+  name: Vikunja
+  version: latest
+  description: Vikunja is a self-hosted To-Do list application and task management
+    tool. It provides a clean and intuitive interface for organizing tasks, projects,
+    and team collaboration. With features like task lists, labels, assignees, due
+    dates, and more, Vikunja helps individuals and teams stay organized and productive.
+  category: task-management
+  tags:
+  - Task Management
+  - To-Do List
+  - Project Management
+  - Productivity
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: vikunja/vikunja:0.24.6
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3456
+links:
+- label: Documentation
+  url: https://vikunja.io/docs/
+- label: Github
+  url: https://github.com/go-vikunja/vikunja
+instructions: Create a new user and login to the application.
+install:
+- docker:
+    image: $IMAGE
+    name: vikunja
+    port: $PORT:3456
+    volumes:
+    - /app/vikunja/files
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Create a new user and login to the application.
+services:
+  mysql:
+    type: mysql
+    version: latest

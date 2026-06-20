@@ -1,0 +1,55 @@
+metadata:
+  name: qBitWebUI
+  version: latest
+  description: qBitWebUI is a modern web interface for qBittorrent, providing an enhanced
+    user experience for managing your torrent downloads. It offers a clean, responsive
+    design with advanced features like dark mode, mobile support, and improved usability
+    compared to the default qBittorrent web UI. Perfect for users who want a better
+    way to manage their torrents remotely through a web browser.
+  category: torrent
+  tags:
+  - Torrent
+  - qBittorrent
+  - Web UI
+  - Download Manager
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/maciejonos/qbitwebui:2.21
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: GitHub
+  url: https://github.com/maciejonos/qbitwebui
+- label: Website
+  url: https://maciejonos.github.io/qbitwebui/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: qbitwebui
+    port: $PORT:3000
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

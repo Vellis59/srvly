@@ -1,0 +1,55 @@
+metadata:
+  name: KeePassXC
+  version: latest
+  description: KeePassXC is a modern, secure, and open-source password manager that
+    stores and manages your passwords in an encrypted database. It provides strong
+    security features and cross-platform compatibility.
+  category: security
+  tags:
+  - Security
+  - Password Manager
+  - Encryption
+  - Open Source
+  - Cross-Platform
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/keepassxc:2.7.11
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://keepassxc.org
+- label: Documentation
+  url: https://keepassxc.org/docs
+- label: GitHub
+  url: https://github.com/keepassxreboot/keepassxc
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: keepassxc
+    port: $PORT:3000
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

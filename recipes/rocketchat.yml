@@ -1,0 +1,61 @@
+metadata:
+  name: Rocket.Chat
+  version: latest
+  description: Rocket.Chat SIX is a secure and scalable collaboration platform designed
+    to enhance team productivity and customer service experiences. It allows you to
+    own your data and offers extensive customization and integration options. The
+    platform brings together messages, projects, and tasks into one place, enabling
+    teams to work more efficiently. It also provides an omnichannel customer service
+    experience, allowing businesses to engage in contextual interactions with customers,
+    fostering long-term relationships and improved business outcomes. Additionally,
+    Rocket.Chat SIX features a chat engine to drive higher user engagement within
+    your app or website. The platform is built for teams that need more control, offering
+    end-to-end encryption, compliance with various data protection regulations, and
+    a wide range of deployment options to meet your security needs.
+  category: chat
+  tags:
+  - Chat
+  - Communication
+  - Collaboration
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: rocketchat/rocket.chat:7.12.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://rocket.chat/
+- label: Documentation
+  url: https://docs.rocket.chat/
+- label: Github
+  url: https://github.com/RocketChat/Rocket.Chat
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: rocketchat
+    port: $PORT:80
+    volumes:
+    - /bitnami/mongodb
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

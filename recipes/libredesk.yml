@@ -1,0 +1,70 @@
+metadata:
+  name: Libredesk
+  version: latest
+  description: Libredesk is a modern, self-hosted helpdesk and customer support platform
+    built with Rust. It provides a comprehensive solution for managing customer inquiries,
+    tickets, and support workflows. Libredesk features a clean web interface, multi-user
+    support, ticket management, and integration capabilities for businesses of all
+    sizes.
+  category: helpdesk
+  tags:
+  - Helpdesk
+  - Customer Support
+  - Ticket Management
+  - Self-Hosted
+  - Web Interface
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: libredesk/libredesk:v1.0.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 9000
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://libredesk.io
+- label: Documentation
+  url: https://docs.libredesk.io/introduction
+- label: DockerHub
+  url: https://hub.docker.com/r/libredesk/libredesk
+instructions: Default credentials are System/${SystemUserPassword}
+install:
+- docker:
+    image: $IMAGE
+    name: libredesk
+    port: $PORT:9000
+    volumes:
+    - /libredesk/uploads
+    - /libredesk/config.toml
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Default credentials are System/${SystemUserPassword}
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

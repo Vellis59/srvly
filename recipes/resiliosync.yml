@@ -1,0 +1,56 @@
+metadata:
+  name: Resilio Sync
+  version: latest
+  description: Sync (Resilio Sync) is a self-hosted file synchronization and sharing
+    application that allows users to securely sync files between devices without relying
+    on cloud storage. It provides a powerful alternative to proprietary cloud-based
+    file sharing services, ensuring complete control over data and privacy. With Sync,
+    users can transfer large files quickly, collaborate on projects in real-time,
+    and maintain data consistency across multiple devices. Built with efficiency and
+    security in mind, Sync is ideal for both personal and business use.
+  category: file-synchronization
+  tags:
+  - File Synchronization
+  - Self-Hosted
+  - Privacy
+  - Collaboration
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: resilio/sync:2.8.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8888
+links:
+- label: Documentation
+  url: https://help.resilio.com/hc/en-us
+- label: Dockerhub Documentation
+  url: https://hub.docker.com/r/resilio/sync
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: resiliosync
+    port: $PORT:8888
+    volumes:
+    - /mnt/sync
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

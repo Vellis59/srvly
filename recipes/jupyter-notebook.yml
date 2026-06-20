@@ -1,0 +1,63 @@
+metadata:
+  name: JupyterNotebook
+  version: latest
+  description: Jupyter Notebook is a popular, free, and open-source web application
+    that allows you to create and share documents containing live code, equations,
+    visualizations, and narrative text. It supports numerous programming languages
+    and is widely used for data cleaning and transformation, numerical simulation,
+    statistical modeling, data visualization, machine learning, and much more. The
+    app is designed to be accessed via your web browser, providing an interactive
+    interface for easy development and experimentation. It supports hardware acceleration
+    for enhanced performance in computational tasks. The app is compatible with multiple
+    architectures, ensuring it can run on various systems.
+  category: data-science
+  tags:
+  - Data Science
+  - Machine Learning
+  - Visualization
+  - Statistical Modeling
+  - Numerical Simulation
+  - Interactive Computing
+  - Data Analysis
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ''
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8888
+links:
+- label: Documentation
+  url: https://jupyter-notebook.readthedocs.io/en/stable/
+- label: Github
+  url: https://github.com/jupyter/notebook
+instructions: Run "jupyter server list" in the console of the service and copy the
+  token. Then either login with the token or create a password using that.
+install:
+- docker:
+    image: $IMAGE
+    name: jupyter-notebook
+    port: $PORT:8888
+    volumes:
+    - /home/jovyan/work
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Run "jupyter server list" in the console of the service and copy the token.
+    Then either login with the token or create a password using that.

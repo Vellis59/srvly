@@ -1,0 +1,56 @@
+metadata:
+  name: Substreamer
+  version: latest
+  description: Substreamer is a free client app designed to provide you with a seamless
+    and personalized music experience. It works in conjunction with the Subsonic music
+    server, allowing you to organize and access your music library in a way that suits
+    you best. Substreamer is compatible with Subsonic forks such as Airsonic, Madsonic,
+    and others that implement the Subsonic API v1.13 or higher, including Navidrome
+    and Ampache. This app is packed with features that enhance your music listening
+    experience. With Substreamer, your music is always at your fingertips, just the
+    way you like it.
+  category: music
+  tags:
+  - Music
+  - Streaming
+  - Server
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghenry22/substreamer:6.0.43
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8081
+links:
+- label: Community
+  url: https://reddit.com/substreamer
+- label: Website
+  url: https://substreamerapp.com
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: substreamer
+    port: $PORT:8081
+    volumes:
+    - /usr/share/nginx/html
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

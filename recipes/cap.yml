@@ -1,0 +1,63 @@
+metadata:
+  name: Cap
+  version: latest
+  description: Cap is an open source screen recording and sharing platform, providing
+    a lightweight alternative to Loom. With Cap, you can create beautiful, shareable
+    screen recordings with instant sharing capabilities or local recording with full
+    editing features. It supports 4K recording, 60fps capture, and offers both cloud
+    and self-hosted storage options. Perfect for creating tutorials, presentations,
+    educational content, and team collaboration. Cap includes features like auto-generated
+    captions, titles, summaries, chapters, and AI-powered transcriptions.
+  category: productivity
+  tags:
+  - Productivity
+  - Video
+  - Developer Tools
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/capsoftware/cap-web:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://cap.so/
+- label: GitHub
+  url: https://github.com/capsoftware/cap
+- label: Documentation
+  url: https://cap.so/docs
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: cap
+    port: $PORT:3000
+    volumes:
+    - /data
+    extra_ports:
+    - 9000:9000
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

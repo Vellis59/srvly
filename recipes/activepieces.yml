@@ -1,0 +1,66 @@
+metadata:
+  name: Activepieces
+  version: latest
+  description: Activepieces is a powerful open-source business automation tool designed
+    to streamline your work without the need for coding. It serves as an excellent
+    alternative to Zapier, allowing you to automate your daily tasks or even your
+    entire business with just a few clicks on the user interface. With Activepieces,
+    you can enjoy the flexibility of using our 3rd party no-code apps to quickly read
+    and write to your favorite apps. Currently, we support 74 apps and counting. The
+    tool is self-hosted, ensuring your data remains on your machine, providing an
+    added layer of security. Activepieces also offers infinite flexibility and powerful
+    logging, making it a robust solution for business automation without limits.
+  category: no-code
+  tags:
+  - No-Code
+  - Business Apps
+  - Automation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: activepieces/activepieces:0.82.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://activepieces.com
+- label: Documentation
+  url: https://activepieces.com/docs
+- label: Github
+  url: https://github.com/activepieces/activepieces
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: activepieces
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

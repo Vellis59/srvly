@@ -1,0 +1,72 @@
+metadata:
+  name: Matrix Synapse
+  version: latest
+  description: Matrix is an open network designed for secure, decentralised communication.
+    This app allows you to chat with friends, family, communities, and co-workers,
+    providing a cozy, safe, and supercharged environment for your conversations. You
+    can reclaim your space and build advanced, rich communication applications on
+    top of Matrix. The app is part of a rich ecosystem that includes clients, servers,
+    bots, and application services. It's an open-source project, generously hosted
+    by UpCloud. With Matrix, you can start a conversation, build apps, and explore
+    the vast possibilities of a decentralised communication network.
+  category: chat
+  tags:
+  - Chat
+  - Communication
+  - Social Networking
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: matrixdotorg/synapse:v1.152.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8008
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://matrix.org
+- label: Docs
+  url: https://matrix-org.github.io/synapse
+- label: Github
+  url: https://github.com/matrix-org/synapse
+- label: Docker
+  url: https://hub.docker.com/r/matrixdotorg/synapse
+instructions: To create a user, simply execute the command "register_new_matrix_user
+  -c data/homeserver.yaml" via console connection.
+install:
+- docker:
+    image: $IMAGE
+    name: matrix-synapse
+    port: $PORT:8008
+    volumes:
+    - /var/lib/postgresql/data
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: To create a user, simply execute the command "register_new_matrix_user -c
+    data/homeserver.yaml" via console connection.
+services:
+  postgres:
+    type: postgres
+    version: latest

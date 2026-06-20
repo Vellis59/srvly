@@ -1,0 +1,68 @@
+metadata:
+  name: Freescout
+  version: latest
+  description: FreeScout is a powerful, open-source help desk and shared inbox application.
+    It's a self-hosted alternative to Zendesk & Help Scout, offering you complete
+    control over your customer support without compromising on privacy. FreeScout
+    is designed to be lightweight yet robust, capable of handling unlimited support
+    agents, tickets, and mailboxes. It offers seamless email integration, automatic
+    replies, internal notes, conversation forwarding, merging, and moving, among other
+    features. The application is mobile-friendly and supports multiple languages.
+    It also includes features like push notifications, starred conversations, collision
+    detection, and flexible notifications for user agents. FreeScout also offers a
+    range of integrations, including Slack, WhatsApp, Facebook, and Telegram, and
+    supports translating tickets, live chat, time tracking, custom fields, and more.
+    It's the perfect solution for those who need professional customer support but
+    can't afford to pay for Zendesk or Help Scout.
+  category: customer-support
+  tags:
+  - Customer Support
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: tiredofit/freescout:php8.1-1.17.158
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://freescout.net
+- label: Documentation
+  url: https://github.com/freescout-helpdesk/freescout/wiki
+- label: Github
+  url: https://github.com/freescout-helpdesk/freescout/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: freescout
+    port: $PORT:80
+    volumes:
+    - /www/logs
+    - /data
+    - /assets/modules
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

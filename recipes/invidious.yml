@@ -1,0 +1,65 @@
+metadata:
+  name: Invidious
+  version: latest
+  description: Invidious is a privacy-respecting alternative frontend for YouTube,
+    designed to offer a lightweight, ad-free, and tracking-free viewing experience.
+    It allows users to watch YouTube videos without being tracked, bypasses regional
+    restrictions, and provides advanced features like video downloads, subscription
+    management, and audio-only mode. Invidious supports multiple languages and offers
+    a minimal interface with various themes for enhanced user experience. Additionally,
+    it integrates seamlessly with other platforms by providing RSS feeds for subscriptions
+    and API support.
+  category: privacy
+  tags:
+  - Privacy
+  - YouTube Alternative
+  - Open Source
+  - Video Streaming
+  - Lightweight
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: quay.io/invidious/invidious:2026.02.16-e7f8b15
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://invidious.io/
+- label: Documentation
+  url: https://docs.invidious.io/
+- label: GitHub
+  url: https://github.com/iv-org/invidious
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: invidious
+    port: $PORT:3000
+    volumes: []
+    extra_ports:
+    - 5432:5432
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

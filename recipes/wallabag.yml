@@ -1,0 +1,56 @@
+metadata:
+  name: Wallabag
+  version: latest
+  description: Wallabag is a self-hosted read-it-later application that allows you
+    to save web articles and access them later in a clean, distraction-free format.
+    Written in PHP, it enables you to store and organize articles, categorize them
+    with tags, and sync across multiple devices. Wallabag is privacy-focused, supports
+    importing from services like Pocket and Instapaper, and provides a RESTful API
+    for integration with other tools. The app offers browser extensions, a mobile-friendly
+    interface, and multiple export options, including PDF, ePub, and plain text.
+  category: productivity
+  tags:
+  - Productivity
+  - Reading
+  - Bookmarking
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: wallabag/wallabag:2.6.14
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://doc.wallabag.org
+- label: Github
+  url: https://github.com/wallabag/wallabag
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: wallabag
+    port: $PORT:80
+    volumes:
+    - /var/www/wallabag/web/assets/images
+    - /var/www/wallabag/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

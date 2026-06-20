@@ -1,0 +1,61 @@
+metadata:
+  name: Prometheus
+  version: latest
+  description: Prometheus is an open-source monitoring and alerting toolkit designed
+    for reliability and scalability. It collects metrics from configured targets at
+    specified intervals, evaluates rule expressions, and triggers alerts when specified
+    conditions are observed. Prometheus stores all data as time-series, making it
+    ideal for monitoring application and system performance over time. Its powerful
+    query language, PromQL, allows for real-time data analysis, and its flexible integrations
+    support various exporters and service discovery mechanisms. Prometheus can also
+    integrate with alerting tools like Alertmanager to send notifications via email,
+    Slack, or other channels. With native support for Docker, Kubernetes, and other
+    container platforms, Prometheus provides deep visibility into modern infrastructure
+    and services.
+  category: monitoring
+  tags:
+  - Monitoring
+  - Time-Series
+  - Alerting
+  - PromQL
+  - Cloud-Native
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: prom/prometheus:v3.8.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 9090
+links:
+- label: Github
+  url: https://github.com/prometheus/prometheus
+- label: Documentation
+  url: https://prometheus.io/docs/introduction/overview/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: promethus
+    port: $PORT:9090
+    volumes:
+    - /prometheus
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

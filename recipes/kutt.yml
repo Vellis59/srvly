@@ -1,0 +1,66 @@
+metadata:
+  name: Kutt
+  version: latest
+  description: Kutt is a free and open-source app designed to make your links shorter
+    and more manageable. With Kutt, you can create, protect, and delete your links,
+    and monitor them with detailed statistics. You can also set custom domains for
+    your links, adding a personal touch to your URLs. The app also provides an API,
+    allowing you to create, delete, and get URLs from anywhere. Kutt also offers browser
+    extensions for Chrome and Firefox for easy access and use. The app is completely
+    open source and free, giving you the freedom to host it on your own server if
+    you wish.
+  category: url-shortener
+  tags:
+  - URL Shortener
+  - Link Management
+  - Analytics
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: kutt/kutt:v3.2.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://kutt.it/
+- label: Documentation
+  url: https://docs.kutt.it/
+- label: Github
+  url: https://github.com/thedevs-network/kutt
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: kutt
+    port: $PORT:3000
+    volumes:
+    - /usr/src/app
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

@@ -1,0 +1,63 @@
+metadata:
+  name: Chevereto
+  version: latest
+  description: Chevereto is a powerful, self-hosted image and video hosting platform
+    designed for individuals, communities, and businesses. It allows users to upload,
+    organize, and share media effortlessly. With a clean interface and a wide range
+    of customization options, Chevereto supports private albums, multi-language capabilities,
+    and robust file management, making it the ultimate solution for image and video
+    hosting.
+  category: image-hosting
+  tags:
+  - Image Hosting
+  - File Management
+  - Open Source
+  - Multi-User
+  - Private Albums
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: chevereto/chevereto:4.5.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Github
+  url: https://github.com/chevereto/chevereto
+- label: Documentation
+  url: https://v4-docs.chevereto.com/
+- label: Demo
+  url: https://demo.chevereto.com/
+instructions: Open the nginx domain to access Chevereto
+install:
+- docker:
+    image: $IMAGE
+    name: chevereto
+    port: $PORT:8080
+    volumes:
+    - /var/www/html/images/
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Open the nginx domain to access Chevereto
+services:
+  mysql:
+    type: mysql
+    version: latest

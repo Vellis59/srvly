@@ -1,0 +1,62 @@
+metadata:
+  name: OtterWiki
+  version: latest
+  description: OtterWiki is a simple, easy-to-use wiki software for personal use and
+    small teams. It's designed to be minimalist, focusing on the essentials without
+    unnecessary complexity. OtterWiki stores all content as Markdown files in a Git
+    repository, providing automatic version control and the ability to edit pages
+    using your favorite text editor. It features a clean, modern interface with syntax
+    highlighting, file attachments, full-text search, and dark mode support. The wiki
+    requires no database setup - everything is stored in plain text files, making
+    backups and migrations simple. OtterWiki supports user authentication, page permissions,
+    and comes with a built-in editor with live preview. Perfect for documentation,
+    note-taking, knowledge management, and collaborative writing in small teams.
+  category: wiki
+  tags:
+  - Wiki
+  - Documentation
+  - Markdown
+  - Git
+  - Knowledge Base
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: redimp/otterwiki:2.20.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://otterwiki.com/
+- label: Github
+  url: https://github.com/redimp/otterwiki
+- label: Docker Hub
+  url: https://hub.docker.com/r/redimp/otterwiki
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: otterwiki
+    port: $PORT:80
+    volumes:
+    - /app-data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

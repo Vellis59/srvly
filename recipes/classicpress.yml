@@ -1,0 +1,59 @@
+metadata:
+  name: ClassicPress
+  version: latest
+  description: ClassicPress is a community-led open source content management system
+    for creators. It is a fork of WordPress 6.2 that preserves the TinyMCE classic
+    editor as the default option. It is half the size of WordPress, contains less
+    bloat improving performance, and has no block editor (Gutenberg/Full Site Editing).
+  category: content-management
+  tags:
+  - Content Management
+  - Developer Tools
+  - Open Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: classicpress/classicpress:php8.5-apache
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://www.classicpress.net/
+- label: Documentation
+  url: https://docs.classicpress.net/
+- label: Github
+  url: https://github.com/ClassicPress/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: classicpress
+    port: $PORT:80
+    volumes:
+    - /var/www/html
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

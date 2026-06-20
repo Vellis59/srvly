@@ -1,0 +1,60 @@
+metadata:
+  name: ArchiveBox
+  version: latest
+  description: ArchiveBox is a self-hosted open-source internet archiving solution
+    that allows you to save and browse webpages offline. It enables users to store
+    full snapshots of web pages, including HTML, media, PDFs, and more, preserving
+    them for future reference. ArchiveBox supports various input formats such as bookmarks,
+    RSS feeds, and browser history, making it easy to automate and manage archiving
+    tasks. The web interface provides a structured way to browse archived content,
+    perform full-text searches, and organize saved snapshots efficiently. Additionally,
+    it offers integrations with other tools, supports multiple storage backends, and
+    provides API access for advanced automation.
+  category: archiving
+  tags:
+  - Archiving
+  - Web Scraping
+  - Productivity
+  - Research
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: archivebox/archivebox:0.7.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Documentation
+  url: https://github.com/ArchiveBox/ArchiveBox/wiki
+- label: Github
+  url: https://github.com/ArchiveBox/ArchiveBox
+instructions: To create superuser, take the console, and do "su archivebox && archivebox
+  manage createsuperuser"
+install:
+- docker:
+    image: $IMAGE
+    name: archivebox
+    port: $PORT:8000
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: To create superuser, take the console, and do "su archivebox && archivebox
+    manage createsuperuser"

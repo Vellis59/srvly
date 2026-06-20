@@ -1,0 +1,70 @@
+metadata:
+  name: Sinusbot
+  version: latest
+  description: Sinusbot is a powerful and versatile music bot designed for communication
+    platforms like TeamSpeak and Discord. It allows users to stream high-quality audio,
+    manage playlists, and automate music playback seamlessly. Sinusbot is lightweight,
+    highly customizable, and provides an intuitive web interface for managing audio
+    playback. With support for plugins and scripting, Sinusbot can be tailored to
+    meet the needs of any community, enhancing the audio experience for gaming, collaboration,
+    or leisure activities.
+  category: music-bot
+  tags:
+  - Music Bot
+  - Audio Streaming
+  - TeamSpeak
+  - Discord
+  - Automation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: sinusbot/docker:1.0.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8087
+links:
+- label: Documentation
+  url: https://sinusbot.github.io/docs/
+- label: Github
+  url: https://github.com/SinusBot
+instructions: Create a user using this command "useradd --no-create-home -s /sbin/nologin
+  -U sinusbot", then create directories using this command "mkdir -p /opt/sinusbot/data
+  /opt/sinusbot/scripts", then give user permissions to this folder using this command
+  "chown -R sinusbot:sinusbot /opt/sinusbot", then run echo $(id -u sinusbot) and
+  echo $(id -g sinusbot) and copy the uid and guid, paste the given ids in the Environmental
+  Section and redeploy, if UID/GUID is"1000"/"1000", then just redeploy after performing
+  the above instructions
+install:
+- docker:
+    image: $IMAGE
+    name: sinusbot
+    port: $PORT:8087
+    volumes:
+    - /opt/sinusbot/scripts
+    - /opt/sinusbot/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Create a user using this command "useradd --no-create-home -s /sbin/nologin
+    -U sinusbot", then create directories using this command "mkdir -p /opt/sinusbot/data
+    /opt/sinusbot/scripts", then give user permissions to this folder using this command
+    "chown -R sinusbot:sinusbot /opt/sinusbot", then run echo $(id -u sinusbot) and
+    echo $(id -g sinusbot) and copy the uid and guid, paste the given ids in the Environmental
+    Section and redeploy, if UID/GUID is"1000"/"1000", then just redeploy after performing
+    the above instructions

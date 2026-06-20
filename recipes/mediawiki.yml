@@ -1,0 +1,77 @@
+metadata:
+  name: MediaWiki
+  version: latest
+  description: MediaWiki is a powerful, open-source wiki platform that powers some
+    of the largest collaborative projects, including Wikipedia. It offers a flexible
+    and extensible framework for creating and managing content, supporting features
+    like user management, version control, and powerful extensions. MediaWiki provides
+    multilingual support, ensuring global accessibility, and includes built-in tools
+    for content organization, search, and collaboration. It is an ideal solution for
+    knowledge bases, documentation sites, and community-driven content platforms.
+    With a vibrant ecosystem of plugins and themes, MediaWiki can be customized to
+    suit diverse use cases.
+  category: wiki
+  tags:
+  - Wiki
+  - Collaboration
+  - Content Management
+  - CMS
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: mediawiki:1.45.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://www.mediawiki.org
+- label: Documentation
+  url: https://www.mediawiki.org/wiki/Manual:Contents
+- label: Github
+  url: https://github.com/wikimedia/mediawiki
+instructions: During the installation, configure the database as prompted, and once
+  completed, a file named "LocalSettings.php" will be downloaded. Open EasyPanel,
+  navigate to the Storage section for MediaWiki, and create a file mount. Paste the
+  content of the LocalSettings.php file into the mount and set its mount path to /var/www/html/LocalSettings.php.
+  Finally, redeploy the MediaWiki app in EasyPanel to apply the configuration.
+install:
+- docker:
+    image: $IMAGE
+    name: mediawiki
+    port: $PORT:80
+    volumes:
+    - /var/www/html/images
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: During the installation, configure the database as prompted, and once completed,
+    a file named "LocalSettings.php" will be downloaded. Open EasyPanel, navigate
+    to the Storage section for MediaWiki, and create a file mount. Paste the content
+    of the LocalSettings.php file into the mount and set its mount path to /var/www/html/LocalSettings.php.
+    Finally, redeploy the MediaWiki app in EasyPanel to apply the configuration.
+services:
+  mysql:
+    type: mysql
+    version: latest

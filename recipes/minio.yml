@@ -1,0 +1,56 @@
+metadata:
+  name: Minio
+  version: latest
+  description: Minio is an open-source, self-hosted object storage solution designed
+    to empower users with efficient data storage and management capabilities. Prioritizing
+    control and privacy, Minio enables individuals and organizations to build their
+    private cloud infrastructure. With its user-friendly interface and robust features,
+    Minio allows seamless storage and retrieval of large amounts of data while offering
+    secure access controls.
+  category: self-hosted
+  tags: []
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: minio/minio:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 9000
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Documentation
+  url: https://min.io/docs/minio/linux/index.html
+- label: Github
+  url: https://github.com/minio/minio
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: minio
+    port: $PORT:9000
+    volumes:
+    - /data
+    extra_ports:
+    - 9001:9001
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

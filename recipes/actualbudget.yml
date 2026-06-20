@@ -1,0 +1,55 @@
+metadata:
+  name: Actual Budget
+  version: latest
+  description: Actual is a personal finance tool designed to help you manage your
+    finances with ease and convenience. This local-first application is 100% free
+    and open-source, providing you with a reliable platform to keep track of your
+    financial transactions. It's written in NodeJS and features a synchronization
+    element that allows your changes to seamlessly move between devices. This means
+    you can access and manage your financial data from any device without any hassle.
+    The app is not just about tracking your expenses, it also includes features for
+    budgeting, account management, and generating reports and filters. With Actual,
+    managing your personal finances becomes a breeze.
+  category: finance
+  tags:
+  - Finance
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/actualbudget/actual-server:26.2.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5006
+links:
+- label: Github
+  url: https://github.com/actualbudget/actual
+- label: Documentation
+  url: https://actualbudget.github.io/docs
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: actualbudget
+    port: $PORT:5006
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

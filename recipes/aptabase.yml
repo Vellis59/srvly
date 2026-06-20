@@ -1,0 +1,64 @@
+metadata:
+  name: Aptabase
+  version: latest
+  description: Aptabase is an open-source, privacy-focused analytics platform for
+    mobile and desktop applications. It provides real-time analytics, crash reporting,
+    and user insights while respecting user privacy.
+  category: analytics
+  tags:
+  - Analytics
+  - Privacy
+  - Monitoring
+  - Self-hosted
+  - Open Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/aptabase/aptabase:main
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://aptabase.com
+- label: Documentation
+  url: https://aptabase.com/docs
+- label: GitHub
+  url: https://github.com/aptabase/aptabase
+instructions: Sign up and open the console logs where it will print the link to authorize
+  the email. Copy the URL part that looks like this. [url, https://your-domain/api/_auth/continue?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiU2lnbkluIiwibmFtZSI6IkFoc29uIFNoYWlraCIsImVtYWlsIjoiYWhzb25zaGFpa2g2MTZAZ21haWwuY29tIiwibmJmIjoxNzQ0MTE5MDgyLCJleHAiOjE3NDQxMTk5ODIsImlhdCI6MTc0NDExOTA4MiwiaXNzIjoiYXB0YWJhc2Utc2gifQ.PxbVTiVOXsTkkxQKV1AOGaaEpLnMOOtgSRMqDY6dkIg]\u0027.
+  Do not copy this part at the end ]\u0027
+install:
+- docker:
+    image: $IMAGE
+    name: aptabase
+    port: $PORT:8080
+    volumes:
+    - /var/lib/clickhouse
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Sign up and open the console logs where it will print the link to authorize
+    the email. Copy the URL part that looks like this. [url, https://your-domain/api/_auth/continue?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiU2lnbkluIiwibmFtZSI6IkFoc29uIFNoYWlraCIsImVtYWlsIjoiYWhzb25zaGFpa2g2MTZAZ21haWwuY29tIiwibmJmIjoxNzQ0MTE5MDgyLCJleHAiOjE3NDQxMTk5ODIsImlhdCI6MTc0NDExOTA4MiwiaXNzIjoiYXB0YWJhc2Utc2gifQ.PxbVTiVOXsTkkxQKV1AOGaaEpLnMOOtgSRMqDY6dkIg]\u0027.
+    Do not copy this part at the end ]\u0027
+services:
+  postgres:
+    type: postgres
+    version: latest

@@ -1,0 +1,57 @@
+metadata:
+  name: Manager.io
+  version: latest
+  description: Manager.io is a versatile accounting software designed for small businesses.
+    It allows you to manage your finances, track expenses, issue invoices, and generate
+    comprehensive financial reports. The software supports multi-currency transactions,
+    inventory tracking, payroll management, and tax calculations. With Manager.io,
+    you can handle all your business accounting needs through an intuitive and user-friendly
+    interface. It's available for desktop, server, and cloud deployment, offering
+    flexibility and scalability for businesses of all sizes.
+  category: accounting
+  tags:
+  - Accounting
+  - Business Management
+  - Finance
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: cronet/manager.io:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Official Website
+  url: https://www.manager.io/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: managerio
+    port: $PORT:8080
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

@@ -1,0 +1,61 @@
+metadata:
+  name: Umami
+  version: latest
+  description: Umami is a privacy-focused, open-source alternative to Google Analytics.
+    It is designed to respect user privacy by not collecting any personal information,
+    using cookies, or tracking users across websites. It is GDPR compliant and ensures
+    that all data collected is anonymized, making it impossible to identify any individual
+    user. Umami is simple and easy to use, collecting only the metrics you care about
+    and presenting them on a single page. It is a reliable and transparent product
+    with over 4 million downloads. With Umami, you can own your data and stay compliant
+    with ever-changing data privacy laws.
+  category: analytics
+  tags:
+  - Analytics
+  - Privacy
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/umami-software/umami:postgresql-v2.20.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://umami.is/
+- label: Github
+  url: https://github.com/umami-software/umami
+- label: Documentation
+  url: https://umami.is/docs
+instructions: You can login with username "admin" and password "umami".
+install:
+- docker:
+    image: $IMAGE
+    name: umami
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: You can login with username "admin" and password "umami".
+services:
+  postgres:
+    type: postgres
+    version: latest

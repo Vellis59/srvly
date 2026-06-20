@@ -1,0 +1,60 @@
+metadata:
+  name: Change Detection
+  version: latest
+  description: Changedetection.io is an intelligent tool designed to monitor changes
+    on websites. It is perfect for smart shoppers, data journalists, research engineers,
+    data scientists, security researchers, and more. The app allows you to watch up
+    to 5,000 URLs and supports over 85 notification formats. It is capable of monitoring
+    simple changes on a website, like price alterations or restock notifications,
+    to deep inspections such as PDF text changes, JSON and XML monitoring, and extensive
+    text triggers. The app also features intelligent product restock detection, making
+    it easier for you to keep track of product availability. Additionally, it can
+    perform interactive browser steps such as filling in text boxes, clicking buttons,
+    and setting up your change detection scenario. With Changedetection.io, you can
+    live your data life proactively, receiving notifications straight away when changes
+    occur on your watched websites.
+  category: monitoring
+  tags:
+  - Monitoring
+  - Data
+  - Notifications
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/dgtlmoon/changedetection.io:0.55.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5000
+links:
+- label: Website
+  url: https://changedetection.io
+- label: Github
+  url: https://github.com/dgtlmoon/changedetection.io
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: changedetection
+    port: $PORT:5000
+    volumes:
+    - /datastore
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

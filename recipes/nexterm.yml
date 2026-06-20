@@ -1,0 +1,58 @@
+metadata:
+  name: Nexterm
+  version: latest
+  description: Nexterm is a powerful web-based terminal emulator that provides secure
+    and convenient terminal access through your web browser. It offers a modern interface
+    for remote terminal operations, making it ideal for developers and system administrators
+    who need reliable terminal access from anywhere.
+  category: terminal
+  tags:
+  - Terminal
+  - Development
+  - Web-Based
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: germannewsmaker/nexterm:1.0.9-OPEN-PREVIEW
+  port:
+    type: integer
+    title: Port HTTP
+    default: 6989
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Github
+  url: https://github.com/gnmyt/Nexterm
+- label: Website
+  url: https://nexterm.dev
+- label: Documentation
+  url: https://docs.nexterm.dev
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: nexterm
+    port: $PORT:6989
+    volumes:
+    - /app/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

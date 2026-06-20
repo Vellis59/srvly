@@ -1,0 +1,67 @@
+metadata:
+  name: Paymenter
+  version: latest
+  description: Paymenter is a modern, open-source billing and client management system.
+    It provides a seamless platform for handling payments, subscriptions, and client
+    services with support for multiple payment gateways and automated billing processes.
+  category: billing
+  tags:
+  - Billing
+  - Payment
+  - Client Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/paymenter/paymenter:v1.4.7
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://paymenter.org
+- label: Documentation
+  url: https://paymenter.org/docs/getting-started/introduction
+- label: Github
+  url: https://github.com/paymenter/paymenter
+instructions: Connect the shell and run "php artisan app:init" to initialize the application,
+  and paste your domain inside. Secondly, create an admin user on the same shell using
+  "php artisan app:user:create".
+install:
+- docker:
+    image: $IMAGE
+    name: paymenter
+    port: $PORT:80
+    volumes:
+    - /app/var
+    - /app/storage/logs
+    - /app/storage/public
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Connect the shell and run "php artisan app:init" to initialize the application,
+    and paste your domain inside. Secondly, create an admin user on the same shell
+    using "php artisan app:user:create".
+services:
+  mysql:
+    type: mysql
+    version: latest
+  redis:
+    type: redis
+    version: '7'

@@ -1,0 +1,58 @@
+metadata:
+  name: Radicale
+  version: latest
+  description: Radicale is a small but powerful CalDAV (calendars, to-do lists) and
+    CardDAV (contacts) server. It allows you to share calendars and contact lists
+    through CalDAV, CardDAV, and HTTP. Radicale supports events, todos, journal entries,
+    and business cards. It works out-of-the-box, requiring no complicated setup or
+    configuration. Radicale can limit access by authentication and secure connections
+    with TLS. It works with many CalDAV and CardDAV clients, stores all data on the
+    file system in a simple folder structure, and can be extended with plugins. Radicale
+    is GPLv3-licensed free software.
+  category: calendars
+  tags:
+  - Calendars
+  - Productivity
+  - Business Apps
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: tomsquest/docker-radicale:3.7.1.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5232
+links:
+- label: Website
+  url: https://radicale.org/
+- label: Documentation
+  url: https://radicale.org/v3.html
+- label: Github
+  url: https://github.com/Kozea/Radicale
+instructions: Login with any username or password
+install:
+- docker:
+    image: $IMAGE
+    name: radicale
+    port: $PORT:5232
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Login with any username or password

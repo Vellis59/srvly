@@ -1,0 +1,64 @@
+metadata:
+  name: Zoraxy
+  version: latest
+  description: Zoraxy is a general-purpose reverse proxy and web application gateway
+    designed for self-hosting enthusiasts. It offers an intuitive web interface for
+    managing multiple web services with features like automatic SSL certificate management
+    via ACME/Let's Encrypt, virtual directory hosting, HTTP to HTTPS redirection,
+    and built-in authentication. Zoraxy supports WebSocket proxying, custom error
+    pages, rate limiting, geographic access control with GeoIP, and Docker integration
+    for seamless container management. Perfect for hosting multiple services on a
+    single server with professional-grade routing, security, and access control.
+  category: reverse-proxy
+  tags:
+  - Reverse Proxy
+  - Gateway
+  - SSL
+  - Load Balancer
+  - Docker
+  - Security
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: zoraxydocker/zoraxy:v3.3.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Documentation
+  url: https://zoraxy.arozos.com/
+- label: Github
+  url: https://github.com/tobychui/zoraxy
+- label: Docker Hub
+  url: https://hub.docker.com/r/zoraxydocker/zoraxy
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: zoraxy
+    port: $PORT:8000
+    volumes:
+    - /opt/zoraxy/config/
+    - /opt/zoraxy/plugin/
+    - /var/run/docker.sock
+    - /etc/localtime
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

@@ -1,0 +1,59 @@
+metadata:
+  name: TruffleHog
+  version: latest
+  description: TruffleHog is a security tool that finds secrets in your code, repositories,
+    and files. It uses pattern matching, entropy analysis, and other methods to detect
+    potential secrets and credentials.
+  category: security
+  tags:
+  - Security
+  - Code Analysis
+  - Secret Detection
+  - Self-hosted
+  - Open Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: trufflesecurity/trufflehog:3.93.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://trufflesecurity.com
+- label: GitHub
+  url: https://github.com/trufflesecurity/trufflehog
+- label: Documentation
+  url: https://trufflesecurity.com/docs/trufflehog
+- label: Docker Hub
+  url: https://hub.docker.com/r/trufflesecurity/trufflehog
+instructions: After installation, TruffleHog will scan the specified directory for
+  secrets. Configure the scan path and command options in the settings.
+install:
+- docker:
+    image: $IMAGE
+    name: trufflehog
+    port: $PORT:80
+    volumes:
+    - /workdir
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After installation, TruffleHog will scan the specified directory for secrets.
+    Configure the scan path and command options in the settings.

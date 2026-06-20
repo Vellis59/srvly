@@ -1,0 +1,66 @@
+metadata:
+  name: Countly
+  version: latest
+  description: Countly is an innovative, open-source analytics and engagement platform
+    designed to help you understand and optimize customer journeys in web, mobile,
+    and desktop applications. Built with a flexible architecture, Countly supports
+    multiple integrations and can be deployed on-premises or in the cloud. This platform
+    enables developers and product managers to gain real-time insights into user behavior,
+    track important metrics, and enhance product experiences through push notifications,
+    A/B testing, and other engagement features. Countly is cloud-native, deploys via
+    Docker containers, and provides data control, security, and a streamlined experience
+    for building and monitoring user engagement. Countly is 100% free and open-source,
+    ensuring it is accessible to everyone.
+  category: analytics
+  tags:
+  - Analytics
+  - User Engagement
+  - Real-Time Insights
+  - Open-Source
+  - A/B Testing
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: countly/countly-server:v25.03.43
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://count.ly
+- label: Documentation
+  url: https://docs.count.ly
+- label: GitHub
+  url: https://github.com/countly/countly-server
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: countly
+    port: $PORT:80
+    volumes:
+    - /usr/share/countly
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  redis:
+    type: redis
+    version: '7'

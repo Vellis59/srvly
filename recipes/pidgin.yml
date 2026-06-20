@@ -1,0 +1,58 @@
+metadata:
+  name: Pidgin
+  version: latest
+  description: Pidgin is a versatile chat application that allows you to log into
+    multiple chat networks simultaneously. This means you can chat with friends on
+    XMPP while also participating in an IRC channel. The application supports a wide
+    range of chat networks, including but not limited to Bonjour, Discord, Facebook,
+    Google Talk, Hangouts, ICQ, Instagram, IRC, Skype, Slack, Telegram, and XMPP.
+    This Pidgin installation comes with default chat plugins and a series of third-party
+    ones. The application also includes Firefox to help you fill out captchas or pre-auth
+    before loading your credentials into the program. Pidgin can be accessed at http://yourhost:3000/
+    or https://yourhost:3001/. The app is designed to provide a seamless and integrated
+    chat experience across multiple platforms.
+  category: chat
+  tags:
+  - Chat
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/pidgin:2.14.14
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Documentation
+  url: https://docs.linuxserver.io/images/docker-pidgin
+- label: Github
+  url: https://github.com/linuxserver/docker-pidgin
+instructions: use abc:abc to login. To access the login interface, add ?login=true
+  to your URL.
+install:
+- docker:
+    image: $IMAGE
+    name: pidgin
+    port: $PORT:3000
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: use abc:abc to login. To access the login interface, add ?login=true to your
+    URL.

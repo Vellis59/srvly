@@ -1,0 +1,64 @@
+metadata:
+  name: Lidarr
+  version: latest
+  description: Lidarr is an audio collection manager designed for Usenet and BitTorrent
+    users. It monitors multiple RSS feeds for new music and interfaces with clients
+    and indexers to grab, sort, and rename albums and songs. Lidarr also has the capability
+    to automatically upgrade the quality of existing tracks in your library when a
+    better quality format becomes available. The app features a calendar to see all
+    your upcoming releases in one place, manual search to find all the releases and
+    choose the ones you want, and automatic handling of failed downloads. Lidarr ensures
+    you get the right release every time with its custom formats feature, which allows
+    fine control over release prioritization and selection. It also supports major
+    platforms like Windows, Linux, macOS, and others.
+  category: media
+  tags:
+  - Media
+  - Download Manager
+  - Music
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: linuxserver/lidarr:3.1.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8686
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://lidarr.audio/
+- label: Documentation
+  url: https://wiki.servarr.com/lidarr
+- label: Github
+  url: https://github.com/Lidarr/Lidarr
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: lidarr
+    port: $PORT:8686
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

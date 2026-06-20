@@ -1,0 +1,57 @@
+metadata:
+  name: Wastebin
+  version: latest
+  description: Wastebin is a self-hosted, minimal pastebin designed for quick and
+    simple text sharing. With a clean and intuitive interface inspired by bin, it
+    allows users to create and share text snippets easily. Wastebin supports private
+    pastes, syntax highlighting, and expiration settings for better control over shared
+    content. It is lightweight, fast, and easy to deploy with minimal system requirements.
+  category: pastebin
+  tags:
+  - Pastebin
+  - Productivity
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: quxfoo/wastebin:3.6.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8088
+links:
+- label: Documentation
+  url: https://github.com/quxfoo/wastebin/wiki
+- label: Github
+  url: https://github.com/quxfoo/wastebin
+instructions: In case of Sqlite write error. Go to your host machine and go the directory.
+  "cd /etc/easypanel/projects/your-project/wastebin/volumes/" and do this "chown -R
+  10001:10001 data/" then redeploy.
+install:
+- docker:
+    image: $IMAGE
+    name: wastebin
+    port: $PORT:8088
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: In case of Sqlite write error. Go to your host machine and go the directory.
+    "cd /etc/easypanel/projects/your-project/wastebin/volumes/" and do this "chown
+    -R 10001:10001 data/" then redeploy.

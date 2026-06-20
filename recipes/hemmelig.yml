@@ -1,0 +1,59 @@
+metadata:
+  name: Hemmelig
+  version: latest
+  description: Hemmelig is a secure, self-hosted secret sharing platform that allows
+    you to share sensitive information like passwords, API keys, and confidential
+    documents safely. Built with security in mind, Hemmelig provides end-to-end encryption,
+    expiration dates, and access controls to ensure your secrets remain protected.
+    Perfect for teams, developers, and organizations who need to share sensitive information
+    securely without relying on external services.
+  category: security
+  tags:
+  - Security
+  - Secret Sharing
+  - Encryption
+  - Self-Hosted
+  - Password Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: hemmeligapp/hemmelig:v7.4.8
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://hemmelig.app
+- label: GitHub
+  url: https://github.com/HemmeligOrg/Hemmelig.app
+instructions: v7 uses BetterAuth and SQLite — no initial admin credentials are needed
+  in the config. Register your first account via the web UI after deployment.
+install:
+- docker:
+    image: $IMAGE
+    name: hemmelig
+    port: $PORT:3000
+    volumes:
+    - /app/database
+    - /app/uploads
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: v7 uses BetterAuth and SQLite — no initial admin credentials are needed in
+    the config. Register your first account via the web UI after deployment.

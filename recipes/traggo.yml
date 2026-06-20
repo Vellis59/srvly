@@ -1,0 +1,54 @@
+metadata:
+  name: Traggo
+  version: latest
+  description: Traggo is a powerful, self-hosted time tracking and project management
+    tool designed to help teams and individuals organize their workflows and track
+    time efficiently. It features an intuitive interface, flexible reporting, and
+    customizable dashboards. With Traggo, you can maintain complete control over your
+    data, ensuring privacy and productivity.
+  category: time-tracking
+  tags:
+  - Time Tracking
+  - Self-Hosted
+  - Productivity
+  - Project Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: traggo/server:0.8.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3030
+links:
+- label: Website
+  url: https://traggo.net/
+- label: Github
+  url: https://github.com/traggo/server
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: traggo
+    port: $PORT:3030
+    volumes:
+    - /opt/traggo/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

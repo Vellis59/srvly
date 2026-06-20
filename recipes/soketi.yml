@@ -1,0 +1,65 @@
+metadata:
+  name: Soketi
+  version: latest
+  description: Soketi Serverless is an open-source WebSockets server that offers a
+    cost-effective, fast, and resilient solution for real-time deployment to Cloudflare.
+    It is designed to be cheaper than any competitor, as you only pay for your infrastructure.
+    It guarantees core message delivery in less than 100ms, thanks to its construction
+    on top of C and porting to Node.js. Soketi is compatible with Pusher Protocol
+    v7, meaning you can connect to the server without needing to replace your existing
+    code. It is ready for production and can scale to hundreds of servers with Redis
+    or NATS without losing performance. Soketi also offers built-in app management,
+    allowing you to define your own app credentials and read from any database. Additionally,
+    it features HTTP Webhooks that trigger HTTP requests whenever a channel gets occupied.
+    Soketi can be deployed to Cloudflare Workers, bringing it closer to your users
+    worldwide. It is also compatible with most popular databases, like MySQL or DynamoDB.
+  category: developer-tools
+  tags:
+  - Developer Tools
+  - Communication
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: quay.io/soketi/soketi:1.6-16-debian
+  port:
+    type: integer
+    title: Port HTTP
+    default: 6001
+links:
+- label: Website
+  url: https://soketi.app/
+- label: Documentation
+  url: https://docs.soketi.app/
+- label: Github
+  url: https://github.com/soketi/soketi/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: soketi
+    port: $PORT:6001
+    volumes: []
+    extra_ports:
+    - 9601:9601
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  redis:
+    type: redis
+    version: '7'

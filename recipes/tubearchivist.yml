@@ -1,0 +1,62 @@
+metadata:
+  name: TubeArchivist
+  version: latest
+  description: TubeArchivist is a self-hosted YouTube archiving tool that allows you
+    to manage and organize your YouTube content locally. It downloads videos, indexes
+    metadata, and provides a web-based interface for searching, organizing, and playing
+    content. Designed for personal use, TubeArchivist integrates with Elasticsearch
+    for advanced search capabilities and Redis for optimized caching and task management.
+    It also supports custom playlists, video tagging, and offline playback, providing
+    complete control over your video collection.
+  category: video-management
+  tags:
+  - Video Management
+  - YouTube Archiving
+  - Offline Playback
+  - Personal Media Server
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: bbilly1/tubearchivist:v0.5.10
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Documentation
+  url: https://github.com/tubearchivist/tubearchivist/wiki
+- label: Dockerhub
+  url: https://hub.docker.com/r/bbilly1/tubearchivist
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: tubearchivist
+    port: $PORT:8000
+    volumes:
+    - /youtube
+    - /usr/share/elasticsearch/data
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  redis:
+    type: redis
+    version: '7'

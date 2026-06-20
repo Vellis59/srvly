@@ -1,0 +1,59 @@
+metadata:
+  name: Trilium Notes
+  version: latest
+  description: Trilium is a hierarchical note-taking application designed for creating
+    and managing large personal knowledge bases. With Trilium, you can arrange your
+    notes into an arbitrarily deep tree structure, with the ability to place a single
+    note in multiple locations. The app offers rich WYSIWYG note editing, including
+    tables, images, and math, with markdown autoformat. It also supports editing notes
+    with source code, complete with syntax highlighting. Trilium provides seamless
+    note versioning and attributes for note organization, querying, and advanced scripting.
+    The app also includes a synchronization feature with a self-hosted sync server.
+    For enhanced security, Trilium offers strong note encryption with per-note granularity.
+    Other features include sketching diagrams with built-in Excalidraw, visualizing
+    notes and their relations with relation maps and link maps, and a REST API for
+    automation. Trilium is optimized for both usability and performance, capable of
+    handling upwards of 100,000 notes.
+  category: notes
+  tags:
+  - Notes
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: zadam/trilium:0.63.7
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Documentation
+  url: https://github.com/zadam/trilium/wiki
+- label: Github
+  url: https://github.com/zadam/trilium
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: trilium
+    port: $PORT:8080
+    volumes:
+    - /home/node/trilium-data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

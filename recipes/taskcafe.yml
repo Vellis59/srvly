@@ -1,0 +1,61 @@
+metadata:
+  name: TaskCafe
+  version: latest
+  description: TaskCafe is a modern, open-source project management tool that helps
+    teams organize and track their work. It provides an intuitive interface for managing
+    projects, tasks, and collaborations with features similar to Trello and other
+    project management tools.
+  category: project-management
+  tags:
+  - Project Management
+  - Task Tracking
+  - Collaboration
+  - Team
+  - Productivity
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: taskcafe/taskcafe:0.3.6
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3333
+links:
+- label: Github
+  url: https://github.com/JordanKnott/taskcafe
+- label: Documentation
+  url: https://github.com/JordanKnott/taskcafe/wiki
+instructions: After installation, access the web interface through the provided domain
+  to start managing your projects and tasks.
+install:
+- docker:
+    image: $IMAGE
+    name: taskcafe
+    port: $PORT:3333
+    volumes:
+    - /root/uploads
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After installation, access the web interface through the provided domain
+    to start managing your projects and tasks.
+services:
+  postgres:
+    type: postgres
+    version: latest

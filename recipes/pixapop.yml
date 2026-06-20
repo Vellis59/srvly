@@ -1,0 +1,60 @@
+metadata:
+  name: Pixapop
+  version: latest
+  description: Pixapop is a modern photo management and sharing application that provides
+    a beautiful web interface for organizing, viewing, and sharing your photo collection.
+    It features automatic photo organization, metadata extraction, and a clean, responsive
+    interface for browsing your photos from any device.
+  category: photo-management
+  tags:
+  - Photo Management
+  - Photo Sharing
+  - Self-hosted
+  - Web Interface
+  - Metadata
+  - Organization
+  - Gallery
+  - LinuxServer
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: linuxserver/pixapop:1.2.20221014
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://github.com/linuxserver-archive/docker-pixapop/blob/master/README.md
+- label: GitHub
+  url: https://github.com/linuxserver/docker-pixapop
+instructions: You need to mount the photos volume to the container to make the application
+  work.
+install:
+- docker:
+    image: $IMAGE
+    name: pixapop
+    port: $PORT:80
+    volumes:
+    - /config
+    - /photos
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: You need to mount the photos volume to the container to make the application
+    work.

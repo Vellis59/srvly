@@ -1,0 +1,63 @@
+metadata:
+  name: Atheos
+  version: latest
+  description: Atheos is a self-hosted browser-based cloud IDE, updated from Codiad
+    IDE with a modern approach to web development. This lightweight development environment
+    provides fast, interactive coding without the massive overhead of desktop editors.
+    Atheos features built-in Git integration, a comprehensive plugin system, multi-user
+    support with permissions, and supports multiple programming languages. Perfect
+    for developers who want a complete IDE that runs entirely in the browser with
+    minimal server requirements and maximum functionality.
+  category: ide
+  tags:
+  - IDE
+  - Code Editor
+  - Cloud IDE
+  - Browser-Based
+  - Self-Hosted
+  - Git Integration
+  - Multi-User
+  - Plugin System
+  - Web Development
+  - PHP
+  - JavaScript
+  - Development Environment
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: hlsiira/atheos:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: GitHub Repository
+  url: https://github.com/Atheos/Atheos
+- label: Official Website
+  url: https://www.atheos.io
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: atheos
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

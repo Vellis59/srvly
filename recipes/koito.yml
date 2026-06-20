@@ -1,0 +1,65 @@
+metadata:
+  name: Koito
+  version: latest
+  description: Koito is a self-hosted, themeable ListenBrainz-compatible scrobbler
+    for tracking music listening history and visualizing listening habits. It supports
+    relay of listens to other ListenBrainz-compatible servers, import from Last.fm,
+    Maloja, Spotify, and ListenBrainz, and features like artist statistics, interest-over-time
+    graphs, and Spotify-wrapped-style rewinds. Built with Go and featuring a sleek
+    modern UI with multiple built-in themes and custom theme support, Koito provides
+    comprehensive music listening analytics while maintaining complete control over
+    your scrobbling data.
+  category: music
+  tags:
+  - Music
+  - Scrobbler
+  - ListenBrainz
+  - Self-Hosted
+  - Analytics
+  - Music Tracking
+  - Last.fm
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: gabehf/koito:v0.1.8
+  port:
+    type: integer
+    title: Port HTTP
+    default: 4110
+links:
+- label: Website
+  url: https://koito.io
+- label: GitHub
+  url: https://github.com/gabehf/koito
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: koito
+    port: $PORT:4110
+    volumes:
+    - /etc/koito
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

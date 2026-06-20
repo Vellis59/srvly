@@ -1,0 +1,70 @@
+metadata:
+  name: Lychee
+  version: latest
+  description: Lychee is a free, self-hosted photo-management tool designed to make
+    managing your photos a breeze. It allows you to upload, move, rename, describe,
+    delete, and search your photos all in one place, right from your browser. With
+    Lychee, you can easily share your photos and albums with just one click, and even
+    protect them with passwords for added security. The app also allows you to view
+    your images in full-screen mode, navigate using your keyboard, and make your photos
+    public for others to enjoy. Lychee supports batch editing with desktop-like multi-select
+    and displays your EXIF and IPTC Metadata. You can import your photos from various
+    sources, tag them, or mark them as important. Lychee is designed with a beautiful,
+    intuitive interface and is perfect for photographers as it offers unlimited storage,
+    no compression, and no loss in data.
+  category: gallery
+  tags:
+  - Gallery
+  - Photo Management
+  - Self-hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lycheeorg/lychee:v6.10.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://lycheeorg.github.io/
+- label: Documentation
+  url: https://lycheeorg.github.io/docs/
+- label: Github
+  url: https://github.com/LycheeOrg/Lychee
+- label: Demo
+  url: https://lycheeorg.github.io/demo/
+instructions: Lychee takes a few minutes to get ready. Sit back, relax, and have a
+  coffee!
+install:
+- docker:
+    image: $IMAGE
+    name: lychee
+    port: $PORT:80
+    volumes:
+    - /conf
+    - /sym
+    - /uploads
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Lychee takes a few minutes to get ready. Sit back, relax, and have a coffee!

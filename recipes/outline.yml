@@ -1,0 +1,75 @@
+metadata:
+  name: Outline Wiki
+  version: latest
+  description: Outline is a team knowledge base and wiki that helps organize your
+    team's information in a structured and searchable manner. It offers an intuitive
+    editing experience with markdown support, slash commands, and rich embeds. You
+    can collaborate on documents in real-time, with comments and threads keeping conversations
+    organized. The platform integrates seamlessly with Slack, allowing you to search
+    and share documents without leaving the chat. Outline also supports public sharing
+    of documents with your own brand colors, logos, and domain. It's designed to be
+    fast, collaborative, and easy to use, with a focus on security and permissions.
+    It also supports multiple languages and offers integrations with tools like Figma,
+    Loom, and more.
+  category: documentation
+  tags:
+  - Documentation
+  - Productivity
+  - Business Apps
+  - Collaboration
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: outlinewiki/outline:0.85
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://www.getoutline.com/
+- label: Documentation
+  url: https://www.getoutline.com/developers
+- label: Github
+  url: https://github.com/outline
+instructions: Notice, Auththenication Method is Required to use Outline. To use Other
+  Login Methods, Just fill in dummy Cridentials and edit the env! Check out the Docs
+  https://wiki.generaloutline.com/s/hosting/doc/authentication-7ViKRmRY5o! Notice,
+  Some sort of SMTP is Optinal! Check the env Here https://github.com/outline/outline/blob/main/.env.sample
+install:
+- docker:
+    image: $IMAGE
+    name: outline
+    port: $PORT:3000
+    volumes:
+    - /data
+    extra_ports:
+    - 9001:9001
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Notice, Auththenication Method is Required to use Outline. To use Other Login
+    Methods, Just fill in dummy Cridentials and edit the env! Check out the Docs https://wiki.generaloutline.com/s/hosting/doc/authentication-7ViKRmRY5o!
+    Notice, Some sort of SMTP is Optinal! Check the env Here https://github.com/outline/outline/blob/main/.env.sample
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

@@ -1,0 +1,56 @@
+metadata:
+  name: Enclosed
+  version: latest
+  description: Enclosed is a minimalist file sharing and URL shortening service. It
+    provides a simple and efficient way to share files and shorten URLs with a clean,
+    modern interface. Perfect for personal or small team use, it offers secure file
+    storage and easy link management.
+  category: file-sharing
+  tags:
+  - File Sharing
+  - URL Shortener
+  - Self-Hosted
+  - Storage
+  - Sharing
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: corentinth/enclosed:1.16.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8787
+links:
+- label: Github
+  url: https://github.com/corentinth/enclosed
+- label: Website
+  url: https://enclosed.cc
+instructions: After installation, access the web interface through the provided domain
+  to start sharing files and shortening URLs.
+install:
+- docker:
+    image: $IMAGE
+    name: enclosed
+    port: $PORT:8787
+    volumes:
+    - /app/.data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After installation, access the web interface through the provided domain
+    to start sharing files and shortening URLs.

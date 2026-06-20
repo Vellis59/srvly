@@ -1,0 +1,63 @@
+metadata:
+  name: Docmost
+  version: latest
+  description: Docmost is a secure and versatile self-hosted platform for document
+    management and collaboration. It enables organizations to efficiently store, manage,
+    and share documents while maintaining complete control over their data. Docmost
+    is built to streamline workflows, enhance team collaboration, and ensure data
+    privacy. It provides an intuitive interface and robust features for document editing,
+    version control, and seamless integrations with other tools and services. Designed
+    for businesses of all sizes, Docmost empowers teams to work smarter and more securely.
+  category: document-management
+  tags:
+  - Document Management
+  - Collaboration
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: docmost/docmost:0.80.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Documentation
+  url: https://docmost.com/docs/
+- label: Github
+  url: https://github.com/Docmost/Docmost
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: docmost
+    port: $PORT:3000
+    volumes:
+    - /app/data/storage
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

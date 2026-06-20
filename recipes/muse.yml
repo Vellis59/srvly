@@ -1,0 +1,61 @@
+metadata:
+  name: Muse
+  version: latest
+  description: Muse is a self-hosted Discord music bot designed to enhance your music
+    experience on Discord. It's perfect for small to medium-sized groups, such as
+    you and your friends. With Muse, you can livestream music, seek within a song
+    or video, and even cache music locally for better performance. It also allows
+    users to convert playlists, artists, albums, and songs from Spotify automatically.
+    You can add custom shortcuts, and the bot supports multiple guilds. It normalizes
+    volume across tracks for a consistent listening experience. Muse is written in
+    TypeScript and is easily extendable. It's a loyal Packers fan and doesn't vote
+    to skip - this is anarchy, not a democracy!
+  category: music
+  tags:
+  - Music
+  - Discord
+  - Bot
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: codetheweb/muse:2.11.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Github
+  url: https://github.com/codetheweb/muse
+- label: Documentation
+  url: https://github.com/codetheweb/muse#running
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: muse
+    port: $PORT:80
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

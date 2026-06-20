@@ -1,0 +1,68 @@
+metadata:
+  name: Leantime
+  version: latest
+  description: Leantime is an open-source project management system designed for startups
+    and small teams. It offers a simple and intuitive interface to manage tasks, projects,
+    and team collaboration efficiently. With Leantime, you can organize your work
+    using timelines, kanban boards, and task lists. It also includes features like
+    time tracking, milestones, and idea boards to streamline project workflows. Leantime
+    supports integrations with various third-party tools, making it a flexible and
+    scalable solution. Its emphasis on usability and simplicity ensures that teams
+    can focus on productivity and achieving goals. Leantime is distributed under an
+    open-source license, allowing for customization to meet the unique needs of any
+    organization.
+  category: project-management
+  tags:
+  - Project Management
+  - Open Source
+  - Collaboration
+  - Task Management
+  - Kanban
+  - Time Tracking
+  - Productivity
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: leantime/leantime:3.7.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://leantime.io/
+- label: Documentation
+  url: https://docs.leantime.io/
+- label: Github
+  url: https://github.com/Leantime/leantime
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: leantime
+    port: $PORT:8080
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

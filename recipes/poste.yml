@@ -1,0 +1,63 @@
+metadata:
+  name: Poste
+  version: latest
+  description: Poste is a self-hosted mail server solution that provides a complete
+    and secure email hosting platform. It offers built-in features such as spam filtering,
+    DKIM signing, and webmail access to ensure a reliable email experience. This app
+    is a Docker containerized version of Poste, making it easy to deploy and manage
+    across various environments.
+  category: email
+  tags:
+  - Email
+  - Self-Hosted
+  - Mail Server
+  - Security
+  - Productivity
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: analogic/poste.io:2.5.11
+  port:
+    type: integer
+    title: Port HTTP
+    default: 25
+links:
+- label: Documentation
+  url: https://poste.io/docs
+- label: Github
+  url: https://github.com/analogic/poste.io
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: poste
+    port: $PORT:25
+    volumes:
+    - /data
+    - /etc/localtime
+    extra_ports:
+    - 110:110
+    - 143:143
+    - 465:465
+    - 587:587
+    - 993:993
+    - 995:995
+    - 4190:4190
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

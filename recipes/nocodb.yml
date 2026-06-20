@@ -1,0 +1,72 @@
+metadata:
+  name: NocoDB
+  version: latest
+  description: NocoDB is an innovative open-source platform that transforms any database
+    into a smart spreadsheet. It's a powerful alternative to Airtable, designed to
+    be flexible and user-friendly. With NocoDB, you can create unlimited grid views,
+    gallery views, and form views from your own data. It offers ultra-ease in searching,
+    sorting, and filtering columns and rows. You can invite your team with fine-grained
+    access control, share views publicly or with password protection. NocoDB also
+    allows you to build automations with your favourite apps like Microsoft Teams,
+    Slack, Discord, Whatsapp, Twilio, Email & SMS. It provides instant REST APIs with
+    Swagger. NocoDB is trusted by over 2000 organizations worldwide and is the fastest
+    growing open source project. It's free and self-hostable, offering endless solutions
+    for your business workflows.
+  category: no-code
+  tags:
+  - No-Code
+  - Databases
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: nocodb/nocodb:2026.05.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://www.nocodb.com/
+- label: Documentation
+  url: https://docs.nocodb.com/getting-started/installation/
+- label: Github
+  url: https://github.com/nocodb/nocodb
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: nocodb
+    port: $PORT:8080
+    volumes:
+    - /usr/app/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

@@ -1,0 +1,56 @@
+metadata:
+  name: KrakenD
+  version: latest
+  description: KrakenD is a high-performance API Gateway that helps you build microservices
+    architecture. It's designed to be ultra-fast and lightweight, aggregating multiple
+    services into a single API endpoint. It's perfect for building microservices,
+    mobile backends, and public APIs.
+  category: api-gateway
+  tags:
+  - API Gateway
+  - Microservices
+  - Backend
+  - High Performance
+  - Open Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: devopsfaith/krakend:2.9.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://www.krakend.io/
+- label: Documentation
+  url: https://www.krakend.io/docs/
+- label: GitHub
+  url: https://github.com/krakend
+instructions: Please follow the official documentation for more information and customizations.
+install:
+- docker:
+    image: $IMAGE
+    name: krakend
+    port: $PORT:8080
+    volumes:
+    - /etc/krakend
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Please follow the official documentation for more information and customizations.

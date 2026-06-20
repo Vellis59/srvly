@@ -1,0 +1,67 @@
+metadata:
+  name: Swetrix
+  version: latest
+  description: Swetrix is a powerful, privacy-focused analytics platform that provides
+    comprehensive website and application analytics. Built with modern technologies,
+    it offers real-time data collection, beautiful dashboards, and detailed insights
+    into user behavior. Features include event tracking, performance monitoring, user
+    session analysis, and customizable reports. Self-hosted solution that ensures
+    complete data privacy and control while providing enterprise-grade analytics capabilities.
+  category: analytics
+  tags:
+  - Analytics
+  - Privacy
+  - Self-Hosted
+  - Real-time
+  - Dashboard
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ''
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: GitHub
+  url: https://github.com/Swetrix/swetrix
+- label: Website
+  url: https://swetrix.com
+- label: Documentation
+  url: https://docs.swetrix.com
+instructions: After deployment, open the Swetrix frontend URL and click Sign Up to
+  create your account. Once registered, log in with your credentials to access the
+  dashboard.
+install:
+- docker:
+    image: $IMAGE
+    name: swetrix
+    port: $PORT:3000
+    volumes:
+    - /var/lib/clickhouse
+    - /etc/clickhouse-server/config.d
+    extra_ports:
+    - 5005:5005
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After deployment, open the Swetrix frontend URL and click Sign Up to create
+    your account. Once registered, log in with your credentials to access the dashboard.
+services:
+  redis:
+    type: redis
+    version: '7'

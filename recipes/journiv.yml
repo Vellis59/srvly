@@ -1,0 +1,69 @@
+metadata:
+  name: Journiv
+  version: latest
+  description: Journiv is a self-hosted journaling and note-taking application designed
+    for personal reflection and documentation. The application provides a secure,
+    private platform for writing and organizing your thoughts, experiences, and memories.
+    Built with a modern web interface, Journiv offers features for creating journal
+    entries, organizing content with tags and categories, and searching through your
+    journal history. The application uses SQLite for lightweight data storage, Redis
+    for caching and background task processing, and Celery for asynchronous operations.
+    With support for rich text editing, file attachments, and export capabilities,
+    Journiv helps you maintain a comprehensive digital journal. The platform prioritizes
+    privacy and data ownership, ensuring all your journal entries remain on your own
+    infrastructure. Perfect for individuals who want a private journaling solution,
+    writers maintaining personal writing projects, users seeking a self-hosted alternative
+    to cloud-based note-taking services, or anyone who values complete control over
+    their personal reflections and memories.
+  category: journal
+  tags:
+  - Journal
+  - Note Taking
+  - Writing
+  - Self-Hosted
+  - Personal
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: swalabtech/journiv-app:0.1.0-beta.22
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Website
+  url: https://journiv.com
+- label: Docker Hub
+  url: https://hub.docker.com/r/swalabtech/journiv-app
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: journiv
+    port: $PORT:8000
+    volumes:
+    - /data
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  redis:
+    type: redis
+    version: '7'

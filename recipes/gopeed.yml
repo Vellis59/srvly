@@ -1,0 +1,54 @@
+metadata:
+  name: GoPeed
+  version: latest
+  description: GoPeed is a high-performance download manager that supports HTTP, HTTPS,
+    FTP, BitTorrent, and other protocols. It features a modern web interface and supports
+    multiple download task.
+  category: download-manager
+  tags:
+  - Download Manager
+  - File Transfer
+  - Self-hosted
+  - Open Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: liwei2633/gopeed:v1.9.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 9999
+links:
+- label: Website
+  url: https://gopeed.com/
+- label: GitHub
+  url: https://github.com/GopeedLab/gopeed
+- label: Docker Hub
+  url: https://hub.docker.com/r/liwei2633/gopeed
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: gopeed
+    port: $PORT:9999
+    volumes:
+    - /root/Downloads
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

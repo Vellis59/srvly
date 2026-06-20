@@ -1,0 +1,66 @@
+metadata:
+  name: Navidrome
+  version: latest
+  description: Welcome to Navidrome, your personal streaming service! This open-source
+    software allows you to access and enjoy your music collection from anywhere, through
+    a modern web UI and a wide range of third-party compatible mobile apps for both
+    iOS and Android devices. Navidrome is lightweight, fast, and self-contained, capable
+    of running well even on resource-limited platforms. It can handle large music
+    libraries, and even transcodes your music files on the fly to prevent excessive
+    data usage. Built with new technologies like GoLang, ReactJS, and Material-UI,
+    Navidrome ensures modern features and compatibility. It is also compatible with
+    the de facto standard Music API, supporting all its clients and ecosystem. With
+    new releases on a regular basis, Navidrome continually adds features and bug fixes
+    to enhance your music streaming experience.
+  category: media
+  tags:
+  - Media
+  - Music
+  - Streaming
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: deluan/navidrome:pr-5351
+  port:
+    type: integer
+    title: Port HTTP
+    default: 4533
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://www.navidrome.org/
+- label: Documentation
+  url: https://www.navidrome.org/docs/
+- label: Github
+  url: https://github.com/navidrome/navidrome
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: navidrome
+    port: $PORT:4533
+    volumes:
+    - /data
+    - /music
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

@@ -1,0 +1,65 @@
+metadata:
+  name: Ever Gauzy
+  version: latest
+  description: Ever Gauzy is an open business management platform covering ERP CRM
+    HRM ATS and project management with time tracking invoicing and reporting. This
+    template deploys the official API web UI and PostgreSQL stack similar to the upstream
+    docker compose demo layout.
+  category: erp
+  tags:
+  - ERP
+  - CRM
+  - HRM
+  - Business Management
+  - Time Tracking
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ''
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://gauzy.co/
+- label: Documentation
+  url: https://docs.gauzy.co/
+- label: GitHub
+  url: https://github.com/ever-co/ever-gauzy
+instructions: Deploy and wait for PostgreSQL the API and the web UI to become healthy.
+  Open the web service URL shown in Easypanel. Register yourself and complete the
+  wizard to start using the application.
+install:
+- docker:
+    image: $IMAGE
+    name: ever-gauzy
+    port: $PORT:3000
+    volumes: []
+    extra_ports:
+    - 4200:4200
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Deploy and wait for PostgreSQL the API and the web UI to become healthy.
+    Open the web service URL shown in Easypanel. Register yourself and complete the
+    wizard to start using the application.
+services:
+  postgres:
+    type: postgres
+    version: latest

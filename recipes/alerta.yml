@@ -1,0 +1,58 @@
+metadata:
+  name: Alerta
+  version: latest
+  description: Alerta is a monitoring system that consolidates and deduplicates alerts
+    from multiple monitoring systems.
+  category: monitoring
+  tags:
+  - Monitoring
+  - Alert Management
+  - Web Application
+  - PostgreSQL
+  - API
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: alerta/alerta-web:9.1.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://alerta.io/
+- label: Github
+  url: https://github.com/alerta/alerta
+- label: Documentation
+  url: https://docs.alerta.io/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: alerta
+    port: $PORT:8080
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

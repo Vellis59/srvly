@@ -1,0 +1,59 @@
+metadata:
+  name: Isso
+  version: latest
+  description: Isso is a lightweight commenting server designed to be a seamless alternative
+    to Disqus. It is written in Python and JavaScript, and it allows users to leave
+    comments on your website in a simple and straightforward manner. The app supports
+    anonymous comments, preserving the identity of your users, and is easy to manage.
+    Users can write comments in Markdown, and they also have the ability to edit or
+    delete their own comments within a default time frame of 15 minutes. The app uses
+    a SQLite backend, ensuring that your comments are not treated as Big Data. Additionally,
+    it offers Disqus and WordPress import features, allowing you to migrate your existing
+    comments without any hassle. The app is easily integrated into your website by
+    embedding a single JavaScript file.
+  category: documentation
+  tags:
+  - Documentation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/isso-comments/isso:0.14.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Documentation
+  url: https://isso-comments.de/docs/
+- label: Github
+  url: https://github.com/posativ/isso
+instructions: Go to /admin for administration interface
+install:
+- docker:
+    image: $IMAGE
+    name: isso
+    port: $PORT:8080
+    volumes:
+    - /config
+    - /db
+    - /tmp
+    - /config/isso.cfg
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Go to /admin for administration interface

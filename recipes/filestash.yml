@@ -1,0 +1,55 @@
+metadata:
+  name: Filestash
+  version: latest
+  description: Filestash is a self-hosted file management and sharing platform designed
+    for individuals and teams. It offers a secure, user-friendly interface to store,
+    organize, and access all your files from one centralized location. With support
+    for multiple file types, seamless integration with popular storage backends, tagging,
+    and powerful search functionality, Filestash simplifies file management and boosts
+    productivity. Whether working on personal projects or collaborating with your
+    team, Filestash ensures your files are always accessible and easy to manage.
+  category: file-management
+  tags:
+  - File Management
+  - Collaboration
+  - Productivity
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: machines/filestash:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8334
+links:
+- label: Documentation
+  url: https://www.filestash.app/docs/
+- label: Github
+  url: https://github.com/mickael-kerjean/filestash
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: filestash
+    port: $PORT:8334
+    volumes:
+    - /app/data/state/
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

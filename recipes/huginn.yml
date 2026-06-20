@@ -1,0 +1,63 @@
+metadata:
+  name: Huginn
+  version: latest
+  description: Huginn is a system for building agents that perform automated tasks
+    for you online. They can read the web, watch for events, and take actions on your
+    behalf.
+  category: automation
+  tags:
+  - Automation
+  - Web Scraping
+  - API
+  - Data Processing
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: huginn/huginn:5dbeee394a982bd29ba63c06013cd9cb58191cc6
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://huginn.io/
+- label: Documentation
+  url: https://github.com/huginn/huginn/wiki
+- label: GitHub
+  url: https://github.com/huginn/huginn
+instructions: Open Huginn from your domain, complete the initial account setup, then
+  create or import agents and configure credentials for the external services they
+  use.
+install:
+- docker:
+    image: $IMAGE
+    name: huginn
+    port: $PORT:3000
+    volumes:
+    - /var/lib/mysql
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Open Huginn from your domain, complete the initial account setup, then create
+    or import agents and configure credentials for the external services they use.
+services:
+  mysql:
+    type: mysql
+    version: latest

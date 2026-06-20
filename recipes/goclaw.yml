@@ -1,0 +1,77 @@
+metadata:
+  name: GoClaw
+  version: latest
+  description: Enterprise AI agent platform with teams, delegation & orchestration.
+    Single Go binary, 13+ LLM providers, 10+ channels, browser automation, and memory
+    system.
+  category: ai
+  tags:
+  - AI
+  - Gateway
+  - Multi-Agent
+  - LLM
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/nextlevelbuilder/goclaw:v3.11.3-full
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://goclaw.sh
+- label: Documentation
+  url: https://docs.goclaw.sh
+- label: Github
+  url: https://github.com/nextlevelbuilder/goclaw
+instructions: 'After installation, access the web dashboard via your configured domain.
+
+  To add more LLM API keys (e.g., Anthropic, Groq), edit the environment variables
+  of the GoClaw App Service.
+
+  Secure tokens like the Gateway Token and Encryption Key are auto-generated.
+
+  '
+install:
+- docker:
+    image: $IMAGE
+    name: goclaw
+    port: $PORT:80
+    volumes:
+    - /app/data
+    - /app/workspace
+    - /app/skills
+    - /etc/nginx/conf.d/default.conf
+    extra_ports:
+    - 9222:9222
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: 'After installation, access the web dashboard via your configured domain.
+
+    To add more LLM API keys (e.g., Anthropic, Groq), edit the environment variables
+    of the GoClaw App Service.
+
+    Secure tokens like the Gateway Token and Encryption Key are auto-generated.
+
+    '
+services:
+  postgres:
+    type: postgres
+    version: latest

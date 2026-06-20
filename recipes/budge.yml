@@ -1,0 +1,53 @@
+metadata:
+  name: Budge
+  version: latest
+  description: Budge is a personal finance management application that helps you track
+    your expenses, manage budgets, and monitor your financial goals. It provides a
+    user-friendly interface for managing your personal finances.
+  category: finance
+  tags:
+  - Finance
+  - Budget
+  - Expense Tracking
+  - Personal Finance
+  - Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/budge:0.0.9
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Github
+  url: https://github.com/linuxserver/budge
+- label: Documentation
+  url: https://github.com/linuxserver/budge#readme
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: budge
+    port: $PORT:80
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

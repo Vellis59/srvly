@@ -1,0 +1,56 @@
+metadata:
+  name: DumbPad
+  version: latest
+  description: DumbPad is a simple note-taking application for quick text storage
+    and sharing. It provides a clean web-based text editor with optional PIN protection
+    for secure note management. Perfect for quick notes, temporary text storage, and
+    collaborative text editing.
+  category: notes
+  tags:
+  - Notes
+  - Text Editor
+  - Productivity
+  - Simple
+  - Web Interface
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: dumbwareio/dumbpad:1.0.5
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://www.dumbware.io/DumbPad
+- label: Documentation
+  url: https://github.com/dumbwareio/dumbpad#readme
+- label: GitHub
+  url: https://github.com/dumbwareio/dumbpad
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: dumbpad
+    port: $PORT:3000
+    volumes:
+    - /app/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

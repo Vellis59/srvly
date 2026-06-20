@@ -1,0 +1,74 @@
+metadata:
+  name: Mautic
+  version: latest
+  description: Mautic is a powerful marketing automation platform designed to revolutionize
+    the way businesses engage with their audience. Offering a comprehensive suite
+    of features, Mautic enables marketers to automate and optimize their marketing
+    strategies. The platform excels in open-source flexibility, allowing users to
+    customize and extend its capabilities according to their unique needs. With a
+    focus on lead tracking and nurturing, Mautic provides valuable insights into user
+    behavior, enabling personalized and targeted campaigns for effective customer
+    acquisition and retention. Its multi-channel marketing support ensures seamless
+    engagement across various platforms, from email campaigns to social media interactions.
+    Mautic's robust campaign management tools, email marketing module, analytics,
+    and reporting features contribute to a data-driven approach, empowering marketers
+    to refine their strategies and achieve optimal return on investment. Integration
+    capabilities further enhance its functionality, ensuring a connected marketing
+    ecosystem. Whether you're a marketing professional or a business owner, Mautic
+    serves as a centralized solution to elevate and streamline your marketing efforts,
+    fostering innovation and success.
+  category: marketing-automation
+  tags:
+  - Marketing Automation
+  - Open Source
+  - Lead Nurturing
+  - Multi-Channel Marketing
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: mautic/mautic:v4-apache
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://www.mautic.org
+- label: Github
+  url: https://github.com/mautic/mautic
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: mautic
+    port: $PORT:80
+    volumes:
+    - /var/www/html
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

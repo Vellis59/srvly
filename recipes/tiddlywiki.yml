@@ -1,0 +1,58 @@
+metadata:
+  name: Tiddlywiki
+  version: latest
+  description: Tiddlywiki is a unique open-source, single-file wiki designed to help
+    you organize, capture, and share information effectively. It is a versatile personal
+    notebook that allows you to create, organize, and navigate your notes in a self-contained
+    HTML file. Tiddlywiki is highly customizable, enabling users to tweak layouts,
+    styles, and functionality through plugins and scripts. It works offline and can
+    be hosted online for collaboration or personal use. Whether you're creating a
+    personal knowledge base, journaling, or managing projects, Tiddlywiki provides
+    a flexible platform to meet your needs.
+  category: wiki
+  tags:
+  - Wiki
+  - Personal Knowledge Management
+  - Note-Taking
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: nicolaw/tiddlywiki:5.3.6
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://tiddlywiki.com
+- label: Docs
+  url: https://tiddlywiki.com/#Documentation
+- label: Github
+  url: https://github.com/Jermolene/TiddlyWiki5
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: tiddlywiki
+    port: $PORT:8080
+    volumes:
+    - /var/lib/tiddlywiki
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

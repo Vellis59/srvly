@@ -1,0 +1,61 @@
+metadata:
+  name: ArcadeDB
+  version: latest
+  description: ArcadeDB is a multi-model database that supports multiple data models
+    including Document, Graph, Key-Value, and Vector databases in a single engine.
+    It's designed for high-performance applications with ACID transactions and real-time
+    analytics capabilities.
+  category: database
+  tags:
+  - Database
+  - Multi-Model
+  - Document
+  - Graph
+  - Key-Value
+  - Vector
+  - NoSQL
+  - ACID
+  - Analytics
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: arcadedata/arcadedb:26.4.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 2424
+links:
+- label: Website
+  url: https://arcadedb.com/
+- label: Documentation
+  url: https://docs.arcadedb.com/
+- label: Github
+  url: https://github.com/ArcadeData/arcadedb
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: arcadedb
+    port: $PORT:2424
+    volumes:
+    - /data
+    extra_ports:
+    - 2480:2480
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

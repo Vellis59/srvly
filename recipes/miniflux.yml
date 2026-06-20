@@ -1,0 +1,68 @@
+metadata:
+  name: Miniflux
+  version: latest
+  description: Miniflux is a minimalist and opinionated feed reader designed to prioritize
+    content and readability. It optimizes the page layout, fonts, and colors to ensure
+    that they are screen-friendly. If you have feeds that display only a summary,
+    Miniflux fetches the original article automatically. The app is designed with
+    simplicity in mind, focusing on essential features and avoiding bloated software.
+    It is fast and efficient, allowing you to navigate through the application using
+    keyboard shortcuts and quickly scan your unread items with a lightweight user
+    interface. Miniflux also respects your privacy, ensuring that no one resells your
+    private data or tracks your usage. It automatically removes pixel trackers and
+    does not feature any advertising or user tracking. Miniflux is a free, open-source
+    project distributed under the permissive Apache 2.0 License.
+  category: rss
+  tags:
+  - RSS
+  - Privacy
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: miniflux/miniflux:2.2.19
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://miniflux.app/
+- label: Documentation
+  url: https://miniflux.app/docs/
+- label: Github
+  url: https://github.com/miniflux
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: miniflux
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

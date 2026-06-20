@@ -1,0 +1,58 @@
+metadata:
+  name: Confluence
+  version: latest
+  description: Confluence is a powerful team collaboration and knowledge-sharing tool.
+    It allows you to create, organize, and collaborate on content in a centralized
+    space. Designed for project management, documentation, and team communication,
+    Confluence helps streamline workflows and enhances productivity. It offers seamless
+    integration with other Atlassian products such as Jira and Bitbucket, making it
+    an ideal solution for agile teams. The intuitive editor and advanced search capabilities
+    ensure that team knowledge is easily accessible. With extensive customization,
+    permission controls, and plugin support, Confluence is a scalable solution for
+    teams of all sizes.
+  category: collaboration
+  tags:
+  - Collaboration
+  - Documentation
+  - Productivity
+  - Project Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: atlassian/confluence-server:8.6-ubuntu-jdk17
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8090
+links:
+- label: Documentation
+  url: https://confluence.atlassian.com
+- label: Dockerhub
+  url: https://hub.docker.com/r/atlassian/confluence-server
+instructions: Get the License Key to access Confluence.
+install:
+- docker:
+    image: $IMAGE
+    name: confluence
+    port: $PORT:8090
+    volumes:
+    - /var/atlassian/application-data/confluence
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Get the License Key to access Confluence.

@@ -1,0 +1,64 @@
+metadata:
+  name: Sonatype Nexus
+  version: latest
+  description: Sonatype Nexus is a powerful repository manager designed to streamline
+    the management and storage of binary components. It enables development teams
+    to efficiently organize, share, and deploy artifacts across various formats, such
+    as Maven, npm, Docker, and more. With its robust feature set and enterprise-grade
+    capabilities, Sonatype Nexus improves DevOps workflows by providing secure, scalable,
+    and centralized storage for software assets.
+  category: repository-management
+  tags:
+  - Repository Management
+  - DevOps
+  - Artifact Storage
+  - Security
+  - Open Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: sonatype/nexus3:3.91.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8081
+links:
+- label: Github
+  url: https://github.com/sonatype/nexus-public
+- label: Documentation
+  url: https://help.sonatype.com/repomanager3
+- label: Demo
+  url: https://www.sonatype.com/nexus-repository-sonatype
+instructions: After logging in without a password, log out and then log back in using
+  the username admin. To get the password, open the container console tab and run
+  the command cat /nexus-data/admin.password. Once logged in, you will be prompted
+  to change the password.
+install:
+- docker:
+    image: $IMAGE
+    name: sonatype-nexus
+    port: $PORT:8081
+    volumes:
+    - /nexus-data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After logging in without a password, log out and then log back in using the
+    username admin. To get the password, open the container console tab and run the
+    command cat /nexus-data/admin.password. Once logged in, you will be prompted to
+    change the password.

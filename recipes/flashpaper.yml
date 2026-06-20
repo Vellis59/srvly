@@ -1,0 +1,56 @@
+metadata:
+  name: FlashPaper
+  version: latest
+  description: FlashPaper is a secure, self-destructing message service that allows
+    you to share sensitive information safely. Messages are encrypted and automatically
+    destroyed after being viewed once, ensuring that sensitive data remains secure
+    and temporary.
+  category: security
+  tags:
+  - Security
+  - Privacy
+  - Encryption
+  - Self-Destructing
+  - Communication
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/andrewpaglusch/flashpaper:2.4.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Github
+  url: https://github.com/AndrewPaglusch/FlashPaper
+- label: Website
+  url: https://flashpaper.io
+instructions: After installation, access the web interface through the provided domain
+  to start creating self-destructing messages.
+install:
+- docker:
+    image: $IMAGE
+    name: flashpaper
+    port: $PORT:80
+    volumes:
+    - /var/www/html/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After installation, access the web interface through the provided domain
+    to start creating self-destructing messages.

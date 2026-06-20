@@ -1,0 +1,60 @@
+metadata:
+  name: InvoiceShelf
+  version: latest
+  description: InvoiceShelf is an open-source web & mobile app that helps you track
+    expenses, payments & create professional invoices & estimates. Web Application
+    is made using Laravel & VueJS while the Mobile Apps are built using React Native.
+  category: finance
+  tags:
+  - Finance
+  - Invoice Management
+  - Payment Tracking
+  - Accounting
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: invoiceshelf/invoiceshelf:2.3.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://invoiceshelf.com/
+- label: Documentation
+  url: https://docs.invoiceshelf.com/
+- label: Github
+  url: https://github.com/InvoiceShelf/InvoiceShelf
+instructions: Visit the website to complete installation.
+install:
+- docker:
+    image: $IMAGE
+    name: invoiceshelf
+    port: $PORT:80
+    volumes:
+    - /data
+    - /conf
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Visit the website to complete installation.
+services:
+  mysql:
+    type: mysql
+    version: latest

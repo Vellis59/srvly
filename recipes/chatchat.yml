@@ -1,0 +1,50 @@
+metadata:
+  name: ChatChat
+  version: latest
+  description: ChatChat is a simple chat application built on modern technologies.
+    It provides a lightweight and responsive chat interface for real-time communication.
+  category: chat
+  tags:
+  - Chat
+  - Communication
+  - Web Application
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/okisdev/chatchat:0.1.9
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: GitHub
+  url: https://github.com/okisdev/chatchat
+- label: Website
+  url: https://chat.okis.dev
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: chatchat
+    port: $PORT:3000
+    volumes:
+    - /app/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

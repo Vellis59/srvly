@@ -1,0 +1,55 @@
+metadata:
+  name: WoodPecker CI
+  version: latest
+  description: WoodPecker CI is a modern, open-source continuous integration (CI)
+    and delivery tool designed for developers who value simplicity, flexibility, and
+    scalability. It integrates seamlessly with GitHub, allowing teams to automate
+    testing, build, and deployment workflows efficiently. WoodPecker CI is lightweight,
+    easy to deploy, and supports a wide range of programming languages and platforms.
+    With its agent-based architecture, it provides high customizability and performance,
+    making it ideal for both small projects and large-scale software development pipelines.
+  category: ci/cd
+  tags:
+  - CI/CD
+  - Open-Source
+  - DevOps
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: woodpeckerci/woodpecker-server:v3.13.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+links:
+- label: Github
+  url: https://github.com/woodpecker-ci/woodpecker
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: woodpeckerci
+    port: $PORT:8000
+    volumes:
+    - /var/lib/woodpecker/
+    - /etc/woodpecker
+    - /var/run/docker.sock
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

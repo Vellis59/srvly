@@ -1,0 +1,52 @@
+metadata:
+  name: uLogger
+  version: latest
+  description: uLogger is a lightweight, self-hosted GPS tracking platform that allows
+    you to track and visualize your location data. It's perfect for personal use,
+    fleet management, or tracking outdoor activities.
+  category: gps-tracking
+  tags:
+  - GPS Tracking
+  - Location
+  - Self-hosted
+  - Open Source
+  - Mobile
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: bfabiszewski/ulogger:v1.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: GitHub
+  url: https://github.com/bfabiszewski/ulogger-server
+- label: Docker Hub
+  url: https://hub.docker.com/r/bfabiszewski/ulogger
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: ulogger
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

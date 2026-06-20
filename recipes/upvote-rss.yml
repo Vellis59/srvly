@@ -1,0 +1,59 @@
+metadata:
+  name: Upvote RSS
+  version: latest
+  description: Upvote RSS is a self-hosted RSS feed generator for popular posts from
+    social aggregation sites. It supports Reddit, Hacker News, Lemmy, Lobsters, PieFed,
+    Mbin, and GitHub—build rich RSS feeds with filtering (e.g. average posts per day),
+    embedded media, optional AI summaries (Ollama, OpenAI, Gemini, Anthropic, and
+    more), article content parsing, and top comments. Reddit OAuth env vars are optional
+    and only needed for Reddit-specific feeds; other platforms are configured in the
+    web UI. Cache data under /app/cache for performance across container updates.
+  category: rss
+  tags:
+  - RSS
+  - Reddit
+  - Hacker News
+  - Lemmy
+  - Self-Hosted
+  - Feed Generator
+  - Open Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/johnwarne/upvote-rss:v1.8.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: GitHub
+  url: https://github.com/johnwarne/upvote-rss
+- label: Website
+  url: https://www.upvote-rss.com/
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: upvote-rss
+    port: $PORT:80
+    volumes:
+    - /app/cache
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

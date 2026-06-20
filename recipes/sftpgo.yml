@@ -1,0 +1,62 @@
+metadata:
+  name: SFTPGo
+  version: latest
+  description: SFTPGo is a fully featured and highly configurable SFTP server with
+    optional HTTP/S, FTP/S and WebDAV support. It supports local filesystem, encrypted
+    local filesystem, S3 (compatible) Object Storage, Google Cloud Storage, Azure
+    Blob Storage, SFTP.
+  category: sftp
+  tags:
+  - SFTP
+  - File Transfer
+  - Self-hosted
+  - Open Source
+  - Security
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: drakkan/sftpgo:2.7.x
+  port:
+    type: integer
+    title: Port HTTP
+    default: 2022
+links:
+- label: Website
+  url: https://sftpgo.com/
+- label: GitHub
+  url: https://github.com/drakkan/sftpgo
+- label: Documentation
+  url: https://docs.sftpgo.com/2.6/
+- label: Docker Hub
+  url: https://hub.docker.com/r/drakkan/sftpgo
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: sftpgo
+    port: $PORT:2022
+    volumes:
+    - /srv/sftpgo
+    - /var/lib/sftpgo
+    extra_ports:
+    - 2121:2121
+    - 8080:8080
+    - 10080:10080
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

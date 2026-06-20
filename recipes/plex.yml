@@ -1,0 +1,60 @@
+metadata:
+  name: Plex
+  version: latest
+  description: 'Plex Media Server is a powerful app that makes it easy to manage and
+    stream your media collection to all your devices, anytime, anywhere. With Plex,
+    you can stream your video, music, and photo collections from your phone, tablet,
+    gaming console, smart TV, or any other favorite streaming device. The app is designed
+    to work with three types of networking: bridge, host, and macvlan, each offering
+    a unique way to connect your media server to your devices. Plex also offers advanced
+    features like hardware transcoding support for Intel Quick Sync, making it a versatile
+    choice for all your media streaming needs.'
+  category: media
+  tags:
+  - Media
+  - Streaming
+  - Video
+  - Music
+  - Photos
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/plex:1.43.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 32400
+links:
+- label: Documentation
+  url: https://support.plex.tv/articles/catagories/plex-media-server
+- label: Github
+  url: https://github.com/plexinc/pms-docker
+instructions: If you get a libusb error, please ignore it.
+install:
+- docker:
+    image: $IMAGE
+    name: plex
+    port: $PORT:32400
+    volumes:
+    - /config
+    - /tv
+    - /movies
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: If you get a libusb error, please ignore it.

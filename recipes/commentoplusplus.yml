@@ -1,0 +1,60 @@
+metadata:
+  name: Commento++
+  version: latest
+  description: Commento++ is a free, open-source application designed to provide a
+    fast, lightweight comments box that you can embed in your static website. It offers
+    a range of features including Markdown support, Disqus import, voting, automated
+    spam detection, moderation tools, sticky comments, thread locking, and OAuth login.
+    It also supports hot-reloading of comments and email notifications. Commento++
+    is designed to respect your privacy, with no adverts, and offers a more attractive
+    comments box compared to other free and open-source alternatives. It is significantly
+    lighter and faster than alternatives and can be deployed with a single click to
+    a free Heroku account. For maximum control, you can also choose to self-host the
+    application.
+  category: comments
+  tags:
+  - Comments
+  - Website
+  - Open Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: caroga/commentoplusplus:v1.8.7
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Github
+  url: https://github.com/souramoo/commentoplusplus
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: commentoplusplus
+    port: $PORT:8080
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

@@ -1,0 +1,65 @@
+metadata:
+  name: Evolution API
+  version: latest
+  description: Evolution API is a self-hosted platform designed to empower small businesses,
+    entrepreneurs, and individuals by providing a robust API for integrating messaging
+    solutions such as WhatsApp™. It offers seamless integration with other tools like
+    Typebot, Chatwoot, and OpenAI to enhance communication and automation capabilities.
+    Evolution API is a free and customizable solution that allows users to maintain
+    control over their messaging infrastructure.
+  category: messaging
+  tags:
+  - Messaging
+  - Communication
+  - Automation
+  - Open Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: evoapicloud/evolution-api:v2.3.7
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://evolution-api.com
+- label: Documentation
+  url: https://doc.evolution-api.com/v1/en/get-started/introduction
+- label: Github
+  url: https://github.com/EvolutionAPI/evolution-api
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: evolutionapi
+    port: $PORT:8080
+    volumes:
+    - /evolution/instances
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

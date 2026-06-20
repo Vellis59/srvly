@@ -1,0 +1,72 @@
+metadata:
+  name: Tooljet
+  version: latest
+  description: Tooljet is an open-source low-code platform for building internal tools
+    and business applications. It provides a visual interface builder, database connectors,
+    API integrations, and workflow automation capabilities. With Tooljet, teams can
+    quickly build custom dashboards, admin panels, CRUD applications, and complex
+    business tools without extensive coding. The platform supports multiple data sources,
+    real-time collaboration, and enterprise-grade security features.
+  category: low-code
+  tags:
+  - Low-Code
+  - Internal Tools
+  - Business Applications
+  - Dashboard
+  - Database
+  - API
+  - Workflow
+  - Automation
+  - Visual Builder
+  - Enterprise
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: tooljet/tooljet-ce:v3.20.154-lts
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: GitHub
+  url: https://github.com/ToolJet/ToolJet
+- label: Documentation
+  url: https://docs.tooljet.com/
+- label: Docker Hub
+  url: https://hub.docker.com/r/tooljet/tooljet
+instructions: Please run migrations inside the tooljet container if required, it will
+  take 2-3 minutes to complete. "npm run db:migrate:prod"
+install:
+- docker:
+    image: $IMAGE
+    name: tooljet
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Please run migrations inside the tooljet container if required, it will take
+    2-3 minutes to complete. "npm run db:migrate:prod"
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

@@ -1,0 +1,67 @@
+metadata:
+  name: Astuto
+  version: latest
+  description: Astuto is a self-hosted customer feedback management platform that
+    helps teams collect, organize, and respond to customer feedback in one centralized
+    location. Built with modern web technologies, Astuto provides a clean and intuitive
+    interface for managing feature requests, bug reports, and customer suggestions.
+    The application enables teams to create public or private feedback boards where
+    customers can submit ideas, vote on features, and track the status of their requests.
+    With built-in categorization, tagging, and status tracking, Astuto helps product
+    teams prioritize development work based on customer demand. The platform supports
+    multiple boards, user authentication, and integration capabilities to streamline
+    the feedback collection process. Perfect for product teams managing customer feedback,
+    startups building customer-driven products, SaaS companies wanting to engage with
+    their user base, or any organization that wants to centralize and manage customer
+    input effectively.
+  category: customer-feedback
+  tags:
+  - Customer Feedback
+  - Product Management
+  - Self-Hosted
+  - Feedback Management
+  - Feature Requests
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: riggraz/astuto:ac6ad92f7ec3f2961c37f17fb090c1fe4184f194
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: GitHub
+  url: https://github.com/riggraz/astuto
+- label: Docker Hub
+  url: https://hub.docker.com/r/riggraz/astuto
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: astuto
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

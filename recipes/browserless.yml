@@ -1,0 +1,59 @@
+metadata:
+  name: Browserless
+  version: latest
+  description: Browserless is a powerful self-hosted headless browser service designed
+    to automate web interactions. It enables developers to run headless Chrome instances
+    efficiently for web scraping, testing, PDF generation, and automation tasks. Browserless
+    supports Puppeteer, Playwright, and Selenium, providing a scalable and secure
+    environment for handling complex browser automation tasks. The application is
+    optimized for performance, offering session management, request queuing, and robust
+    security features. With Browserless, developers can offload browser-based automation
+    to a dedicated service, reducing local resource consumption and improving workflow
+    efficiency.
+  category: browser-automation
+  tags:
+  - Browser Automation
+  - Web Scraping
+  - Testing
+  - Puppeteer
+  - Playwright
+  - Selenium
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/browserless/chromium:v2.40.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Documentation
+  url: https://docs.browserless.io/
+- label: Github
+  url: https://github.com/browserless/chrome
+instructions: Update your App to use Browserless. Follow the docs; https://docs.browserless.io/baas/docker/quickstart.
+install:
+- docker:
+    image: $IMAGE
+    name: browserless
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Update your App to use Browserless. Follow the docs; https://docs.browserless.io/baas/docker/quickstart.

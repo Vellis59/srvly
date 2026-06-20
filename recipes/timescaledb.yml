@@ -1,0 +1,70 @@
+metadata:
+  name: TimescaleDB
+  version: latest
+  description: TimescaleDB is an open-source time-series database optimized for fast
+    ingest and complex queries. It is built on top of PostgreSQL and provides automatic
+    partitioning across time and space, making it ideal for IoT, monitoring, analytics,
+    and other time-series data applications. It offers native time-series functionality
+    while maintaining the reliability and flexibility of PostgreSQL.
+  category: database
+  tags:
+  - Database
+  - Time-Series
+  - PostgreSQL
+  - Analytics
+  - IoT
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: timescale/timescaledb-ha:pg17
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5432
+links:
+- label: Website
+  url: https://www.timescale.com/
+- label: Documentation
+  url: https://docs.timescale.com/
+- label: Docker Hub
+  url: https://hub.docker.com/r/timescale/timescaledb-ha
+instructions: After deployment, connect to TimescaleDB using your app domain on port
+  5432 with username `postgres`, password set in Database Password, and database `postgres`;
+  for example, `psql "postgresql://postgres:<YOUR_PASSWORD>@<YOUR_DOMAIN>:5432/postgres"`;
+  TimescaleDB is PostgreSQL-compatible, so any PostgreSQL client or ORM can use the
+  same connection details.
+install:
+- docker:
+    image: $IMAGE
+    name: timescaledb
+    port: $PORT:5432
+    volumes:
+    - /home/postgres/pgdata/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After deployment, connect to TimescaleDB using your app domain on port 5432
+    with username `postgres`, password set in Database Password, and database `postgres`;
+    for example, `psql "postgresql://postgres:<YOUR_PASSWORD>@<YOUR_DOMAIN>:5432/postgres"`;
+    TimescaleDB is PostgreSQL-compatible, so any PostgreSQL client or ORM can use
+    the same connection details.
+services:
+  postgres:
+    type: postgres
+    version: latest

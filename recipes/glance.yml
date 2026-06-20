@@ -1,0 +1,57 @@
+metadata:
+  name: Glance
+  version: latest
+  description: Glance is a fast and lightweight self-hosted dashboard that allows
+    you to monitor various real-time data sources through customizable widgets. With
+    support for RSS feeds, market prices, YouTube uploads, Twitch streams, weather
+    forecasts, server stats, Docker container status, and more, Glance provides a
+    centralized hub for tracking essential information. The dashboard is fully themeable,
+    optimized for mobile devices, and highly configurable through YAML-based settings.
+  category: dashboard
+  tags:
+  - Dashboard
+  - Productivity
+  - Self-Hosted
+  - Customizable
+  - Widgets
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: glanceapp/glance:v0.8.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Documentation
+  url: https://github.com/glanceapp/glance/blob/main/docs/configuration.md
+- label: Github
+  url: https://github.com/glanceapp/glance
+instructions: You can edit the Yaml configuration as per your needs.
+install:
+- docker:
+    image: $IMAGE
+    name: glance
+    port: $PORT:8080
+    volumes:
+    - /app/config
+    - /app/config/glance.yml
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: You can edit the Yaml configuration as per your needs.

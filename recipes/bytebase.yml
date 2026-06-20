@@ -1,0 +1,62 @@
+metadata:
+  name: Bytebase
+  version: latest
+  description: Bytebase is a versatile application designed to streamline database
+    management tasks. It supports a wide range of databases including MySQL, PostgreSQL,
+    Snowflake, Oracle, SQL Server, MongoDB, Redis, Redshift, ClickHouse, TiDB, OceanBase,
+    Google Spanner, and MariaDB. With Bytebase, you can easily configure and manage
+    your database instances, perform SQL reviews, manage data models, roles, and permissions,
+    and handle change workflows in batch mode. The app also offers features for secure
+    data handling, VCS integration, slow query management, and disaster recovery.
+    It comes with an embedded PostgreSQL instance for storing its metadata, but for
+    production setup, it is recommended to store the metadata in an external PostgreSQL
+    database. Bytebase is designed to be deployed easily and quickly, offering a step-by-step
+    quick start guide for users.
+  category: databases
+  tags:
+  - Databases
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: bytebase/bytebase:3.17.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Documentation
+  url: https://www.bytebase.com/docs/get-started/install/deploy-with-docker/
+- label: Github
+  url: https://github.com/bytebase/bytebase
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: bytebase
+    port: $PORT:8080
+    volumes:
+    - /var/opt/bytebase
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

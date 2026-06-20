@@ -1,0 +1,63 @@
+metadata:
+  name: DevLake
+  version: latest
+  description: DevLake is a highly customizable and self-hosted tool for engineering
+    metrics and data integration. It enables teams to collect, transform, and visualize
+    data from various development tools like GitHub, GitLab, and Jira. DevLake provides
+    insightful dashboards and reports for continuous improvement, streamlining your
+    software delivery process.
+  category: engineering-metrics
+  tags:
+  - Engineering Metrics
+  - Data Integration
+  - Analytics
+  - Open-Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ''
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Documentation
+  url: https://devlake.apache.org/docs/GettingStarted
+- label: Github
+  url: https://github.com/apache/incubator-devlake
+instructions: Wait for the migration on backend to complete. Access Grafana using
+  https://domain/grafana
+install:
+- docker:
+    image: $IMAGE
+    name: devlake
+    port: $PORT:3000
+    volumes:
+    - /app/logs
+    - /var/lib/grafana
+    extra_ports:
+    - 4000:4000
+    - 8080:8080
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Wait for the migration on backend to complete. Access Grafana using https://domain/grafana
+services:
+  mysql:
+    type: mysql
+    version: latest

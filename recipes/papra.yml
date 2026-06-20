@@ -1,0 +1,63 @@
+metadata:
+  name: Papra
+  version: latest
+  description: Papra is a modern, open-source project management and collaboration
+    platform designed to help teams organize their work, track progress, and collaborate
+    effectively. It provides a comprehensive suite of tools for task management, team
+    communication, file sharing, and project tracking in a single, integrated platform.
+    Papra offers an intuitive interface with powerful features for managing complex
+    projects and workflows.
+  category: project-management
+  tags:
+  - Project Management
+  - Team Collaboration
+  - Task Management
+  - Self-Hosted
+  - Productivity
+  - Workflow
+  - Communication
+  - File Sharing
+  - Progress Tracking
+  - Mobile Access
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/papra-hq/papra:0.9.1-rootless
+  port:
+    type: integer
+    title: Port HTTP
+    default: 1221
+links:
+- label: GitHub
+  url: https://github.com/papra-hq/papra
+- label: Documentation
+  url: https://docs.papra.app
+- label: Website
+  url: https://papra.app
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: papra
+    port: $PORT:1221
+    volumes:
+    - /app/app-data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

@@ -1,0 +1,76 @@
+metadata:
+  name: mCaptcha
+  version: latest
+  description: mCaptcha is a proof-of-work based captcha system that prioritizes user
+    privacy and offers a fully automated experience. Unlike traditional captcha systems,
+    mCaptcha does not track or profile users, ensuring a privacy-focused user experience.
+    It is designed to be robust and accurate, not relying on IP addresses for rate-limiting,
+    making it suitable for users behind NATs. The user experience is silent and seamless,
+    eliminating the need for annoying image-based captchas. mCaptcha uses a proof-of-work
+    solution to fiercely defend your site, making it more expensive for attackers
+    to target your site than for you to respond to their requests. It is a libre software,
+    with client libraries licensed under proprietary-friendly free software licenses.
+    mCaptcha is also compatible with reCAPTCHA and hCaptcha, making it a convenient
+    drop-in replacement. The core functionality of mCaptcha is to use a SHA256 based
+    proof-of-work system to rate limit users, providing a token upon successful validation
+    that users can then submit with their request or form submission to the target
+    website.
+  category: privacy
+  tags:
+  - Privacy
+  - Security
+  - CAPTCHA
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: mcaptcha/mcaptcha:v0.1.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://mcaptcha.org
+- label: Documentation
+  url: https://mcaptcha.org/docs
+- label: Github
+  url: https://github.com/mcaptcha/mcaptcha
+instructions: Login with aaronsw:password
+install:
+- docker:
+    image: $IMAGE
+    name: mcaptcha
+    port: $PORT:80
+    volumes: []
+    extra_ports:
+    - 6379:6379
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Login with aaronsw:password
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

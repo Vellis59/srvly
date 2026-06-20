@@ -1,0 +1,63 @@
+metadata:
+  name: MeTube
+  version: latest
+  description: MeTube is a web-based application that provides a user-friendly interface
+    for the popular command-line tool, youtube-dl. It allows you to easily download
+    videos from YouTube and dozens of other sites, right from your browser. The app
+    supports playlist downloads, making it easy to grab an entire series of videos
+    at once. It also offers a range of configuration options, allowing you to customize
+    the download process to suit your needs. For instance, you can choose to save
+    your downloads to a specific directory, separate audio-only downloads from video
+    downloads, and even specify the filename template for your downloaded videos.
+    MeTube also supports dark mode for a more comfortable viewing experience. The
+    app runs in a Docker container, making it easy to deploy on any system that supports
+    Docker.
+  category: media
+  tags:
+  - Media
+  - Video Downloader
+  - Web GUI
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: alexta69/metube:2026.04.28
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8081
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Documentation
+  url: https://github.com/alexta69/metube
+- label: Github
+  url: https://github.com/alexta69/metube
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: metube
+    port: $PORT:8081
+    volumes:
+    - /downloads
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

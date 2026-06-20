@@ -1,0 +1,67 @@
+metadata:
+  name: LinkStack
+  version: latest
+  description: LinkStack is a powerful open-source alternative to Linktree, designed
+    to provide an efficient solution for managing and sharing links online. It offers
+    a highly customizable link sharing platform with an intuitive, user-friendly interface.
+    Unlike other link management platforms, LinkStack allows users to host their links
+    on their own web server or web hosting provider, giving them complete control
+    over their online presence. This makes LinkStack an ideal solution for businesses
+    and organizations looking to manage multiple links. With LinkStack, users can
+    easily link to their own custom page and provide their followers with access to
+    all the links they need in one convenient location. LinkStack also offers a self-hosted
+    option for users who want complete control over their data without having it sold
+    to third-party companies. The platform can be easily implemented through a simple
+    drag and drop process, eliminating the need for complex terminal commands or source
+    code manipulation. LinkStack is committed to providing a free, privacy-focused
+    solution for managing and sharing links online, without sacrificing user privacy
+    and control over their data.
+  category: link-management
+  tags:
+  - Link Management
+  - Customizable
+  - Privacy-Focused
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: linkstackorg/linkstack:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Github
+  url: https://github.com/linkstackorg/linkstack
+- label: Website
+  url: https://linkstack.org
+instructions: Use the SQLite DB type in the installation wizard
+install:
+- docker:
+    image: $IMAGE
+    name: linkstack
+    port: $PORT:80
+    volumes:
+    - /htdocs
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Use the SQLite DB type in the installation wizard

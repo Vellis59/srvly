@@ -1,0 +1,78 @@
+metadata:
+  name: Huly
+  version: latest
+  description: Huly is an all-in-one project management platform and self-hosted alternative
+    to Linear, Jira, Slack, Notion, and Motion. It combines issue tracking, CRM, HRM,
+    ATS (Applicant Tracking), chat, documents, and team collaboration in a single
+    platform. Built on a robust framework for business applications, Huly offers real-time
+    document collaboration with Y.js CRDT, full-text search via Elasticsearch, S3-compatible
+    file storage with MinIO, and event-driven architecture with Redpanda (Kafka).
+    Requires 2+ vCPUs and 8+ GB RAM minimum.
+  category: project-management
+  tags:
+  - Project Management
+  - CRM
+  - Self-Hosted
+  - Collaboration
+  - Issue Tracking
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: v0.7.382
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://huly.io
+- label: GitHub
+  url: https://github.com/hcengineering/platform
+- label: Documentation
+  url: https://docs.huly.io
+instructions: After deployment, access Huly via the main service domain. On first
+  visit, click "Sign up" to create your account, then create a workspace. Email notifications
+  (password recovery, etc.) are disabled by default—add the mail service and SMTP
+  config for production. Allow ~60 seconds for all services to initialize on first
+  startup.
+install:
+- docker:
+    image: $IMAGE
+    name: huly
+    port: $PORT:80
+    volumes:
+    - /etc/nginx/conf.d/default.conf
+    - /cockroach/cockroach-data
+    - /cockroach/certs
+    - /var/lib/redpanda/data
+    - /data
+    - /usr/share/elasticsearch/data
+    extra_ports:
+    - 8094:8094
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: After deployment, access Huly via the main service domain. On first visit,
+    click "Sign up" to create your account, then create a workspace. Email notifications
+    (password recovery, etc.) are disabled by default—add the mail service and SMTP
+    config for production. Allow ~60 seconds for all services to initialize on first
+    startup.
+services:
+  postgres:
+    type: postgres
+    version: latest

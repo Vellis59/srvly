@@ -1,0 +1,74 @@
+metadata:
+  name: Loonflow
+  version: latest
+  description: Loonflow is a comprehensive workflow management system that provides
+    end-to-end workflow automation and process management capabilities. Built with
+    Django and React, Loonflow offers a complete solution for designing, executing,
+    and monitoring business workflows. The system consists of a PostgreSQL database
+    for data persistence, Redis for task queue management, a Django backend API, a
+    React frontend UI, and Celery workers for asynchronous task processing. Perfect
+    for organizations looking to automate business processes and manage complex workflows
+    with a self-hosted solution.
+  category: workflow
+  tags:
+  - Workflow
+  - Automation
+  - Process Management
+  - Self-Hosted
+  - Django
+  - Celery
+  - Enterprise
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ''
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: GitHub
+  url: https://github.com/blackholll/loonflow
+- label: Documentation
+  url: https://loonflow.readthedocs.io/en/r3.0/
+instructions: You can change the lanaguage by clicking the admin icon, click the first
+  option, and then change it to American English in the dropdown.
+install:
+- docker:
+    image: $IMAGE
+    name: loonflow
+    port: $PORT:80
+    volumes: []
+    extra_ports:
+    - 8000:8000
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: You can change the lanaguage by clicking the admin icon, click the first
+    option, and then change it to American English in the dropdown.
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

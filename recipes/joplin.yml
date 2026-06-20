@@ -1,0 +1,64 @@
+metadata:
+  name: Joplin
+  version: latest
+  description: Joplin is an open-source note-taking application that allows you to
+    capture your thoughts and access them securely from any device. It supports multimedia
+    notes, including images, videos, PDFs, and audio files, and even allows the creation
+    of math expressions and diagrams. With Joplin Cloud, you can share your notes
+    and collaborate with others. The app also features a web clipper extension for
+    saving web pages or screenshots as notes. Joplin can be customized with plugins,
+    themes, and multiple text editors, and it synchronizes with various services,
+    including Joplin Cloud, Dropbox, and OneDrive. All notes are saved in an open
+    format and secured with end-to-end encryption.
+  category: notes
+  tags:
+  - Notes
+  - Productivity
+  - Developer Tools
+  - Documentation
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: joplin/server:3.6.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://joplinapp.org/
+- label: Github
+  url: https://github.com/laurent22/joplin/
+- label: Docker
+  url: https://hub.docker.com/r/joplin/server
+instructions: 'Default login email: admin@localhost, password: admin'
+install:
+- docker:
+    image: $IMAGE
+    name: joplin
+    port: $PORT:80
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: 'Default login email: admin@localhost, password: admin'
+services:
+  postgres:
+    type: postgres
+    version: latest

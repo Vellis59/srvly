@@ -1,0 +1,62 @@
+metadata:
+  name: AzuraCast
+  version: latest
+  description: AzuraCast is a free, open-source web radio management suite. Built
+    for radio station managers and DJs, it provides everything you need to start and
+    manage a successful web radio station, from playlist automation to live streaming
+    capabilities, listener statistics, and more.
+  category: radio
+  tags:
+  - Radio
+  - Streaming
+  - Broadcasting
+  - Media Management
+  - Music
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/azuracast/azuracast:0.23.6
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://docs.azuracast.com/
+- label: Github
+  url: https://github.com/AzuraCast/AzuraCast
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: azuracast
+    port: $PORT:80
+    volumes:
+    - /var/azuracast/stations
+    - /var/azuracast/uploads
+    - /var/azuracast/backups
+    extra_ports:
+    - 2022:2022
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

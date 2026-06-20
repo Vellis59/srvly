@@ -1,0 +1,58 @@
+metadata:
+  name: Darktable
+  version: latest
+  description: Darktable is an open-source photography workflow application and raw
+    developer. It manages your digital negatives in a database, lets you view them
+    through a zoomable lighttable, and enables you to develop raw images and enhance
+    them with powerful editing tools. This browser-accessible version provides the
+    full Darktable desktop application through a web interface, allowing you to edit
+    photos from anywhere without local installation.
+  category: photography
+  tags:
+  - Photography
+  - Image Editing
+  - RAW
+  - Desktop
+  - Browser
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/darktable:25.4.1
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://www.darktable.org/
+- label: Documentation
+  url: https://docs.darktable.org/
+- label: GitHub
+  url: https://github.com/darktable-org/darktable
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: darktable
+    port: $PORT:3000
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

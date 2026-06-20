@@ -1,0 +1,61 @@
+metadata:
+  name: OSTicket
+  version: latest
+  description: OSTicket is a widely-used, open-source ticketing system designed to
+    streamline customer support management. It provides a user-friendly interface
+    for handling, tracking, and organizing support tickets across multiple channels,
+    including email, web forms, and API integrations. With OSTicket, you can efficiently
+    manage inquiries, automate workflows, and improve customer satisfaction.
+  category: ticketing-system
+  tags:
+  - Ticketing System
+  - Customer Support
+  - Self-Hosted
+  - Workflow Automation
+  - SLA Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: tiredofit/osticket:3.6.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://docs.osticket.com
+- label: Github
+  url: https://github.com/osTicket/osTicket
+instructions: You can configure other Environmental settings in Environment Section.
+install:
+- docker:
+    image: $IMAGE
+    name: osticket
+    port: $PORT:80
+    volumes:
+    - /www/osticket
+    - /www/logs
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: You can configure other Environmental settings in Environment Section.
+services:
+  mysql:
+    type: mysql
+    version: latest

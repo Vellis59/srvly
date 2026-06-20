@@ -1,0 +1,57 @@
+metadata:
+  name: Wally
+  version: latest
+  description: Wally is a lightweight web application designed for data management
+    and tracking. It provides a clean web interface accessible through your browser,
+    with persistent data storage to ensure your information is safely retained across
+    restarts. The application can be pre-loaded with demo data for testing and evaluation
+    purposes, making it easy to explore its features before using it with your own
+    data. Wally runs efficiently in a containerized environment and requires minimal
+    configuration to get started.
+  category: web-app
+  tags:
+  - Web App
+  - Data Management
+  - Self-Hosted
+  - Lightweight
+  - Docker
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: poliuscorp/wally:1.14
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://github.com/polius/Wally/blob/main/README.md
+- label: GitHub
+  url: https://github.com/polius/Wally
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: wally
+    port: $PORT:80
+    volumes:
+    - /wally/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

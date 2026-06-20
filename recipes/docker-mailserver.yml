@@ -1,0 +1,62 @@
+metadata:
+  name: Docker Mailserver
+  version: latest
+  description: A fullstack but simple mail server (SMTP, IMAP, LDAP, Antispam, Antivirus,
+    etc.) running inside a container. It provides a complete email solution with features
+    like spam filtering, virus scanning, and secure email delivery.
+  category: email
+  tags:
+  - Email
+  - SMTP
+  - IMAP
+  - LDAP
+  - Antispam
+  - Antivirus
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: docker.io/mailserver/docker-mailserver:v15.1.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 25
+links:
+- label: Github
+  url: https://github.com/docker-mailserver/docker-mailserver
+- label: Guide
+  url: https://github.com/docker-mailserver/docker-mailserver/blob/master/mailserver.env
+instructions: Follow the guide to configure the mail server with environment variables.
+install:
+- docker:
+    image: $IMAGE
+    name: docker-mailserver
+    port: $PORT:25
+    volumes:
+    - /var/mail
+    - /var/mail-state
+    - /var/log/mail
+    - /tmp/docker-mailserver
+    - /etc/localtime
+    extra_ports:
+    - 143:143
+    - 465:465
+    - 587:587
+    - 993:993
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Follow the guide to configure the mail server with environment variables.

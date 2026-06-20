@@ -1,0 +1,73 @@
+metadata:
+  name: PruneMate
+  version: latest
+  description: PruneMate is a self-hosted Docker cleanup and management tool that
+    provides a web-based interface for pruning unused Docker resources from your system.
+    It helps you reclaim disk space by identifying and removing unused containers,
+    images, volumes, networks, and build cache. With its intuitive dashboard, you
+    can easily monitor Docker resource usage, schedule automatic cleanup tasks, and
+    manually trigger pruning operations without using command-line tools. PruneMate
+    connects directly to your Docker daemon via the Docker socket, allowing it to
+    safely analyze and clean up orphaned resources that accumulate over time. The
+    application features configurable cleanup schedules, selective pruning options
+    to choose which resource types to clean, detailed logging of all cleanup operations,
+    and real-time statistics showing disk space recovered. With timezone support and
+    customizable time format settings, you can schedule cleanup operations to run
+    during off-peak hours. Perfect for developers and system administrators who manage
+    Docker environments and want to automate the cleanup of unused resources, homelab
+    enthusiasts running multiple containers who need to manage disk space efficiently,
+    CI/CD environments where frequent image builds create significant cleanup overhead,
+    or anyone looking for a simple web interface to manage Docker resource cleanup
+    without remembering complex docker system prune commands.
+  category: docker
+  tags:
+  - Docker
+  - DevOps
+  - System Administration
+  - Cleanup
+  - Disk Management
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: anoniemerd/prunemate:1.3.3
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://prunemate.org
+- label: Github
+  url: https://github.com/anoniemerd/PruneMate
+- label: Documentation
+  url: https://prunemate.org/documentation.html
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: prunemate
+    port: $PORT:8080
+    volumes:
+    - /var/run/docker.sock
+    - /var/log
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

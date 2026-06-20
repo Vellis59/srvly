@@ -1,0 +1,57 @@
+metadata:
+  name: Form.io
+  version: latest
+  description: Form.io is a form and data management platform for progressive web
+    applications. It provides a drag-and-drop form builder, API platform, and data
+    management system that allows developers to rapidly build complex forms and workflows.
+    Form.io combines the power of JSON Schema with a robust API to create dynamic,
+    data-driven applications.
+  category: forms
+  tags:
+  - Forms
+  - Form Builder
+  - API Platform
+  - Data Management
+  - Workflow
+  - MongoDB
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: formio/formio:4.6.5
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3001
+links:
+- label: Official Website
+  url: https://form.io/
+- label: Documentation
+  url: https://help.form.io/
+- label: GitHub
+  url: https://github.com/formio/formio
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: formio
+    port: $PORT:3001
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

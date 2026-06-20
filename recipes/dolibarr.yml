@@ -1,0 +1,69 @@
+metadata:
+  name: Dolibarr
+  version: latest
+  description: Dolibarr ERP/CRM is an open-source platform designed for small to medium-sized
+    enterprises (SMEs) to manage business operations seamlessly. It offers a comprehensive
+    suite of tools for managing customers, invoices, orders, products, projects, and
+    more. With its modular architecture and user-friendly interface, Dolibarr provides
+    flexibility and scalability for businesses looking for an efficient and customizable
+    ERP/CRM solution.
+  category: erp
+  tags:
+  - ERP
+  - CRM
+  - Open Source
+  - Invoicing
+  - Inventory Management
+  - Project Management
+  - Small Business
+  - Customizable
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: dolibarr/dolibarr:23
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://www.dolibarr.org/
+- label: Documentation
+  url: https://wiki.dolibarr.org/
+- label: Compose Docs
+  url: https://github.com/Dolibarr/dolibarr/blob/develop/README.md
+- label: GitHub
+  url: https://github.com/Dolibarr/dolibarr
+instructions: Default Credentials; username; admin, password; admin
+install:
+- docker:
+    image: $IMAGE
+    name: dolibarr
+    port: $PORT:80
+    volumes:
+    - /var/www/scripts/docker-init.d
+    - /var/www/scripts/before-starting.d
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Default Credentials; username; admin, password; admin
+services:
+  mysql:
+    type: mysql
+    version: latest

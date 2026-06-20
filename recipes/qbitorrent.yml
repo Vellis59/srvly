@@ -1,0 +1,62 @@
+metadata:
+  name: qBittorrent
+  version: latest
+  description: qBittorrent is a powerful, open-source BitTorrent client designed to
+    provide an efficient and feature-rich experience for downloading and sharing files.
+    It offers a user-friendly interface, robust functionality, and cross-platform
+    compatibility. qBittorrent supports advanced features like sequential downloading,
+    IP filtering, RSS feed support, and a built-in search engine for finding torrents.
+    It also includes a web-based interface for managing downloads remotely. Designed
+    to balance performance, simplicity, and advanced capabilities, qBittorrent is
+    ideal for users seeking a secure and reliable torrenting solution.
+  category: torrenting
+  tags:
+  - Torrenting
+  - BitTorrent
+  - File Sharing
+  - Open Source
+  - Remote Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/qbittorrent:5.1.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://www.qbittorrent.org
+- label: Docs
+  url: https://github.com/qbittorrent/qBittorrent/wiki
+- label: Github
+  url: https://github.com/qbittorrent/qBittorrent
+instructions: Username is admin, password is provided in the overview logs.
+install:
+- docker:
+    image: $IMAGE
+    name: qbitorrent
+    port: $PORT:8080
+    volumes:
+    - /downloads
+    - /config
+    extra_ports:
+    - 6881:6881
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Username is admin, password is provided in the overview logs.

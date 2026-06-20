@@ -1,0 +1,63 @@
+metadata:
+  name: Immich
+  version: latest
+  description: Immich is a self-hosted photo and video backup solution designed for
+    individuals and families to store and manage their media files efficiently. It
+    provides a modern interface with features like automatic uploads, deduplication,
+    and powerful search capabilities. Immich ensures that you maintain full control
+    over your media while offering a smooth and user-friendly experience.
+  category: media-backup
+  tags:
+  - Media Backup
+  - Self-Hosted
+  - Machine Learning
+  - Photo Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/immich-app/immich-server:v2.7.5
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Documentation
+  url: https://immich.app/docs
+- label: Github
+  url: https://github.com/immich-app/immich
+instructions: Wait for the migration to complete.
+install:
+- docker:
+    image: $IMAGE
+    name: immich
+    port: $PORT:80
+    volumes:
+    - /usr/src/app/upload
+    extra_ports:
+    - 2283:2283
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Wait for the migration to complete.
+services:
+  postgres:
+    type: postgres
+    version: latest
+  redis:
+    type: redis
+    version: '7'

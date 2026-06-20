@@ -1,0 +1,55 @@
+metadata:
+  name: Dataline
+  version: latest
+  description: Dataline is a powerful data management and visualization tool that
+    helps users organize, analyze, and visualize their data in an intuitive way. It
+    provides a user-friendly interface for data manipulation, chart creation, and
+    data sharing capabilities. With its modern design and robust features, Dataline
+    makes it easy to work with various data formats and create meaningful visualizations.
+  category: data
+  tags:
+  - Data
+  - Visualization
+  - Analytics
+  - Management
+  - Charts
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ramiawar/dataline:v1.2.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 7377
+links:
+- label: GitHub
+  url: https://github.com/ramiawar/dataline
+- label: Docker Hub
+  url: https://hub.docker.com/r/ramiawar/dataline
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: dataline
+    port: $PORT:7377
+    volumes:
+    - /home/.dataline
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

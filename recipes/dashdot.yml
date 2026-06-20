@@ -1,0 +1,53 @@
+metadata:
+  name: Dashdot
+  version: latest
+  description: Dash. (or dashdot) is a visually stunning, modern server dashboard
+    designed with a glassmorphism aesthetic. It's built on the latest technology and
+    is intended for use with smaller VPS and private servers. The dashboard is feature-rich,
+    offering a dark/light mode, customizable widgets, beautiful animations and styles,
+    and support for multiple architectures. It provides a high level of personalization
+    options, allowing you to tailor the dashboard to your specific needs. Dash. is
+    an open-source project, welcoming contributions from those interested in further
+    developing the platform.
+  category: dashboard
+  tags:
+  - Dashboard
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: mauricenino/dashdot:6.3.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3001
+links:
+- label: Website
+  url: https://getdashdot.com/
+- label: Github
+  url: https://github.com/MauriceNino/dashdot
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: dashdot
+    port: $PORT:3001
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

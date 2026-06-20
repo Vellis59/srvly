@@ -1,0 +1,62 @@
+metadata:
+  name: Memcached
+  version: latest
+  description: Memcached is a high-performance, distributed memory object caching
+    system designed for speeding up dynamic web applications by alleviating database
+    load. It works by storing data and objects in RAM to reduce the number of times
+    an external data source must be read. Memcached is simple yet powerful, featuring
+    a straightforward design that enables rapid deployment, ease of development, and
+    solves many problems facing large data caches. It's particularly useful for database
+    call, API call, or page rendering result caching.
+  category: cache
+  tags:
+  - Cache
+  - In-Memory
+  - Performance
+  - Database
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: memcached:1.6.41
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://memcached.org/
+- label: Documentation
+  url: https://github.com/memcached/memcached/wiki
+- label: Github
+  url: https://github.com/memcached/memcached
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: memcached
+    port: $PORT:80
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

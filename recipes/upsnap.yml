@@ -1,0 +1,60 @@
+metadata:
+  name: UpSnap
+  version: latest
+  description: UpSnap is a self-hosted wake-on-lan (WOL) server with a modern web
+    interface. It allows you to remotely power on computers on your local network
+    from anywhere through an intuitive dashboard. UpSnap features device management
+    with customizable names and MAC addresses, wake history tracking, and user authentication.
+    Perfect for home networks, small offices, or lab environments where you need to
+    remotely manage the power state of multiple machines.
+  category: wake-on-lan
+  tags:
+  - Wake-on-LAN
+  - Network Management
+  - Remote Access
+  - System Administration
+  - Power Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/seriousm4x/upsnap:4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8090
+links:
+- label: GitHub
+  url: https://github.com/seriousm4x/upsnap
+- label: Container
+  url: https://github.com/seriousm4x/upsnap/pkgs/container/upsnap
+instructions: Open UpSnap from your domain, create an admin account, then add your
+  devices with their MAC addresses and host details. Ensure Wake-on-LAN is enabled
+  in each target machine BIOS/UEFI and network adapter settings.
+install:
+- docker:
+    image: $IMAGE
+    name: upsnap
+    port: $PORT:8090
+    volumes:
+    - /app/pb_data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Open UpSnap from your domain, create an admin account, then add your devices
+    with their MAC addresses and host details. Ensure Wake-on-LAN is enabled in each
+    target machine BIOS/UEFI and network adapter settings.

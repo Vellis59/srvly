@@ -1,0 +1,56 @@
+metadata:
+  name: SpaceDrive
+  version: latest
+  description: SpaceDrive is a powerful storage and file management solution designed
+    to streamline the organization, synchronization, and access of data across multiple
+    devices. It enables users to efficiently manage their files with real-time synchronization,
+    end-to-end encryption, and scalable storage options. With its robust feature set
+    and enterprise-grade capabilities, SpaceDrive enhances productivity by providing
+    secure, distributed, and decentralized storage for personal and professional use.
+  category: file-management
+  tags:
+  - File Management
+  - Cloud Storage
+  - Decentralized Storage
+  - Security
+  - Open Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/spacedriveapp/spacedrive/server:0.4.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Github
+  url: https://github.com/spacedriveapp/spacedrive
+- label: Documentation
+  url: https:/spacedrive.com
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: spacedrive
+    port: $PORT:80
+    volumes:
+    - /var/spacedrive
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

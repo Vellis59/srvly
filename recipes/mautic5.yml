@@ -1,0 +1,77 @@
+metadata:
+  name: Mautic 5
+  version: latest
+  description: Mautic 5 is an open-source, comprehensive marketing automation platform
+    that empowers businesses to manage and optimize customer engagement strategies.
+    It enables marketers to streamline their workflows by automating marketing tasks
+    such as email campaigns, SMS messaging, social media outreach, and lead generation.
+    Mautic 5 offers detailed analytics, campaign tracking, and personalized communication,
+    ensuring an efficient marketing strategy for businesses of all sizes. With its
+    intuitive interface and powerful features, Mautic 5 helps businesses maximize
+    customer engagement while reducing manual effort.
+  category: marketing
+  tags:
+  - Marketing
+  - Automation
+  - Open-Source
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: mautic/mautic:7.1.1-apache
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Github
+  url: https://github.com/mautic/mautic
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: mautic5
+    port: $PORT:80
+    volumes:
+    - /opt/mautic/cron
+    - /var/www/html/docroot/media/images
+    - /var/www/html/docroot/media/files
+    - /var/www/html/var/logs
+    - /var/www/html/config
+    - /opt/mautic/cron
+    - /var/www/html/config
+    - /var/www/html/var/logs
+    - /var/www/html/docroot/media/files
+    - /var/www/html/docroot/media/images
+    - /opt/mautic/cron
+    - /var/www/html/config
+    - /var/www/html/var/logs
+    - /var/www/html/docroot/media/files
+    - /var/www/html/docroot/media/images
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  mysql:
+    type: mysql
+    version: latest

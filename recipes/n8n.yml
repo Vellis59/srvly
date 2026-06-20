@@ -1,0 +1,72 @@
+metadata:
+  name: n8n
+  version: latest
+  description: n8n is a powerful workflow automation tool designed for technical people.
+    It allows you to build complex automations 10x faster, without the need to fight
+    with APIs. The app enables you to create flexible workflows focused on deep data
+    integration. You can use JavaScript for complex tasks that require flexibility
+    and the user-friendly UI for everything else. n8n provides the ability to connect
+    APIs with no code for automating basic tasks, or write vanilla Javascript for
+    manipulating complex data. It supports integration with any app and allows for
+    the creation of custom scenarios at speed. With n8n, you can pump data around
+    your entire tech stack with 350+ native integrations or use custom code to create
+    your own. It also offers features like bulk operations, painless debugging, and
+    the ability to host on your own infrastructure. n8n is not just a helpful tool,
+    it's the heart of your business, helping you optimize engineering resources, boost
+    efficiency, and focus on your KPIs, not your APIs.
+  category: automation
+  tags:
+  - Automation
+  - Workflow
+  - Integration
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: docker.n8n.io/n8nio/n8n:2.21.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5678
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://n8n.io/
+- label: Documentation
+  url: https://docs.n8n.io/
+- label: Github
+  url: https://github.com/n8n-io/n8n
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: n8n
+    port: $PORT:5678
+    volumes:
+    - /home/node/.n8n
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

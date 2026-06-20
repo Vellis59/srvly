@@ -1,0 +1,79 @@
+metadata:
+  name: LibreChat
+  version: latest
+  description: LibreChat is a free, open source clone of ChatGPT that supports multiple
+    AI providers and models. It offers a familiar chat interface with support for
+    OpenAI, Anthropic, Google, Azure OpenAI, and many other AI providers. LibreChat
+    features conversation management, preset configurations, plugin support, multi-user
+    authentication, and extensive customization options. It includes advanced features
+    like RAG (Retrieval Augmented Generation), web search capabilities, file uploads,
+    image generation, and comprehensive user management. Perfect for organizations
+    and individuals who want ChatGPT-like functionality while maintaining full control
+    over their data and conversations.
+  category: ai
+  tags:
+  - AI
+  - ChatGPT
+  - OpenAI
+  - Anthropic
+  - Google
+  - Multi-Provider
+  - RAG
+  - Chat Interface
+  - Self-Hosted
+  - Enterprise
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ''
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3080
+  version:
+    type: string
+    title: Version
+    default: latest
+links:
+- label: Website
+  url: https://librechat.ai
+- label: Documentation
+  url: https://docs.librechat.ai
+- label: GitHub
+  url: https://github.com/danny-avila/LibreChat
+instructions: Configure the OpenAI API Key.
+install:
+- docker:
+    image: $IMAGE
+    name: librechat
+    port: $PORT:3080
+    volumes:
+    - /app/client/public/images
+    - /app/uploads
+    - /app/api/logs
+    - /app/librechat.yaml
+    - /meili_data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Configure the OpenAI API Key.
+services:
+  postgres:
+    type: postgres
+    version: latest

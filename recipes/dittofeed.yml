@@ -1,0 +1,75 @@
+metadata:
+  name: Dittofeed
+  version: latest
+  description: Dittofeed is an advanced, self-hosted customer engagement platform
+    designed to streamline and enhance your marketing automation workflows. It empowers
+    businesses with real-time insights, robust data-driven personalization, and multi-channel
+    communication tools, including email, SMS, and push notifications. Dittofeed offers
+    a user-friendly interface, powerful API integrations, and extensive customization
+    options, making it ideal for organizations of all sizes. By providing a self-hosted
+    solution, Dittofeed ensures data privacy and compliance while giving you full
+    control over your infrastructure and customer data.
+  category: marketing-automation
+  tags:
+  - Marketing Automation
+  - Self-Hosted
+  - Customer Engagement
+  - Multi-Channel
+  - Real-Time Analytics
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: dittofeed/dittofeed-lite:v0.23.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://dittofeed.com
+- label: Documentation
+  url: https://docs.dittofeed.com/introduction
+- label: Github
+  url: https://github.com/dittofeed/dittofeed
+instructions: Please remove the bootstrap environment variable after the initial setup
+  is complete.
+install:
+- docker:
+    image: $IMAGE
+    name: dittofeed
+    port: $PORT:80
+    volumes:
+    - /var/lib/clickhouse
+    - /var/log/clickhouse-server
+    - /data
+    - /etc/temporal/config/dynamicconfig/prod.yaml
+    - /etc/temporal/config/dynamicconfig/prod.yaml
+    extra_ports:
+    - 3000:3000
+    - 8080:8080
+    - 9000:9000
+    - 9001:9001
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Please remove the bootstrap environment variable after the initial setup
+    is complete.
+services:
+  postgres:
+    type: postgres
+    version: latest

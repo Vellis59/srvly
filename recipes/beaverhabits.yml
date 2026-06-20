@@ -1,0 +1,58 @@
+metadata:
+  name: BeaverHabits
+  version: latest
+  description: BeaverHabits is a self-hosted habit tracking application that helps
+    you build and maintain positive habits through a simple, intuitive web interface.
+    It provides visual tracking of your daily habits, customizable date columns, and
+    supports both database and file-based storage options for flexibility in deployment
+    and data management.
+  category: habit-tracking
+  tags:
+  - Habit Tracking
+  - Productivity
+  - Self-Hosted
+  - Web Interface
+  - Personal Development
+  - Goal Setting
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: daya0576/beaverhabits:0.8.2
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Demo
+  url: https://beaverhabits.com/demo
+- label: Documentation
+  url: https://github.com/daya0576/beaverhabits/wiki
+- label: Github
+  url: https://github.com/daya0576/beaverhabits
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: beaverhabits
+    port: $PORT:8080
+    volumes:
+    - /app/.user
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

@@ -1,0 +1,67 @@
+metadata:
+  name: Openblocks
+  version: latest
+  description: Openblocks is an open-source low code platform designed to help you
+    build internal apps quickly and efficiently. With Openblocks, you can create admin
+    panels, dashboards, approval queues, and client support apps with ease and speed.
+    The platform offers over 50 built-in UI components, allowing you to build beautiful,
+    functional, and user-friendly apps. You can also customize new components and
+    embed them seamlessly into your apps. Openblocks connects to most databases and
+    any REST API platform within clicks, enabling full integration of heterogeneous
+    data from anywhere. It's a developer-first platform, allowing you to extend built-in
+    components using JavaScript and leverage external JavaScript libraries. Openblocks
+    also ensures security and reliability with role-based access control and audit
+    logs. It's loved by developers for its super-polished interface and mind-blowing
+    functionality.
+  category: admin-panels
+  tags:
+  - Admin Panels
+  - Dashboards
+  - Approval Queues
+  - Client Support Apps
+  - Opportunities
+  - Possibilities
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: openblocksdev/openblocks-ce:1.1.8
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://openblocks.dev/
+- label: Documentation
+  url: https://docs.openblocks.dev/
+- label: Github
+  url: https://github.com/openblocks-dev/openblocks
+- label: Discord Community
+  url: https://discord.com/invite/z5W2YHXdtt
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: openblocks
+    port: $PORT:3000
+    volumes:
+    - /openblocks-stacks
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

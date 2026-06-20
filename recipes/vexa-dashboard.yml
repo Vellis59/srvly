@@ -1,0 +1,102 @@
+metadata:
+  name: Vexa Dashboard
+  version: latest
+  description: 'Vexa Dashboard is a complete, all-in-one solution for self-hosted
+    meeting transcription. This template deploys both the Vexa API (real-time meeting
+    transcription engine) and its web dashboard in a single click.
+
+
+    Vexa captures audio from Google Meet and Microsoft Teams meetings, transcribes
+    it in real-time using Whisper AI, and provides a beautiful web interface to manage
+    everything. Own your data, self-host everything, no cloud dependencies.
+
+
+    This template includes:
+
+    - Vexa API: The transcription engine with bot management
+
+    - Vexa Dashboard: Web interface for managing meetings and transcripts
+
+    - PostgreSQL: Database for storing all your data
+
+
+    Perfect for teams who want enterprise-grade meeting transcription without sending
+    data to third parties.'
+  category: transcription
+  tags:
+  - Transcription
+  - Meetings
+  - AI
+  - Productivity
+  - Self-Hosted
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ''
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://vexa.ai
+- label: Documentation
+  url: https://github.com/Vexa-ai/vexa
+- label: Dashboard GitHub
+  url: https://github.com/Vexa-ai/vexa-dashboard
+- label: API GitHub
+  url: https://github.com/Vexa-ai/vexa
+instructions: 'After deployment, open the Vexa Dashboard URL in your browser. You
+  can immediately start joining meetings and transcribing them.
+
+
+  To enable AI-powered transcript analysis, edit the vexa-dashboard service environment
+  variables and uncomment the AI_MODEL and AI_API_KEY lines.
+
+
+  For better transcription quality (requires GPU), edit the vexa-api service and change
+  WHISPER_MODEL_SIZE from "tiny" to "medium" or "large-v3", and set DEVICE to "gpu".
+
+  '
+install:
+- docker:
+    image: $IMAGE
+    name: vexa-dashboard
+    port: $PORT:3000
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: 'After deployment, open the Vexa Dashboard URL in your browser. You can immediately
+    start joining meetings and transcribing them.
+
+
+    To enable AI-powered transcript analysis, edit the vexa-dashboard service environment
+    variables and uncomment the AI_MODEL and AI_API_KEY lines.
+
+
+    For better transcription quality (requires GPU), edit the vexa-api service and
+    change WHISPER_MODEL_SIZE from "tiny" to "medium" or "large-v3", and set DEVICE
+    to "gpu".
+
+    '
+services:
+  postgres:
+    type: postgres
+    version: latest

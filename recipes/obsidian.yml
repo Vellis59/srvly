@@ -1,0 +1,53 @@
+metadata:
+  name: Obsidian
+  version: latest
+  description: Obsidian is a powerful knowledge base that works on top of a local
+    folder of plain text Markdown files. It provides a flexible and extensible platform
+    for note-taking, knowledge management, and personal knowledge base creation.
+  category: note-taking
+  tags:
+  - Note Taking
+  - Knowledge Base
+  - Markdown
+  - Self-Hosted
+  - Productivity
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/obsidian:1.12.7
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://obsidian.md
+- label: Documentation
+  url: https://help.obsidian.md
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: obsidian
+    port: $PORT:3000
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

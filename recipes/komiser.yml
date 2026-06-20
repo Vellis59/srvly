@@ -1,0 +1,59 @@
+metadata:
+  name: Komiser
+  version: latest
+  description: Komiser is an open-source cloud resource manager that helps you understand,
+    manage, and optimize your cloud infrastructure costs. It provides a unified dashboard
+    to monitor and manage resources across multiple cloud providers, offering insights
+    into resource usage, cost optimization opportunities, and security best practices.
+  category: cloud-management
+  tags:
+  - Cloud Management
+  - Cost Optimization
+  - Resource Monitoring
+  - Security
+  - Multi-Cloud
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: tailwarden/komiser:3.1.22
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: Website
+  url: https://komiser.io/
+- label: Documentation
+  url: https://docs.komiser.io/
+- label: GitHub
+  url: https://github.com/tailwarden/komiser
+instructions: Once deployed, please provide your credentials in the credentials.yaml
+  file, and then restart the service.
+install:
+- docker:
+    image: $IMAGE
+    name: komiser
+    port: $PORT:3000
+    volumes:
+    - /etc/config/config.toml
+    - /etc/config/credentials.yaml
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Once deployed, please provide your credentials in the credentials.yaml file,
+    and then restart the service.

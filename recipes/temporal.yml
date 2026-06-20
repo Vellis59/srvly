@@ -1,0 +1,66 @@
+metadata:
+  name: Temporal
+  version: latest
+  description: Temporal is an open-source, self-hosted workflow orchestration engine
+    designed to simplify and enhance the development of scalable, fault-tolerant,
+    and long-running workflows. It empowers developers to build reliable distributed
+    systems by providing built-in state management, automatic retries, and advanced
+    task scheduling. Temporal offers a user-friendly developer experience, powerful
+    SDKs, and seamless integration with various languages, making it ideal for automating
+    complex business processes and microservice orchestration. By providing a self-hosted
+    solution, Temporal ensures data privacy, high availability, and complete control
+    over your workflows and infrastructure.
+  category: workflow-orchestration
+  tags:
+  - Workflow Orchestration
+  - Self-Hosted
+  - Fault-Tolerant
+  - Distributed Systems
+  - Observability
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: temporalio/auto-setup:1.29.0
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Documentation
+  url: https://docs.temporal.io/
+- label: Github
+  url: https://github.com/temporalio/temporal
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: temporal
+    port: $PORT:8080
+    volumes:
+    - /etc/temporal/config/dynamicconfig/development-sql.yaml
+    - /etc/temporal/config/dynamicconfig/development-cass.yaml
+    - /var/lib/elasticsearch/data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

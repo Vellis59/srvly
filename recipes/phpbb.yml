@@ -1,0 +1,66 @@
+metadata:
+  name: phpBB
+  version: latest
+  description: phpBB is a free and open-source bulletin board software that enables
+    you to create online communities and discussion forums. It offers a highly customizable
+    platform with a user-friendly interface that supports multiple languages and includes
+    features like custom BBCode, private messaging, search functionality, and user
+    groups. The Bitnami phpBB container provides a ready-to-use instance of phpBB
+    with all its dependencies, configured for security and performance. This deployment
+    includes both the phpBB application and a MariaDB database for storing your forum
+    data.
+  category: forum
+  tags:
+  - Forum
+  - Community
+  - Discussion Board
+  - Bulletin Board
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - mysql
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: bitnami/phpbb:3.3.12
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8080
+links:
+- label: Website
+  url: https://www.phpbb.com/
+- label: Documentation
+  url: https://www.phpbb.com/support/documentation/
+- label: Docker Hub
+  url: https://hub.docker.com/r/bitnami/phpbb
+instructions: Login to the phpBB forum via the provided URL. During the first login,
+  use the username "admin" and the passowrd is "admin"
+install:
+- docker:
+    image: $IMAGE
+    name: phpbb
+    port: $PORT:8080
+    volumes:
+    - /bitnami/phpbb
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Login to the phpBB forum via the provided URL. During the first login, use
+    the username "admin" and the passowrd is "admin"
+services:
+  mysql:
+    type: mysql
+    version: latest

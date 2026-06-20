@@ -1,0 +1,60 @@
+metadata:
+  name: RabbitMQ
+  version: latest
+  description: RabbitMQ is an open-source message broker software that facilitates
+    reliable messaging between applications and services. It supports a variety of
+    messaging protocols such as AMQP and MQTT, making it a versatile solution for
+    modern distributed systems. With RabbitMQ, you can efficiently manage message
+    queues, exchanges, and routing, enabling seamless communication across different
+    components of your application. It also provides a user-friendly web-based management
+    interface for monitoring, configuration, and troubleshooting.
+  category: message-broker
+  tags:
+  - Message Broker
+  - AMQP
+  - MQTT
+  - High Availability
+  - Queue Management
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: rabbitmq:3-management
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5672
+links:
+- label: Website
+  url: https://www.rabbitmq.com/
+- label: Documentation
+  url: https://www.rabbitmq.com/documentation.html
+- label: GitHub
+  url: https://github.com/rabbitmq
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: rabbitmq
+    port: $PORT:5672
+    volumes:
+    - /var/lib/rabbitmq
+    extra_ports:
+    - 15672:15672
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

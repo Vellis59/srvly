@@ -1,0 +1,58 @@
+metadata:
+  name: Daapd
+  version: latest
+  description: Daapd is a robust, open-source DAAP (Digital Audio Access Protocol)
+    server that allows users to share music libraries over a network. It is designed
+    to work seamlessly with iTunes, Roku SoundBridges, and other DAAP clients, providing
+    an efficient and reliable way to stream audio content across devices. Daapd also
+    supports streaming internet radio, podcasts, and AirPlay devices. With its powerful
+    backend, Daapd ensures smooth performance, a wide range of supported formats,
+    and advanced features like library management and transcoding.
+  category: daap
+  tags:
+  - DAAP
+  - Music Server
+  - Audio Streaming
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: lscr.io/linuxserver/daapd:28.10.20250118
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3689
+links:
+- label: Website
+  url: https://github.com/ejurgensen/forked-daapd
+- label: Documentation
+  url: https://ejurgensen.github.io/forked-daapd/
+- label: Github
+  url: https://github.com/ejurgensen/forked-daapd
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: daapd
+    port: $PORT:3689
+    volumes:
+    - /music
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

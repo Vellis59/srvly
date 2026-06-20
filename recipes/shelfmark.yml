@@ -1,0 +1,57 @@
+metadata:
+  name: Shelfmark
+  version: latest
+  description: Shelfmark is a self-hosted book management and organization application
+    that provides comprehensive tools for managing your digital book library. Built
+    with modern architecture, Shelfmark offers a web-based interface accessible on
+    port 8084 for organizing, cataloging, and managing your book collection. The system
+    supports book downloads, configuration management, and integration with torrent
+    and usenet download clients. Perfect for book enthusiasts and libraries looking
+    for a self-hosted solution to manage their digital book collections.
+  category: books
+  tags:
+  - Books
+  - Library
+  - Self-Hosted
+  - E-Books
+  - Management
+  - Docker
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/calibrain/shelfmark:sha-ba62771
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8084
+links:
+- label: GitHub
+  url: https://github.com/calibrain/shelfmark
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: shelfmark
+    port: $PORT:8084
+    volumes:
+    - /books
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null

@@ -1,0 +1,68 @@
+metadata:
+  name: SparkyFitness
+  version: latest
+  description: SparkyFitness is a self-hosted, privacy-first alternative to MyFitnessPal.
+    Track nutrition, exercise, hydration, and body metrics while keeping full control
+    of your data. Built for families with AI-powered features, SparkyFitness offers
+    comprehensive health tracking with integrations for Apple Health, Google Health
+    Connect, Fitbit, Garmin Connect, and Withings. Features include goal setting,
+    interactive charts, long-term reports, and optional AI chatbot for conversational
+    data logging.
+  category: fitness
+  tags:
+  - Fitness
+  - Health Tracking
+  - Self-Hosted
+  - Privacy
+  - Nutrition
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: codewithcj/sparkyfitness:v0.16.5.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+links:
+- label: Website
+  url: https://codewithcj.github.io/SparkyFitness
+- label: GitHub
+  url: https://github.com/CodeWithCJ/SparkyFitness
+- label: Documentation
+  url: https://codewithcj.github.io/SparkyFitness
+- label: Docker Hub Server
+  url: https://hub.docker.com/r/codewithcj/sparkyfitness_server
+instructions: null
+install:
+- docker:
+    image: $IMAGE
+    name: sparkyfitness
+    port: $PORT:80
+    volumes:
+    - /app/SparkyFitnessServer/backup
+    - /app/SparkyFitnessServer/uploads
+    extra_ports:
+    - 3010:3010
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: null
+services:
+  postgres:
+    type: postgres
+    version: latest

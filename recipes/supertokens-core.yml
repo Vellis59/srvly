@@ -1,0 +1,64 @@
+metadata:
+  name: Supertokens Core
+  version: latest
+  description: SuperTokens is an advanced user authentication solution designed to
+    streamline your app's security. It offers a range of features including user roles,
+    two-factor authentication (2FA), Single Sign-On (SSO) with platforms like AD and
+    Okta, session management, user management, account linking, and machine authentication.
+    The app is trusted by startups and enterprises alike for its ease of setup and
+    use. With SuperTokens, you can host your login page on your own domain, eliminating
+    the need for redirects. It also provides prebuilt UIs and frontend SDKs to help
+    you build your own login page quickly. SuperTokens is also capable of handling
+    multitenant SSO, allowing each customer to have their own user pool. Loved by
+    the world's best teams, SuperTokens is your go-to solution for user authentication
+    and session management.
+  category: developer-tools
+  tags:
+  - Developer Tools
+  - Security
+  os_support:
+  - ubuntu-22.04
+  - ubuntu-24.04
+  - debian-12
+  dependencies:
+  - docker
+  - postgres
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: supertokens/supertokens-postgresql:11.4.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3567
+links:
+- label: Website
+  url: https://supertokens.com/
+- label: Documentation
+  url: https://supertokens.com/docs
+- label: Github
+  url: https://github.com/supertokens
+instructions: Check environment tab for your API key
+install:
+- docker:
+    image: $IMAGE
+    name: supertokens-core
+    port: $PORT:3567
+    volumes: []
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
+  notes: Check environment tab for your API key
+services:
+  postgres:
+    type: postgres
+    version: latest
