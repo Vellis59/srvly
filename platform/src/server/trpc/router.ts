@@ -154,7 +154,7 @@ export const installRouter = router({
       } else if (recipeData?.install?.[0]?.script) {
         script = recipeData.install[0].script;
       } else {
-        script = `docker pull ${recipeData?.params?.image?.default || recipeId} && echo "Image pulled"`;
+        script = `docker pull ${recipeData?.params?.image?.default || "app"} && echo "Image pulled"`;
       }
 
       // Dispatch to tunnel-server (async)

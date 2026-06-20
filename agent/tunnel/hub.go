@@ -16,21 +16,28 @@ var upgrader = websocket.Upgrader{
 }
 
 type Hub struct {
-	clients map[string]*websocket.Conn
-	mu      sync.RWMutex
-	store   *store.Store
+	clients        map[string]*websocket.Conn
+	mu             sync.RWMutex
+	store          *store.Store
+	pendingResults map[string]chan *CommandResult
+}
+
+type CommandResult struct {
+	Success bool   `json:"success"`
+	Output  string `json:"output"`
+	Error   string `json:"error"`
 }
 
 func NewHub(s *store.Store) *Hub {
 	return &Hub{
-		clients: make(map[string]*websocket.Conn),
-		store:   s,
+		clients:        make(map[string]*websocket.Conn),
+		store:          s,
+		pendingResults: make(map[string]chan *CommandResult),
 	}
 }
 
 func (h *Hub) Run() {}
 
-// Dispatch sends a command to a connected agent and waits for the result
 func (h *Hub) Dispatch(serverID, commandID, script string, timeout time.Duration) *CommandResult {
 	h.mu.RLock()
 	conn, ok := h.clients[serverID]
@@ -42,9 +49,6 @@ func (h *Hub) Dispatch(serverID, commandID, script string, timeout time.Duration
 
 	resultChan := make(chan *CommandResult, 1)
 	h.mu.Lock()
-	if h.pendingResults == nil {
-		h.pendingResults = make(map[string]chan *CommandResult)
-	}
 	h.pendingResults[commandID] = resultChan
 	h.mu.Unlock()
 
@@ -73,14 +77,6 @@ func (h *Hub) Dispatch(serverID, commandID, script string, timeout time.Duration
 		return &CommandResult{Error: "timeout"}
 	}
 }
-
-type CommandResult struct {
-	Success bool   `json:"success"`
-	Output  string `json:"output"`
-	Error   string `json:"error"`
-}
-
-var pendingResults map[string]chan *CommandResult
 
 func (h *Hub) handleMessageFrom(serverID string, data []byte) {
 	var msg Message
@@ -113,7 +109,7 @@ func (h *Hub) HandleWS(w http.ResponseWriter, r *http.Request) {
 
 	token := r.Header.Get("Authorization")
 
-	// Wait for auth message
+	// Auth
 	_, data, err := conn.ReadMessage()
 	if err != nil {
 		log.Printf("auth read error: %v", err)
