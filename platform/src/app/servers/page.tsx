@@ -12,7 +12,7 @@ type Server = {
   status: string;
   os: string | null;
   ram: number | null;
-  createdAt: Date;
+  createdAt: Date | string;
 };
 
 function AddServerModal({ onClose }: { onClose: () => void }) {
