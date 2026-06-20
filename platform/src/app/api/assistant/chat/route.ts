@@ -4,7 +4,6 @@ import { db } from "@/server/db";
 import { recipes, servers, installations, domains } from "@/server/db/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
 import * as http from "http";
-import { execSync } from "child_process";
 
 // ─── Config ───────────────────────────────────────────────────────────
 
@@ -419,22 +418,46 @@ async function execTool(
         const cmd = String(args.commande || "").trim();
         if (!cmd) return JSON.stringify({ erreur: "Commande vide." });
 
-        // Only allow docker commands
         if (!cmd.startsWith("docker ")) {
           return JSON.stringify({ erreur: "Seules les commandes docker sont autorisées." });
         }
 
         try {
-          const output = execSync(cmd, {
-            timeout: 60000,
-            maxBuffer: 10 * 1024 * 1024,
-            encoding: "utf-8",
+          // Dispatch to member server agent via tunnel-server
+          const tunnelUrl = process.env.TUNNEL_URL || "http://tunnel-server:8080";
+          const dispatchRes = await fetch(`${tunnelUrl}/dispatch`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              server_id: "unknown",
+              command_id: `tool-${crypto.randomUUID().slice(0, 8)}`,
+              script: cmd,
+              timeout: 60,
+            }),
+            signal: AbortSignal.timeout(70000),
           });
-          return `Sortie:\n${(output || "").slice(0, 4000)}\n(Commande terminée avec succès)`;
+
+          if (!dispatchRes.ok) {
+            const errText = await dispatchRes.text().catch(() => "");
+            return JSON.stringify({
+              erreur: `Erreur dispatch: ${dispatchRes.status} ${errText.slice(0, 200)}`,
+            });
+          }
+
+          const result = await dispatchRes.json();
+          const output = result?.output || "";
+          const error = result?.error || "";
+
+          if (result?.success === false && !output) {
+            return JSON.stringify({
+              erreur: `Commande échouée: ${error.slice(0, 1000)}`,
+              sortie: output.slice(0, 3000),
+            });
+          }
+
+          return `Sortie:\n${(output || "").slice(0, 4000)}\n${error ? `\nErreurs: ${error.slice(0, 1000)}` : "\n(Commande terminée avec succès)"}`;
         } catch (e: any) {
-          const stderr = e.stderr?.toString() || "";
-          const stdout = e.stdout?.toString() || "";
-          return `Erreur:\n${(stderr || stdout || e.message).slice(0, 3000)}`;
+          return `Erreur d'exécution: ${(e.message || e).slice(0, 2000)}`;
         }
       }
 
