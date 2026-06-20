@@ -135,6 +135,7 @@ export default function ServerDetailPage() {
   const router = useRouter();
   const deleteServer = trpc.server.delete.useMutation({
     onSuccess: () => router.push("/servers"),
+    onError: (err) => alert("Erreur: " + err.message),
   });
 
   if (isLoading) return <div className="text-slate-400">Chargement...</div>;
