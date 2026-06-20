@@ -109,11 +109,18 @@ certbot certonly --webroot -w /var/www/certbot -d ${name} \\
 }
 
 # Update nginx config to use SSL + redirect HTTP to HTTPS
-cat > /etc/nginx/sites-enabled/${name}.conf << NGINXCONF
+cat > /etc/nginx/sites-enabled/${name}.conf << 'NGINXCONF'
 server {
     listen 80;
     server_name ${name};
-    return 301 https://$host$request_uri;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
 }
 
 server {
@@ -128,7 +135,7 @@ server {
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Proto https;
     }
 }
 NGINXCONF
