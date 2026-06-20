@@ -193,10 +193,10 @@ export const installRouter = router({
         // 3. Verify — retry until ready
         script += `# Verify installation (retry loop)\n`;
         script += `for i in 1 2 3 4 5 6; do\n`;
-        script += `  echo "Check attempt $i...\\n"\n`;
+        script += `  echo "Check attempt $i..."\n`;
         script += `  sleep 10\n`;
-        script += `  CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${port} 2>/dev/null || echo "000")\n`;
-        script += `  echo "  HTTP $CODE\\n"\n`;
+        script += `  CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${port} 2>/dev/null)\n`;
+        script += `  echo "  HTTP $CODE"\n`;
         script += `  if [ "$CODE" != "000" ]; then\n`;
         script += `    echo "APP_READY"\n`;
         script += `    exit 0\n`;
@@ -341,17 +341,22 @@ export const domainRouter = router({
       // Auto-configure Nginx on the server (if app+port specified)
       if (domain && input.targetPort) {
         const nginxScript = `
+mkdir -p /var/www/certbot
 cat > /etc/nginx/sites-enabled/${input.name}.conf << NGINX
 server {
     listen 80;
     server_name ${input.name};
 
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
     location / {
         proxy_pass http://127.0.0.1:${input.targetPort};
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
     }
 }
 NGINX
