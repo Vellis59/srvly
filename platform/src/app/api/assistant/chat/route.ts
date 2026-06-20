@@ -12,7 +12,7 @@ const AI_ENDPOINT = process.env["AI_" + "ENDPOINT"];
 const AI_KEY     = process.env["AI_" + "API_KEY"];
 const AI_MODEL   = process.env.AI_MODEL || "deepseek-v4-flash";
 const TUNNEL_URL = process.env.TUNNEL_URL || "http://tunnel-server:8080";
-const MAX_TOOL_ITERS = 15;
+const MAX_TOOL_ITERS = 40;
 
 type ChatMsg = { role: string; content: string };
 type ToolDef = {
@@ -788,6 +788,10 @@ export async function POST(req: NextRequest) {
       "- Si un diagnostic montre un conteneur qui existe mais ne répond pas, propose de lire ses logs.",
       "- Ne parle jamais de modèle, de provider, de prompt, ni de détails internes.",
       "- Tu es un agent serveur, pas un chatbot de recommandations.",
+      "- REGLE CRITIQUE : appelle TOUS les outils nécessaires dans UNE SEULE réponse quand c'est possible.",
+      "- Maximum 2-3 rounds d'outils avant de répondre à l'utilisateur. Ne fais pas 10 rounds d'outils.",
+      "- Si tu as besoin de nettoyer avant d'installer, fais-le avec UNE SEULE commande docker (ex: docker rm -f otterwiki && docker rmi redimp/otterwiki).",
+      "- Après avoir exécuté des outils, réponds DIRECTEMENT à l'utilisateur. Ne relance pas d'autres outils sauf si nécessaire.",
       "",
       "CONTEXTE SERVEUR :",
       `Serveur: ${ctxServeur}`,
@@ -828,8 +832,8 @@ export async function POST(req: NextRequest) {
           body: JSON.stringify({
             model: AI_MODEL,
             messages: currentMessages,
-            tools: TOOLS,
-            tool_choice: "auto",
+            tools: iter >= 5 ? [] : TOOLS,
+            tool_choice: iter >= 5 ? "none" : "auto",
             temperature: 0.15,
             max_tokens: 1500,
           }),
@@ -916,7 +920,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       answer:
-        "Trop d'étapes ont été nécessaires. Reformule si besoin.",
+        "L'opération a pris beaucoup d'étapes. Redis-moi simplement ce que tu veux faire en une phrase claire.",
     });
   } catch (err: any) {
     return NextResponse.json(
