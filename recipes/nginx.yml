@@ -1,0 +1,42 @@
+# Recipe: nginx
+# Installation 1-clic d'un serveur Nginx
+metadata:
+  name: nginx
+  version: "1.26"
+  description: Nginx — serveur web haute performance
+  os_support:
+    - ubuntu-22.04
+    - ubuntu-24.04
+    - debian-12
+  dependencies: []
+
+params:
+  port: 80
+  ssl_port: 443
+  version: latest
+  server_name: "{{ server_ip }}"
+
+checks:
+  - port_libre: ["{{ port }}", "{{ ssl_port }}"]
+  - os_compatible: true
+  - memory: 512 # Mo minimum
+
+install:
+  - script: |
+      apt-get update -qq
+      apt-get install -y -qq nginx
+  - script: |
+      systemctl enable nginx
+      systemctl start nginx
+  - template:
+      src: templates/nginx-default.conf
+      dest: /etc/nginx/sites-available/default
+  - script: "nginx -t && systemctl reload nginx"
+
+verify:
+  - curl -s -o /dev/null -w "%{http_code}" http://localhost:{{ port }} | grep -q 200
+
+output:
+  url: "http://{{ server_ip }}:{{ port }}"
+  type: webserver
+  status: active
