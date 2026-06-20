@@ -222,9 +222,8 @@ const TOOLS: ToolDef[] = [
         required: ["id_recette"],
       },
     },
-  ],
+  },
 ];
-
 // ─── Tool handlers ─────────────────────────────────────────────────────
 
 async function execTool(
