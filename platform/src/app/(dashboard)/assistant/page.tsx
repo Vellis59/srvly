@@ -51,7 +51,22 @@ function isNo(text: string) {
 }
 
 function normalizeText(text: string) {
-  return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[’']/g, " ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function compactText(text: string) {
+  return normalizeText(text).replace(/\s+/g, "");
+}
+
+function saysAlreadyInstalled(text: string) {
+  const normalized = normalizeText(text);
+  return /deja\s+.*install/.test(normalized) || /d\s+install/.test(normalized);
 }
 
 function cleanDomain(text: string) {
@@ -107,10 +122,19 @@ export default function AssistantPage() {
 
   function findMentionedApp(text: string, candidates = recommendations) {
     const normalized = normalizeText(text);
+    const compact = compactText(text);
     return candidates.find((app) => {
       const id = normalizeText(app.id);
       const name = normalizeText(app.name);
-      return normalized.includes(id) || normalized.includes(name);
+      const idCompact = compactText(app.id);
+      const nameCompact = compactText(app.name);
+      return (
+        normalized.includes(id) ||
+        normalized.includes(name) ||
+        compact.includes(idCompact) ||
+        compact.includes(nameCompact) ||
+        (nameCompact.includes("activepieces") && /active\s*piece/.test(normalized))
+      );
     });
   }
 
@@ -199,8 +223,12 @@ export default function AssistantPage() {
   async function handleWizardAnswer(content: string, current: Wizard) {
     const text = content.trim();
 
-    const requestedApp = isInstallIntent(text) ? findMentionedApp(text) : undefined;
-    if (requestedApp && requestedApp.id !== current.app.id) {
+    const requestedApp = findMentionedApp(text);
+    const appSwitchIntent = requestedApp && (
+      isInstallIntent(text) ||
+      /\b(plutot|plutôt|prefere|préfère|choisis|choisir|prends|prendre|finalement)\b/i.test(text)
+    );
+    if (appSwitchIntent && requestedApp.id !== current.app.id) {
       setWizard(null);
       appendAssistant(`D'accord, on abandonne ${current.app.name} et on passe à ${requestedApp.name}.`);
       setTimeout(() => startWizard(requestedApp), 50);
@@ -294,8 +322,8 @@ export default function AssistantPage() {
       setRecommendations(recs);
       appendAssistant(answer);
 
-      const answerSaysAlreadyInstalled = /déjà\s+install|deja\s+install/i.test(answer);
-      const shouldStartWizard = isInstallIntent(content) && recs[0] || (isActionableNeed(content) && recs[0] && !answerSaysAlreadyInstalled);
+      const answerSaysAlreadyInstalled = saysAlreadyInstalled(answer);
+      const shouldStartWizard = (isInstallIntent(content) && recs[0]) || (isActionableNeed(content) && recs[0] && !answerSaysAlreadyInstalled);
       if (shouldStartWizard) {
         setTimeout(() => startWizard(recs[0]), 50);
       }
