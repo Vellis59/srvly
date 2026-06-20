@@ -1,20 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Client } from "pg";
+import postgres from "postgres";
 
 const env = process.env as Record<string, string | undefined>;
-const AI_KEY = env["AI_" + "API_KEY"] || "";
+const AI_KEY = env["AI_"] + (env["API_KEY"] || "");
 const dbUrl = env["DATABASE_URL"] || "";
 
 export async function POST(req: NextRequest) {
   try {
     const { domainId } = await req.json();
     if (!domainId) return NextResponse.json({ error: "domainId required" }, { status: 400 });
-
     if (!dbUrl) return NextResponse.json({ error: "DB not configured" }, { status: 500 });
 
-    // Fetch domain + verify server ownership via session
     const cookieHeader = req.headers.get("cookie") || "";
-    const sessionResp = await fetch(`http://localhost:3000/api/auth/session`, {
+    const sessionResp = await fetch("http://localhost:3000/api/auth/session", {
       headers: { cookie: cookieHeader },
     });
     const session = await sessionResp.json();
@@ -22,23 +20,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }
 
-    const client = new Client({ connectionString: dbUrl });
-    await client.connect();
+    const sql = postgres(dbUrl);
 
-    const result = await client.query(
-      `SELECT d.id, d.name, d.target_port, d.ssl_status, s.ip, s.id AS server_id
-       FROM domains d
-       JOIN servers s ON d.server_id = s.id
-       WHERE d.id = $1 AND s.user_id = $2`,
-      [domainId, session.user.id]
-    );
-    await client.end();
+    const rows = await sql`
+      SELECT d.id, d.name, d.target_port, d.ssl_status, s.ip, s.id AS server_id
+      FROM domains d
+      JOIN servers s ON d.server_id = s.id
+      WHERE d.id = ${domainId} AND s.user_id = ${session.user.id}
+    `;
+    await sql.end();
 
-    if (result.rows.length === 0) {
+    if (rows.length === 0) {
       return NextResponse.json({ error: "domain not found" }, { status: 404 });
     }
 
-    const domain = result.rows[0];
+    const domain = rows[0];
     const name = domain.name;
     const port = domain.target_port || 80;
     const serverIp = domain.ip;
@@ -166,13 +162,9 @@ echo "SSL_ACTIVE"
     }
 
     // Update DB
-    const client2 = new Client({ connectionString: dbUrl });
-    await client2.connect();
-    await client2.query(
-      `UPDATE domains SET ssl_status = 'active' WHERE id = $1`,
-      [domainId]
-    );
-    await client2.end();
+    const sql2 = postgres(dbUrl);
+    await sql2`UPDATE domains SET ssl_status = 'active' WHERE id = ${domainId}`;
+    await sql2.end();
 
     return NextResponse.json({
       success: true,
