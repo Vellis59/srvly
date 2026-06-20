@@ -1,10 +1,10 @@
 "use client";
 
 import { trpc } from "@/lib/trpc";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
-const TUNNEL_URL = "http://185.197.251.176:8080";
+const TUNNEL_URL = ""; // Uses API proxy (same origin)
 
 // Action recipes
 const ACTIONS: Record<string, { label: string; desc: string; icon: string; script: string; color: string }> = {
@@ -132,6 +132,11 @@ export default function ServerDetailPage() {
     setRunning(null);
   };
 
+  const router = useRouter();
+  const deleteServer = trpc.server.delete.useMutation({
+    onSuccess: () => router.push("/servers"),
+  });
+
   if (isLoading) return <div className="text-slate-400">Chargement...</div>;
   if (!server) return <div className="text-slate-500">Serveur introuvable</div>;
 
@@ -162,6 +167,18 @@ export default function ServerDetailPage() {
           </div>
         </div>
         <p className="text-sm text-slate-500 font-mono">{server.ip}</p>
+        {deleteServer.isPending ? (
+          <p className="text-sm text-red-500 mt-2">Suppression en cours...</p>
+        ) : (
+          <button
+            onClick={() => {
+              if (confirm("Supprimer ce serveur ?")) deleteServer.mutate({ id: server.id });
+            }}
+            className="text-sm text-red-500 hover:text-red-700 mt-2 transition-colors"
+          >
+            Supprimer ce serveur
+          </button>
+        )}
       </div>
 
       {/* Info cards */}
