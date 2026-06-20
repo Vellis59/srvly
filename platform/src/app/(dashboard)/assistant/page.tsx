@@ -50,6 +50,10 @@ function isNo(text: string) {
   return /^(non|no|pas|sans|aucun|annule|stop|cancel)/i.test(text.trim());
 }
 
+function normalizeText(text: string) {
+  return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
 function cleanDomain(text: string) {
   const raw = text.trim().toLowerCase();
   if (!raw || isNo(raw)) return "";
@@ -99,6 +103,15 @@ export default function AssistantPage() {
     appendAssistant(
       `Très bien, je prépare l'installation de ${app.name}.\n\nQuel domaine veux-tu utiliser ?\nExemple : ${app.id}.tondomaine.com\n\nRéponds “non” si tu veux installer sans domaine pour l'instant.`
     );
+  }
+
+  function findMentionedApp(text: string, candidates = recommendations) {
+    const normalized = normalizeText(text);
+    return candidates.find((app) => {
+      const id = normalizeText(app.id);
+      const name = normalizeText(app.name);
+      return normalized.includes(id) || normalized.includes(name);
+    });
   }
 
   async function pollInstallation(installationId: string) {
@@ -186,6 +199,14 @@ export default function AssistantPage() {
   async function handleWizardAnswer(content: string, current: Wizard) {
     const text = content.trim();
 
+    const requestedApp = isInstallIntent(text) ? findMentionedApp(text) : undefined;
+    if (requestedApp && requestedApp.id !== current.app.id) {
+      setWizard(null);
+      appendAssistant(`D'accord, on abandonne ${current.app.name} et on passe à ${requestedApp.name}.`);
+      setTimeout(() => startWizard(requestedApp), 50);
+      return;
+    }
+
     if (isNo(text) && ["domain", "port", "ssl", "confirm"].includes(current.step)) {
       if (current.step === "confirm") {
         appendAssistant("Ok, j'annule cette installation. Dis-moi simplement ce que tu veux faire ensuite.");
@@ -269,10 +290,12 @@ export default function AssistantPage() {
       if (!res.ok) throw new Error(data.error || "Erreur assistant");
 
       const recs: Recommendation[] = data.recommendations || [];
+      const answer = data.answer || "Je n'ai pas trouvé de réponse.";
       setRecommendations(recs);
-      appendAssistant(data.answer || "Je n'ai pas trouvé de réponse.");
+      appendAssistant(answer);
 
-      const shouldStartWizard = (isInstallIntent(content) || isActionableNeed(content)) && recs[0];
+      const answerSaysAlreadyInstalled = /déjà\s+install|deja\s+install/i.test(answer);
+      const shouldStartWizard = isInstallIntent(content) && recs[0] || (isActionableNeed(content) && recs[0] && !answerSaysAlreadyInstalled);
       if (shouldStartWizard) {
         setTimeout(() => startWizard(recs[0]), 50);
       }
