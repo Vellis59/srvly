@@ -57,9 +57,9 @@ function AddServerModal({ onClose }: { onClose: () => void }) {
             </p>
             <pre className="text-xs font-mono bg-slate-900 text-slate-100 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap">
 {`# Installer l'agent Go :
-curl -s https://get.srvly.app/agent.sh | bash -s -- \\
+curl -sL http://185.197.251.176:3000/agent.sh | bash -s -- \\
   --token ${createdServer.agentToken} \\
-  --server wss://platform.srvly.app/ws`}
+  --server ws://185.197.251.176:8080/ws`}
             </pre>
           </div>
 

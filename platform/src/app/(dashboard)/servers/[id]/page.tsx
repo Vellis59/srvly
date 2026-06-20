@@ -53,7 +53,7 @@ export default function ServerDetailPage() {
             Exécutez cette commande sur votre serveur :
           </p>
           <pre className="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs overflow-x-auto">
-            {`curl -s https://get.srvly.app/agent.sh | bash -s -- \\\n  --token ${server.agentToken} \\\n  --server wss://platform.srvly.app/ws`}
+            {`curl -sL http://185.197.251.176:3000/agent.sh | bash -s -- \\\n  --token ${server.agentToken} \\\n  --server ws://185.197.251.176:8080/ws`}
           </pre>
         </div>
       </div>
