@@ -31,6 +31,10 @@ params:
     type: integer
     title: Port HTTP
     default: 8080
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: Website
   url: https://www.qbittorrent.org

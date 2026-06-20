@@ -26,6 +26,10 @@ params:
     type: integer
     title: Port HTTP
     default: 8080
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: GitHub
   url: https://github.com/need4swede/sidequests

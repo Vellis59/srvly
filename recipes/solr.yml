@@ -27,6 +27,10 @@ params:
     type: integer
     title: Port HTTP
     default: 8983
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: Official Website
   url: https://solr.apache.org/

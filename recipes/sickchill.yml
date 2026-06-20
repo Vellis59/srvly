@@ -29,6 +29,10 @@ params:
     type: integer
     title: Port HTTP
     default: 8081
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: Documentation
   url: https://github.com/SickChill/SickChill/wiki

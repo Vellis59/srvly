@@ -27,6 +27,10 @@ params:
     type: integer
     title: Port HTTP
     default: 8000
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: Codeberg
   url: https://codeberg.org/readeck/readeck

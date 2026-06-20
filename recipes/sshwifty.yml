@@ -30,6 +30,10 @@ params:
     type: integer
     title: Port HTTP
     default: 8182
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: Github
   url: https://github.com/nirui/sshwifty

@@ -28,6 +28,10 @@ params:
     type: integer
     title: Port HTTP
     default: 80
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: Documentation
   url: https://postfix-configuration.readthedocs.io/en/latest/postfixadmin/

@@ -70,3 +70,8 @@ verify:
 output:
   url: http://{{ server_ip }}:$PORT
   type: webapp
+  notes: null
+services:
+  redis:
+    type: redis
+    version: '7'

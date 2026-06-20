@@ -30,6 +30,10 @@ params:
     type: integer
     title: Port HTTP
     default: 80
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: Documentation
   url: https://github.com/schickling/dockerfiles/tree/master/postgres-backup-s3

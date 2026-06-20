@@ -32,6 +32,10 @@ params:
     type: integer
     title: Port HTTP
     default: 9696
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: Website
   url: https://prowlarr.com/

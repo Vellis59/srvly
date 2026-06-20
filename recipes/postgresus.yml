@@ -36,6 +36,10 @@ params:
     type: integer
     title: Port HTTP
     default: 4005
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: Docker Hub
   url: https://hub.docker.com/r/rostislavdugin/postgresus

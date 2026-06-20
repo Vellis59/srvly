@@ -34,6 +34,10 @@ params:
     type: integer
     title: Port HTTP
     default: 1970
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: GitHub
   url: https://github.com/swingmx/swingmusic

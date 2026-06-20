@@ -31,6 +31,10 @@ params:
     type: integer
     title: Port HTTP
     default: 32400
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: Documentation
   url: https://support.plex.tv/articles/catagories/plex-media-server

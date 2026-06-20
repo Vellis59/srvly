@@ -33,6 +33,10 @@ params:
     type: integer
     title: Port HTTP
     default: 2342
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: Website
   url: https://photoprism.app

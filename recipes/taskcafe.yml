@@ -28,6 +28,10 @@ params:
     type: integer
     title: Port HTTP
     default: 3333
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: Github
   url: https://github.com/JordanKnott/taskcafe

@@ -34,6 +34,10 @@ params:
     type: integer
     title: Port HTTP
     default: 7333
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: GitHub
   url: https://github.com/seaweedfs/seaweedfs

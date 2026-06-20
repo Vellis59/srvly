@@ -25,6 +25,10 @@ params:
     type: integer
     title: Port HTTP
     default: 8000
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: GitHub
   url: https://github.com/pyload/pyload

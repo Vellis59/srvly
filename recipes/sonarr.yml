@@ -31,6 +31,10 @@ params:
     type: integer
     title: Port HTTP
     default: 8989
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: Website
   url: https://sonarr.tv/

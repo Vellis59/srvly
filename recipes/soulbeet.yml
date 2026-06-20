@@ -40,6 +40,10 @@ params:
     type: integer
     title: Port HTTP
     default: 5030
+  version:
+    type: string
+    title: Version
+    default: latest
 links:
 - label: GitHub
   url: https://github.com/terry90/soulbeet
