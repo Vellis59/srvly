@@ -142,16 +142,24 @@ export const installRouter = router({
         const svcType = svcConfig.type || svcName;
         const svcVersion = svcConfig.version || "latest";
         if (svcType === "mysql") {
+          const mysqlRootPass = `srvly_${Math.random().toString(36).slice(2, 10)}`;
+          const mysqlUserPass = `srvly_${Math.random().toString(36).slice(2, 10)}`;
           script += `# Setup MySQL dependency\n`;
+          script += `MYSQL_ROOT_PASS="${mysqlRootPass}"\n`;
+          script += `MYSQL_USER_PASS="${mysqlUserPass}"\n`;
           script += `docker rm -f ${recipe.name}-mysql 2>/dev/null; `;
           script += `docker run -d --name ${recipe.name}-mysql `;
-          script += `-e MYSQL_ROOT_PASSWORD=srvly_${Math.random().toString(36).slice(2, 10)} `;
+          script += `-e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASS `;
           script += `-e MYSQL_DATABASE=${recipe.name} `;
           script += `-e MYSQL_USER=${recipe.name} `;
-          script += `-e MYSQL_PASSWORD=srvly_${Math.random().toString(36).slice(2, 10)} `;
+          script += `-e MYSQL_PASSWORD=$MYSQL_USER_PASS `;
           script += `--restart unless-stopped `;
           script += `mysql:${svcVersion} 2>&1\n`;
-          script += `echo "MySQL started for ${recipe.name}"\n\n`;
+          script += `echo "Waiting for MySQL..."; `;
+          script += `for i in 1 2 3 4 5 6 7 8 9 10; do `;
+          script += `if docker exec ${recipe.name}-mysql mysqladmin ping -u root -p$MYSQL_ROOT_PASS --silent 2>/dev/null; then `;
+          script += `echo "MySQL ready!"; break; fi; `;
+          script += `sleep 3; done\n\n`;
         }
       }
 

@@ -55,7 +55,42 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // Step 2: Dispatch SSL generation to the server
+    // Step 2: Ensure ACME challenge location in Nginx
+    const acmeScript = `
+mkdir -p /var/www/certbot
+cat > /etc/nginx/sites-enabled/${name}.conf << 'NGINXCONF'
+server {
+    listen 80;
+    server_name ${name};
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:${port};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+NGINXCONF
+nginx -t && systemctl reload nginx
+echo "ACME_READY"
+`;
+    await fetch(`${tunnelUrl}/dispatch`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        server_id: "unknown",
+        command_id: `acme-${domainId}`,
+        script: acmeScript,
+        timeout: 15,
+      }),
+    });
+
+    // Step 3: Dispatch SSL generation to the server
     const sslScript = `set -e
 
 # Install certbot if needed
