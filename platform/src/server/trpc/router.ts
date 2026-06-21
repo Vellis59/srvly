@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { router, publicProcedure, protectedProcedure } from "@/server/trpc/context";
-import { servers, installations, recipes, domains } from "@/server/db/schema";
+import { router, publicProcedure, agentProcedure } from "@/server/trpc/context";
+import { servers, installations, recipes, domains, users } from "@/server/db/schema";
 import { eq, and } from "drizzle-orm";
 import { executeOnServer } from "@/lib/ssh";
 import { generateKeyPairSync } from "crypto";
@@ -30,7 +30,7 @@ function pemToOpenSsh(privateKeyPem: string): string {
 // ─── Server routes ───
 
 export const serverRouter = router({
-  list: protectedProcedure.query(async ({ ctx }) => {
+  list: agentProcedure.query(async ({ ctx }) => {
     return await ctx.db
       .select()
       .from(servers)
@@ -38,7 +38,7 @@ export const serverRouter = router({
       .orderBy(servers.createdAt);
   }),
 
-  get: protectedProcedure
+  get: agentProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
       const [server] = await ctx.db
@@ -49,7 +49,7 @@ export const serverRouter = router({
       return server;
     }),
 
-  create: protectedProcedure
+  create: agentProcedure
     .input(
       z.object({
         name: z.string().min(1).max(50),
@@ -81,7 +81,7 @@ export const serverRouter = router({
       return server;
     }),
 
-  delete: protectedProcedure
+  delete: agentProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       await ctx.db
@@ -90,7 +90,7 @@ export const serverRouter = router({
       return { success: true };
     }),
 
-  execute: protectedProcedure
+  execute: agentProcedure
     .input(
       z.object({
         id: z.string(),
@@ -124,7 +124,7 @@ export const serverRouter = router({
       return result;
     }),
 
-  testConnection: protectedProcedure
+  testConnection: agentProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const [server] = await ctx.db
@@ -263,7 +263,7 @@ export const catalogRouter = router({
 // ─── Installation routes ───
 
 export const installRouter = router({
-  list: protectedProcedure.query(async ({ ctx }) => {
+  list: agentProcedure.query(async ({ ctx }) => {
     return await ctx.db
       .select()
       .from(installations)
@@ -273,7 +273,7 @@ export const installRouter = router({
       .orderBy(installations.createdAt);
   }),
 
-  create: protectedProcedure
+  create: agentProcedure
     .input(
       z.object({
         serverId: z.string(),
@@ -451,7 +451,7 @@ export const installRouter = router({
       };
     }),
 
-  delete: protectedProcedure
+  delete: agentProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const [row] = await ctx.db
@@ -472,7 +472,7 @@ export const installRouter = router({
 
   // ── Agent API ──────────────────────────────────────────────
 
-  register: protectedProcedure
+  register: agentProcedure
     .input(
       z.object({
         serverId: z.string(),
@@ -514,7 +514,7 @@ export const installRouter = router({
       return { id: inst.id, message: `${input.name} enregistrée` };
     }),
 
-  update: protectedProcedure
+  update: agentProcedure
     .input(
       z.object({
         id: z.string(),
@@ -558,7 +558,7 @@ export const installRouter = router({
 
   // ── App Actions (SSH) ──────────────────────────────────────
 
-  logs: protectedProcedure
+  logs: agentProcedure
     .input(z.object({ id: z.string(), lines: z.number().int().default(100) }))
     .mutation(async ({ ctx, input }) => {
       const [row] = await ctx.db
@@ -580,7 +580,7 @@ export const installRouter = router({
       return result;
     }),
 
-  restart: protectedProcedure
+  restart: agentProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const [row] = await ctx.db
@@ -602,7 +602,7 @@ export const installRouter = router({
       return result;
     }),
 
-  stop: protectedProcedure
+  stop: agentProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const [row] = await ctx.db
@@ -624,7 +624,7 @@ export const installRouter = router({
       return { success: true, message: `${container} arrêté` };
     }),
 
-  start: protectedProcedure
+  start: agentProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const [row] = await ctx.db
@@ -646,7 +646,7 @@ export const installRouter = router({
       return { success: true, message: `${container} démarré` };
     }),
 
-  getEnv: protectedProcedure
+  getEnv: agentProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const [row] = await ctx.db
@@ -668,7 +668,7 @@ export const installRouter = router({
       return result;
     }),
 
-  listForServer: protectedProcedure
+  listForServer: agentProcedure
     .input(z.object({ serverId: z.string() }))
     .query(async ({ ctx, input }) => {
       const [server] = await ctx.db
@@ -687,8 +687,31 @@ export const installRouter = router({
 
 // ─── Domain routes ───
 
+export const userRouter = router({
+  getToken: agentProcedure.query(async ({ ctx }) => {
+    let token = ctx.user.apiToken;
+    if (!token) {
+      token = crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
+      await ctx.db
+        .update(users)
+        .set({ apiToken: token })
+        .where(eq(users.id, ctx.user.id));
+    }
+    return { token, user: { name: ctx.user.name, email: ctx.user.email } };
+  }),
+
+  regenerateToken: agentProcedure.mutation(async ({ ctx }) => {
+    const token = crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
+    await ctx.db
+      .update(users)
+      .set({ apiToken: token })
+      .where(eq(users.id, ctx.user.id));
+    return { token };
+  }),
+});
+
 export const domainRouter = router({
-  list: protectedProcedure
+  list: agentProcedure
     .input(z.object({ serverId: z.string() }))
     .query(async ({ ctx, input }) => {
       // Verify server ownership
@@ -705,7 +728,7 @@ export const domainRouter = router({
         .orderBy(domains.createdAt);
     }),
 
-  add: protectedProcedure
+  add: agentProcedure
     .input(z.object({
       serverId: z.string(),
       name: z.string().min(3).max(255),
@@ -769,7 +792,7 @@ echo "NGINX_CONFIGURED"
       return domain;
     }),
 
-  delete: protectedProcedure
+  delete: agentProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       // Find domain + verify ownership
@@ -795,6 +818,7 @@ export const appRouter = router({
   catalog: catalogRouter,
   install: installRouter,
   domain: domainRouter,
+  user: userRouter,
 });
 
 export type AppRouter = typeof appRouter;

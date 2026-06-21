@@ -9,6 +9,7 @@ export const users = pgTable("users", {
   emailVerified: timestamp("email_verified", { mode: "date" }),
   image: text("image"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  apiToken: text("api_token"),
 });
 
 // ─── NextAuth adapter tables ───
