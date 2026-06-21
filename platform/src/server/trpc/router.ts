@@ -4,43 +4,27 @@ import { router, publicProcedure, protectedProcedure } from "@/server/trpc/conte
 import { servers, installations, recipes, domains } from "@/server/db/schema";
 import { eq, and } from "drizzle-orm";
 import { executeOnServer } from "@/lib/ssh";
-import { generateKeyPairSync, createPublicKey } from "crypto";
+import { generateKeyPairSync } from "crypto";
+import fs from "fs";
+import path from "path";
+import os from "os";
+import { execSync } from "child_process";
 
-// ─── SSH key conversion ───
+// ─── SSH key conversion (uses system ssh-keygen) ───
 
-/**
- * Convert a SPKI PEM public key to OpenSSH authorized_keys format (ssh-rsa AAAA...).
- */
-export function pemToOpenSsh(spkiPem: string): string {
-  const key = createPublicKey(spkiPem);
-  // Export as JWK to extract raw RSA parameters
-  const jwk = key.export({ format: "jwk" });
-
-  const n = Buffer.from(jwk.n!, "base64url");
-  const eBuf = Buffer.from(jwk.e!, "base64url");
-
-  const algo = Buffer.from("ssh-rsa", "utf8");
-
-  // SSH wire format: length-prefixed strings: algo, exponent, modulus
-  const len = 4 + algo.length + 4 + eBuf.length + 4 + n.length;
-  const buf = Buffer.alloc(len);
-  let off = 0;
-
-  buf.writeUInt32BE(algo.length, off);
-  off += 4;
-  algo.copy(buf, off);
-  off += algo.length;
-
-  buf.writeUInt32BE(eBuf.length, off);
-  off += 4;
-  eBuf.copy(buf, off);
-  off += eBuf.length;
-
-  buf.writeUInt32BE(n.length, off);
-  off += 4;
-  n.copy(buf, off);
-
-  return `ssh-rsa ${buf.toString("base64")} srvly@platform\n`;
+function pemToOpenSsh(privateKeyPem: string): string {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "srvly-key-"));
+  const keyPath = path.join(tmpDir, "id_rsa");
+  fs.writeFileSync(keyPath, privateKeyPem, { mode: 0o600 });
+  try {
+    const output = execSync(
+      `ssh-keygen -y -f "${keyPath}" 2>/dev/null`,
+      { encoding: "utf8", timeout: 5000 },
+    );
+    return output.trim() + "\n";
+  } finally {
+    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
+  }
 }
 
 // ─── Server routes ───
@@ -74,14 +58,13 @@ export const serverRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       // Generate SSH key pair
-      const { publicKey, privateKey } = generateKeyPairSync("rsa", {
+      const { privateKey } = generateKeyPairSync("rsa", {
         modulusLength: 4096,
-        publicKeyEncoding: { type: "spki", format: "pem" },
         privateKeyEncoding: { type: "pkcs1", format: "pem" },
       });
 
-      // Convert SPKI PEM to OpenSSH authorized_keys format
-      const sshPublicKey = pemToOpenSsh(publicKey);
+      // Extract public key via ssh-keygen (guarantees correct OpenSSH format)
+      const sshPublicKey = pemToOpenSsh(privateKey);
 
       const [server] = await ctx.db
         .insert(servers)
