@@ -38,7 +38,7 @@ export default function InstallPage() {
     const hasCreds = useCredentials;
 
     let parts: string[] = [];
-    parts.push(`Installe **${appName}** sur le serveur **${serverName}** (${serverIp})`);
+    parts.push(`Sur srvly, installe **${appName}** sur le serveur **${serverName}** (${serverIp})`);
 
     if (hasDomain) {
       parts.push(`avec le domaine **${domain.trim()}**`);
