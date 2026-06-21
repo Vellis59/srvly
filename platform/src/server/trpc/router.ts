@@ -4,7 +4,7 @@ import { router, publicProcedure, agentProcedure } from "@/server/trpc/context";
 import { servers, installations, recipes, domains, users } from "@/server/db/schema";
 import { eq, and } from "drizzle-orm";
 import { executeOnServer } from "@/lib/ssh";
-import { generateKeyPairSync } from "crypto";
+import { generateKeyPairSync, createHash } from "crypto";
 import fs from "fs";
 import path from "path";
 import os from "os";
@@ -689,23 +689,41 @@ export const installRouter = router({
 
 export const userRouter = router({
   getToken: agentProcedure.query(async ({ ctx }) => {
-    let token = (ctx.user as any).apiToken;
-    if (!token) {
-      token = crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
-      await ctx.db
-        .update(users)
-        .set({ apiToken: token })
-        .where(eq(users.id, (ctx.user as any).id));
-    }
+    const userId = (ctx.user as any).id || (ctx.user as any).email || "unknown";
+    const salt = process.env.NEXTAUTH_SECRET || "srvly-default-secret";
+    const hash = crypto.createHash("sha256").update(userId + salt).digest("hex");
+    const token = "srvly_" + hash.slice(0, 32);
+
+    // Ensure user exists in DB
+    await ctx.db
+      .insert(users)
+      .values({
+        id: userId,
+        name: (ctx.user as any).name || null,
+        email: (ctx.user as any).email || null,
+        image: (ctx.user as any).image || null,
+        apiToken: token,
+      })
+      .onConflictDoUpdate({
+        target: users.id,
+        set: { apiToken: token, name: (ctx.user as any).name, email: (ctx.user as any).email },
+      });
+
     return { token, user: { name: ctx.user.name, email: ctx.user.email } };
   }),
 
   regenerateToken: agentProcedure.mutation(async ({ ctx }) => {
-    const token = crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
+    const userId = (ctx.user as any).id || (ctx.user as any).email || "unknown";
+    const salt = process.env.NEXTAUTH_SECRET || "srvly-default-secret";
+    const ts = Date.now().toString(36);
+    const hash = crypto.createHash("sha256").update(userId + salt + ts).digest("hex");
+    const token = "srvly_" + hash.slice(0, 32);
+
     await ctx.db
       .update(users)
       .set({ apiToken: token })
-      .where(eq(users.id, (ctx.user as any).id));
+      .where(eq(users.id, userId));
+
     return { token };
   }),
 });
