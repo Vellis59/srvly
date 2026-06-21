@@ -11,6 +11,8 @@ export default function SettingsPage() {
   const [copied, setCopied] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
 
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://srvly.app";
+
   if (!session) return null;
 
   const handleRegenerate = async () => {
@@ -88,7 +90,7 @@ export default function SettingsPage() {
 {`Sur srvly, configure mon acces.
 
 Token API : ${tokenData.token}
-API URL : https://srvly.app
+API URL : ${baseUrl}
 
 Role : tu es mon agent d installation.
 
@@ -109,7 +111,7 @@ Endpoints API :
 Le token s envoie dans le header: Authorization: Bearer <token>`}
           </pre>
           <button
-            onClick={() => handleCopy(`Sur srvly, configure mon acces.\n\nToken API : ${tokenData.token}\nAPI URL : https://srvly.app\n\nRole : tu es mon agent d installation.\n\nQuand je te demande d installer une application :\n1. Execute les commandes Docker via l API (server.execute)\n2. Consulte la doc GitHub de l app si besoin\n3. Configure le domaine et le SSL si demande\n4. Enregistre l installation via l API (install.register)\n5. Confirme quand c est fait\n\nEndpoints API :\n- server.execute(serverId, script) -> SSH\n- install.register(serverId, name, port, domain, containerName)\n- install.update(id, status, logs)\n- install.logs(id) / restart(id) / stop(id) / start(id) / getEnv(id)\n- domain.add(serverId, name, targetPort)\n\nLe token s envoie dans le header: Authorization: Bearer <token>`)}
+            onClick={() => handleCopy(`Sur srvly, configure mon acces.\n\nToken API : ${tokenData.token}\nAPI URL : ${baseUrl}\n\nRole : tu es mon agent d installation.\n\nQuand je te demande d installer une application :\n1. Execute les commandes Docker via l API (server.execute)\n2. Consulte la doc GitHub de l app si besoin\n3. Configure le domaine et le SSL si demande\n4. Enregistre l installation via l API (install.register)\n5. Confirme quand c est fait\n\nEndpoints API :\n- server.execute(serverId, script) -> SSH\n- install.register(serverId, name, port, domain, containerName)\n- install.update(id, status, logs)\n- install.logs(id) / restart(id) / stop(id) / start(id) / getEnv(id)\n- domain.add(serverId, name, targetPort)\n\nLe token s envoie dans le header: Authorization: Bearer <token>`)}
             className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 transition-colors"
           >
             {copied ? "Copie !" : "Copier le prompt"}
