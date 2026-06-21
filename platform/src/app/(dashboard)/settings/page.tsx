@@ -31,6 +31,30 @@ export default function SettingsPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const promptText = [
+    'Sur srvly, cree un skill "srvly-agent" avec ma configuration :',
+    "",
+    "Token API : " + (tokenData?.token || ""),
+    "API URL : " + baseUrl,
+    "",
+    "Role : tu es mon agent d installation.",
+    "",
+    "Quand je te demande d installer une application :",
+    "1. Charge le skill srvly-agent",
+    "2. Execute les commandes Docker via l API SSH",
+    "3. Consulte la doc GitHub de l app si besoin",
+    "4. Configure le domaine et le SSL si demande",
+    "5. Enregistre l installation via l API REST",
+    "6. Confirme quand c est fait",
+    "",
+    "Endpoints API REST :",
+    "- POST " + baseUrl + "/api/agent/install/register",
+    "  Body: { serverId, name, port?, domain?, image?, containerName? }",
+    "- GET " + baseUrl + "/api/agent/install/list?serverId=xxx",
+    "",
+    "Le token s envoie dans le header: Authorization: Bearer ***",
+  ].join("\n");
+
   return (
     <div className="max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold text-slate-900 mb-6">Parametres</h1>
@@ -46,7 +70,6 @@ export default function SettingsPage() {
         <h2 className="font-semibold text-slate-900 mb-1">Token API</h2>
         <p className="text-sm text-slate-500 mb-4">
           Utilise ce token pour connecter ton agent IA (Hermes, OpenCLAW...) a srvly.
-          L agent l utilise dans le header <code className="bg-slate-100 px-1 rounded">Authorization: Bearer &lt;token&gt;</code>.
         </p>
 
         {isLoading ? (
@@ -56,7 +79,7 @@ export default function SettingsPage() {
             <div className="bg-slate-900 rounded-xl p-4 mb-4">
               <div className="flex items-center justify-between gap-4">
                 <code className="text-sm font-mono text-emerald-400 break-all flex-1">
-                  {tokenData?.token || "—"}
+                  {tokenData?.token || "---"}
                 </code>
                 <button
                   onClick={() => handleCopy(tokenData?.token || "")}
@@ -86,31 +109,9 @@ export default function SettingsPage() {
       {tokenData?.token && (
         <div className="bg-slate-900 rounded-2xl p-6 mb-6">
           <h2 className="text-sm font-semibold text-slate-200 mb-3">Prompt pour ton agent</h2>
-          <pre className="text-sm font-mono text-slate-100 whitespace-pre-wrap break-words leading-relaxed mb-4">
-{`Sur srvly, cree un skill "srvly-agent" avec ma configuration :
-
-Token API : ${tokenData.token}
-API URL : ${baseUrl}
-
-Role : tu es mon agent d installation.
-
-Quand je te demande d installer une application :
-1. Charge le skill srvly-agent
-2. Execute les commandes Docker via l API (server.execute)
-3. Consulte la doc GitHub de l app si besoin
-4. Configure le domaine et le SSL si demande
-5. Enregistre l installation via l API (install.register)
-6. Confirme quand c est fait
-
-Endpoints API (format REST simple) :
-- POST /api/agent/install/register
-  Body: { serverId, name, port?, domain?, image?, containerName? }
-- GET /api/agent/install/list?serverId=xxx
-
-Le token s envoie dans le header: Authorization: Bearer ***          </pre>
-          </pre>
+          <pre className="text-sm font-mono text-slate-100 whitespace-pre-wrap break-words leading-relaxed mb-4">{promptText}</pre>
           <button
-            onClick={() => handleCopy(`Sur srvly, configure mon acces.\n\nToken API : ${tokenData.token}\nAPI URL : ${baseUrl}\n\nRole : tu es mon agent d installation.\n\nQuand je te demande d installer une application :\n1. Execute les commandes Docker via l API SSH\n2. Consulte la doc GitHub de l app si besoin\n3. Configure le domaine et le SSL si demande\n4. Enregistre l installation via l API REST\n5. Confirme quand c est fait\n\nEndpoints API REST :\n- POST /api/agent/install/register\n  Body: { serverId, name, port?, domain?, image?, containerName? }\n\nLe token s envoie dans le header: Authorization: Bearer <token>`)}
+            onClick={() => handleCopy(promptText)}
             className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 transition-colors"
           >
             {copied ? "Copie !" : "Copier le prompt"}
