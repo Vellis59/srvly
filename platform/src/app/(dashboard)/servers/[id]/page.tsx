@@ -203,14 +203,14 @@ export default function ServerDetailPage() {
           <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">RAM</p>
           <p className="text-sm font-medium">
             {server.systemInfo?.ramUsed
-              ? `${(server.systemInfo.ramUsed / 1024).toFixed(1)} / ${(server.systemInfo.ramTotal / 1024).toFixed(1)} Go`
+              ? `${((server.systemInfo as any).ramUsed / 1024).toFixed(1)} / ${((server.systemInfo as any).ramTotal / 1024).toFixed(1)} Go`
               : server.ram
                 ? `${(server.ram / 1024).toFixed(1)} Go`
                 : "Non détecté"}
           </p>
           {server.systemInfo?.ramUsed && (
             <p className="text-xs text-slate-400 mt-0.5">
-              Libre: {(server.systemInfo.ramAvailable / 1024).toFixed(1)} Go
+              Libre: {((server.systemInfo as any).ramAvailable / 1024).toFixed(1)} Go
             </p>
           )}
           {!server.ram && (
@@ -224,12 +224,12 @@ export default function ServerDetailPage() {
           <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Disque</p>
           <p className="text-sm font-medium">
             {server.systemInfo?.diskTotal
-              ? `${server.systemInfo.diskUsed} / ${server.systemInfo.diskTotal} Go`
+              ? `${(server.systemInfo as any).diskUsed} / ${(server.systemInfo as any).diskTotal} Go`
               : "Non détecté"}
           </p>
           {server.systemInfo?.diskTotal && (
             <p className="text-xs text-slate-400 mt-0.5">
-              Libre: {server.systemInfo.diskAvailable} Go
+              Libre: {(server.systemInfo as any).diskAvailable} Go
             </p>
           )}
           {!server.systemInfo?.diskTotal && (
@@ -241,7 +241,7 @@ export default function ServerDetailPage() {
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-4">
           <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Uptime</p>
-          <p className="text-sm font-medium">{server.systemInfo?.uptime || "—"}</p>
+          <p className="text-sm font-medium">{(server.systemInfo as any)?.uptime || "\u2014"}</p>
         </div>
       </div>
 
