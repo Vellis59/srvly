@@ -689,13 +689,13 @@ export const installRouter = router({
 
 export const userRouter = router({
   getToken: agentProcedure.query(async ({ ctx }) => {
-    let token = ctx.user.apiToken;
+    let token = (ctx.user as any).apiToken;
     if (!token) {
       token = crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
       await ctx.db
         .update(users)
         .set({ apiToken: token })
-        .where(eq(users.id, ctx.user.id));
+        .where(eq(users.id, (ctx.user as any).id));
     }
     return { token, user: { name: ctx.user.name, email: ctx.user.email } };
   }),
@@ -705,7 +705,7 @@ export const userRouter = router({
     await ctx.db
       .update(users)
       .set({ apiToken: token })
-      .where(eq(users.id, ctx.user.id));
+      .where(eq(users.id, (ctx.user as any).id));
     return { token };
   }),
 });
