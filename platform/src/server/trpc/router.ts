@@ -691,7 +691,7 @@ export const userRouter = router({
   getToken: agentProcedure.query(async ({ ctx }) => {
     const userId = (ctx.user as any).id || (ctx.user as any).email || "unknown";
     const salt = process.env.NEXTAUTH_SECRET || "srvly-default-secret";
-    const hash = crypto.createHash("sha256").update(userId + salt).digest("hex");
+    const hash = createHash("sha256").update(userId + salt).digest("hex");
     const token = "srvly_" + hash.slice(0, 32);
 
     // Ensure user exists in DB
@@ -716,7 +716,7 @@ export const userRouter = router({
     const userId = (ctx.user as any).id || (ctx.user as any).email || "unknown";
     const salt = process.env.NEXTAUTH_SECRET || "srvly-default-secret";
     const ts = Date.now().toString(36);
-    const hash = crypto.createHash("sha256").update(userId + salt + ts).digest("hex");
+    const hash = createHash("sha256").update(userId + salt + ts).digest("hex");
     const token = "srvly_" + hash.slice(0, 32);
 
     await ctx.db
