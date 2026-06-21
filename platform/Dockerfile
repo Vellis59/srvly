@@ -1,5 +1,6 @@
 # Build
 FROM node:20-alpine AS build
+RUN apk add --no-cache g++ make python3
 WORKDIR /app
 COPY package*.json ./
 RUN npm install --legacy-peer-deps

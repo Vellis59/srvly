@@ -4,9 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
-const TUNNEL_URL = "/api"; // Uses API proxy (same origin)
-
-// Action recipes
+// Action recipes: commandes exécutées via SSH
 const ACTIONS: Record<string, { label: string; desc: string; icon: string; script: string; color: string }> = {
   security: {
     label: "Sécuriser le serveur",
@@ -101,29 +99,26 @@ function ActionCard({ action, onRun, loading }: {
 export default function ServerDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data: server, isLoading, refetch } = trpc.server.get.useQuery({ id });
+  const execute = trpc.server.execute.useMutation();
+  const testConnection = trpc.server.testConnection.useMutation();
   const [running, setRunning] = useState<string | null>(null);
   const [results, setResults] = useState<Record<string, string>>({});
+  const [testing, setTesting] = useState(false);
 
   const runAction = async (action: keyof typeof ACTIONS) => {
     setRunning(action);
     setResults((prev) => ({ ...prev, [action]: "Exécution en cours..." }));
 
     try {
-      const res = await fetch(`${TUNNEL_URL}/dispatch`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          server_id: "unknown",
-          command_id: `action-${action}-${Date.now()}`,
-          script: ACTIONS[action].script,
-          timeout: 120,
-        }),
+      const result = await execute.mutateAsync({
+        id,
+        script: ACTIONS[action].script,
+        timeout: 120,
       });
-      const data = await res.json();
-      if (data.success) {
-        setResults((prev) => ({ ...prev, [action]: data.output || "✅ Terminé" }));
+      if (result.success) {
+        setResults((prev) => ({ ...prev, [action]: result.output || "✅ Terminé" }));
       } else {
-        setResults((prev) => ({ ...prev, [action]: `❌ Erreur: ${data.error || data.output || "inconnue"}` }));
+        setResults((prev) => ({ ...prev, [action]: `❌ Erreur: ${result.error || result.output || "inconnue"}` }));
       }
     } catch (err: any) {
       setResults((prev) => ({ ...prev, [action]: `❌ Erreur de connexion: ${err.message}` }));
@@ -195,8 +190,10 @@ export default function ServerDetailPage() {
           </p>
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-4">
-          <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Token agent serveur</p>
-          <p className="text-sm font-mono text-emerald-600 text-xs truncate">{server.agentToken}</p>
+          <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Clé SSH</p>
+          <p className="text-xs font-mono text-emerald-600 truncate" title={server.sshPublicKey || ""}>
+            {server.sshPublicKey ? server.sshPublicKey.split(" ")[0] + " " + (server.sshPublicKey.split(" ")[2] || "srvly@platform") : "—"}
+          </p>
         </div>
       </div>
 
@@ -264,11 +261,42 @@ export default function ServerDetailPage() {
       {/* Not connected message */}
       {server.status !== "connected" && (
         <div className="bg-amber-50 rounded-2xl p-8 text-center border border-amber-200">
-          <p className="text-4xl mb-3">⏳</p>
+          <p className="text-4xl mb-3">🔑</p>
           <h2 className="text-lg font-semibold text-amber-800 mb-1">Serveur en attente</h2>
-          <p className="text-sm text-amber-600">
-            Installe l'agent Go sur le serveur pour activer les actions.
+          <p className="text-sm text-amber-600 mb-4">
+            Ajoute la clé publique SSH à ton serveur pour activer les actions.
           </p>
+
+          <div className="max-w-xl mx-auto text-left bg-white rounded-xl p-4 border border-amber-200 mb-4">
+            <p className="text-xs font-medium text-slate-500 mb-2 uppercase tracking-wide">
+              Commande à exécuter sur ton serveur
+            </p>
+            <pre className="text-xs font-mono bg-slate-900 text-slate-100 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap break-all">
+{`echo '${server.sshPublicKey || "..."}' >> /root/.ssh/authorized_keys
+chmod 600 /root/.ssh/authorized_keys`}
+            </pre>
+          </div>
+
+          <button
+            onClick={async () => {
+              setTesting(true);
+              try {
+                const result = await testConnection.mutateAsync({ id });
+                if (result.success) {
+                  refetch();
+                } else {
+                  alert("❌ " + (result.error || "Connexion échouée"));
+                }
+              } catch (err: any) {
+                alert("❌ " + err.message);
+              }
+              setTesting(false);
+            }}
+            disabled={testing}
+            className="px-6 py-3 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+          >
+            {testing ? "🔌 Test en cours..." : "🔌 Tester la connexion"}
+          </button>
         </div>
       )}
     </div>

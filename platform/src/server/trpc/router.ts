@@ -3,7 +3,45 @@ import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, protectedProcedure } from "@/server/trpc/context";
 import { servers, installations, recipes, domains } from "@/server/db/schema";
 import { eq, and } from "drizzle-orm";
-import crypto from "crypto";
+import { executeOnServer } from "@/lib/ssh";
+import { generateKeyPairSync, createPublicKey } from "crypto";
+
+// ─── SSH key conversion ───
+
+/**
+ * Convert a SPKI PEM public key to OpenSSH authorized_keys format (ssh-rsa AAAA...).
+ */
+export function pemToOpenSsh(spkiPem: string): string {
+  const key = createPublicKey(spkiPem);
+  // Export as JWK to extract raw RSA parameters
+  const jwk = key.export({ format: "jwk" });
+
+  const n = Buffer.from(jwk.n!, "base64url");
+  const eBuf = Buffer.from(jwk.e!, "base64url");
+
+  const algo = Buffer.from("ssh-rsa", "utf8");
+
+  // SSH wire format: length-prefixed strings: algo, exponent, modulus
+  const len = 4 + algo.length + 4 + eBuf.length + 4 + n.length;
+  const buf = Buffer.alloc(len);
+  let off = 0;
+
+  buf.writeUInt32BE(algo.length, off);
+  off += 4;
+  algo.copy(buf, off);
+  off += algo.length;
+
+  buf.writeUInt32BE(eBuf.length, off);
+  off += 4;
+  eBuf.copy(buf, off);
+  off += eBuf.length;
+
+  buf.writeUInt32BE(n.length, off);
+  off += 4;
+  n.copy(buf, off);
+
+  return `ssh-rsa ${buf.toString("base64")} srvly@platform\n`;
+}
 
 // ─── Server routes ───
 
@@ -32,18 +70,27 @@ export const serverRouter = router({
       z.object({
         name: z.string().min(1).max(50),
         ip: z.string().min(7).max(50),
-        deployAgent: z.boolean().default(true),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const token = crypto.randomBytes(32).toString("hex");
+      // Generate SSH key pair
+      const { publicKey, privateKey } = generateKeyPairSync("rsa", {
+        modulusLength: 4096,
+        publicKeyEncoding: { type: "spki", format: "pem" },
+        privateKeyEncoding: { type: "pkcs1", format: "pem" },
+      });
+
+      // Convert SPKI PEM to OpenSSH authorized_keys format
+      const sshPublicKey = pemToOpenSsh(publicKey);
+
       const [server] = await ctx.db
         .insert(servers)
         .values({
           userId: ctx.user.id!,
           name: input.name,
           ip: input.ip,
-          agentToken: token,
+          sshPrivateKey: privateKey,
+          sshPublicKey,
           status: "pending",
         })
         .returning();
@@ -57,6 +104,65 @@ export const serverRouter = router({
         .delete(servers)
         .where(and(eq(servers.id, input.id), eq(servers.userId, ctx.user.id!)));
       return { success: true };
+    }),
+
+  execute: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        script: z.string(),
+        timeout: z.number().int().positive().default(60),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Verify ownership
+      const [server] = await ctx.db
+        .select()
+        .from(servers)
+        .where(and(eq(servers.id, input.id), eq(servers.userId, ctx.user.id!)));
+      if (!server) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const result = await executeOnServer(input.id, input.script, input.timeout);
+
+      // Update status to connected on first successful command
+      if (result.success && server.status === "pending") {
+        await ctx.db
+          .update(servers)
+          .set({ status: "connected", lastSeen: new Date() })
+          .where(eq(servers.id, input.id));
+      } else if (result.success && server.status === "connected") {
+        await ctx.db
+          .update(servers)
+          .set({ lastSeen: new Date() })
+          .where(eq(servers.id, input.id));
+      }
+
+      return result;
+    }),
+
+  testConnection: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [server] = await ctx.db
+        .select()
+        .from(servers)
+        .where(and(eq(servers.id, input.id), eq(servers.userId, ctx.user.id!)));
+      if (!server) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const result = await executeOnServer(input.id, "echo 'OK' && hostname", 15);
+
+      if (result.success) {
+        await ctx.db
+          .update(servers)
+          .set({ status: "connected", lastSeen: new Date() })
+          .where(eq(servers.id, input.id));
+      }
+
+      return {
+        success: result.success,
+        output: result.output,
+        error: result.error,
+      };
     }),
 });
 
@@ -257,24 +363,13 @@ export const installRouter = router({
         })
         .returning();
 
-      // Dispatch to tunnel-server (async but tracked)
-      const tunnelUrl = process.env.TUNNEL_URL || "http://tunnel-server:8080";
-      fetch(`${tunnelUrl}/dispatch`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          server_id: "unknown",
-          command_id: inst.id,
-          script: script,
-          timeout: 180,
-        }),
-      })
-        .then(res => res.json())
-        .then(async (result: any) => {
-          const status = result?.success ? "success" : "failed";
+      // Dispatch to member server via SSH (async but tracked)
+      executeOnServer(input.serverId, script, 180)
+        .then(async (result) => {
+          const status = result.success ? "success" : "failed";
           await ctx.db
             .update(installations)
-            .set({ status, result, logs: result?.output || "", updatedAt: new Date() })
+            .set({ status, result, logs: result.output || "", updatedAt: new Date() })
             .where(eq(installations.id, inst.id));
         })
         .catch(async (err: any) => {
@@ -302,20 +397,10 @@ export const installRouter = router({
         .where(and(eq(installations.id, input.id), eq(servers.userId, ctx.user.id!)));
       if (!row) throw new TRPCError({ code: "NOT_FOUND" });
 
-      // Kill Docker containers
-      const tunnelUrl = process.env.TUNNEL_URL || "http://tunnel-server:8080";
+      // Kill Docker containers via SSH
       const r = await ctx.db.select().from(recipes).where(eq(recipes.id, row.installation.recipeId)).then(r => r[0]);
       const container = (r?.recipe as any)?.install?.[0]?.docker?.name || "app";
-      await fetch(`${tunnelUrl}/dispatch`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          server_id: "unknown",
-          command_id: `kill-${input.id}`,
-          script: `docker rm -f ${container} 2>/dev/null; docker rm -f ${container}-mysql 2>/dev/null; echo "REMOVED"`,
-          timeout: 15,
-        }),
-      }).catch(() => {});
+      await executeOnServer(row.server.id, `docker rm -f ${container} 2>/dev/null; docker rm -f ${container}-mysql 2>/dev/null; echo "REMOVED"`, 15).catch(() => {});
 
       await ctx.db.delete(installations).where(eq(installations.id, input.id));
       return { success: true };
@@ -389,10 +474,10 @@ server {
 
     location / {
         proxy_pass http://127.0.0.1:${input.targetPort};
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header Host \\$host;
+        proxy_set_header X-Real-IP \\$remote_addr;
+        proxy_set_header X-Forwarded-For \\$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \\$scheme;
     }
 }
 NGINX
@@ -400,16 +485,7 @@ nginx -t && systemctl reload nginx
 echo "NGINX_CONFIGURED"
 `;
 
-        fetch(`${process.env.TUNNEL_URL || "http://tunnel-server:8080"}/dispatch`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            server_id: "unknown",
-            command_id: `nginx-${domain.id}`,
-            script: nginxScript,
-            timeout: 30,
-          }),
-        }).catch(() => {});
+        executeOnServer(input.serverId, nginxScript, 30).catch(() => {});
       }
 
       return domain;
@@ -426,17 +502,8 @@ echo "NGINX_CONFIGURED"
         .where(and(eq(domains.id, input.id), eq(servers.userId, ctx.user.id!)));
       if (!domain) throw new TRPCError({ code: "NOT_FOUND" });
 
-      // Remove Nginx config
-      fetch(`${process.env.TUNNEL_URL || "http://tunnel-server:8080"}/dispatch`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          server_id: "unknown",
-          command_id: `nginx-rm-${input.id}`,
-          script: `rm -f /etc/nginx/sites-enabled/${domain.domain.name}.conf && nginx -t && systemctl reload nginx && echo "REMOVED"`,
-          timeout: 15,
-        }),
-      }).catch(() => {});
+      // Remove Nginx config via SSH
+      executeOnServer(domain.server.id, `rm -f /etc/nginx/sites-enabled/${domain.domain.name}.conf && nginx -t && systemctl reload nginx && echo "REMOVED"`, 15).catch(() => {});
 
       await ctx.db.delete(domains).where(eq(domains.id, input.id));
       return { success: true };

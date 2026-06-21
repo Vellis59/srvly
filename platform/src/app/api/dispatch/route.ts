@@ -1,24 +1,72 @@
 import { NextRequest, NextResponse } from "next/server";
+import { executeRaw } from "@/lib/ssh";
+import { db } from "@/server/db";
+import { servers } from "@/server/db/schema";
+import { eq } from "drizzle-orm";
+import { auth } from "@/server/auth";
 
-const TUNNEL_URL = process.env.TUNNEL_URL || "http://tunnel-server:8080";
-
+/**
+ * POST /api/dispatch
+ * Exécute une commande sur un serveur via SSH.
+ * Le body doit contenir : { server_id, script, timeout? }
+ */
 export async function POST(req: NextRequest) {
+  // Auth check (optional for now — falls back to first server matching the IP)
   try {
     const body = await req.json();
 
-    const response = await fetch(`${TUNNEL_URL}/dispatch`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout((body.timeout || 60) * 1000 + 5000),
-    });
+    const serverId = body.server_id || body.serverId;
+    const script = body.script || body.command;
+    const timeout = (body.timeout || 60) as number;
 
-    const data = await response.json();
-    return NextResponse.json(data);
+    if (!script) {
+      return NextResponse.json(
+        { success: false, error: "Paramètre 'script' requis" },
+        { status: 400 }
+      );
+    }
+
+    // Find server by ID or by session user's first connected server
+    let targetServer: any;
+
+    if (serverId && serverId !== "unknown") {
+      const [srv] = await db
+        .select()
+        .from(servers)
+        .where(eq(servers.id, serverId))
+        .limit(1);
+      targetServer = srv;
+    }
+
+    if (!targetServer) {
+      // Fallback: use the first server with an SSH key
+      const [srv] = await db
+        .select()
+        .from(servers)
+        .where(eq(servers.status, "connected"))
+        .limit(1);
+      targetServer = srv;
+    }
+
+    if (!targetServer || !targetServer.sshPrivateKey || !targetServer.ip) {
+      return NextResponse.json(
+        { success: false, error: "Aucun serveur connecté avec clé SSH disponible" },
+        { status: 404 }
+      );
+    }
+
+    const result = await executeRaw(
+      targetServer.ip,
+      targetServer.sshPrivateKey,
+      script,
+      timeout
+    );
+
+    return NextResponse.json(result);
   } catch (err: any) {
     return NextResponse.json(
-      { success: false, error: err.message || "proxy error" },
-      { status: 502 }
+      { success: false, error: err.message || "dispatch error" },
+      { status: 500 }
     );
   }
 }

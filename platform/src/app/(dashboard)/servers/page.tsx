@@ -28,44 +28,80 @@ function AddServerModal({ onClose }: { onClose: () => void }) {
       alert("Erreur : " + err.message);
     },
   });
+  const testConnection = trpc.server.testConnection.useMutation();
+  const execute = trpc.server.execute.useMutation();
   const [name, setName] = useState("");
   const [ip, setIp] = useState("");
   const [createdServer, setCreatedServer] = useState<any>(null);
+  const [connecting, setConnecting] = useState(false);
+  const [connectStatus, setConnectStatus] = useState<string>("");
 
   if (createdServer) {
+    const handleTestConnection = async () => {
+      setConnecting(true);
+      setConnectStatus("Test de connexion SSH...");
+      try {
+        const result = await testConnection.mutateAsync({ id: createdServer.id });
+        if (result.success) {
+          setConnectStatus("✅ Connecté ! Nom du serveur : " + result.output.trim());
+        } else {
+          setConnectStatus("❌ " + (result.error || "Connexion échouée. Vérifie que la clé a bien été ajoutée au serveur."));
+        }
+      } catch (err: any) {
+        setConnectStatus("❌ Erreur : " + err.message);
+      }
+      setConnecting(false);
+    };
+
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl">
+        <div className="bg-white rounded-2xl p-8 w-full max-w-lg shadow-2xl">
           <div className="text-center mb-6">
             <p className="text-4xl mb-3">🎉</p>
             <h2 className="text-xl font-bold text-slate-900">Serveur ajouté !</h2>
             <p className="text-sm text-slate-500 mt-1">{createdServer.name}</p>
           </div>
 
-          <div className="bg-slate-50 rounded-xl p-4 mb-4">
+          <div className="bg-slate-50 rounded-xl p-4 mb-2">
             <p className="text-xs text-slate-500 mb-1 font-medium uppercase tracking-wide">
-              Token d'installation
+              🔑 Clé publique SSH
             </p>
-            <p className="text-sm font-mono bg-slate-900 text-emerald-400 p-3 rounded-lg break-all">
-              {createdServer.agentToken}
-            </p>
-          </div>
-
-          <div className="bg-slate-50 rounded-xl p-4 mb-6">
-            <p className="text-xs text-slate-500 mb-1 font-medium uppercase tracking-wide">
-              Commande à exécuter sur votre serveur
-            </p>
-            <pre className="text-xs font-mono bg-slate-900 text-slate-100 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap">
-{`# Installer l'agent serveur :
-curl -sL http://185.197.251.176:3000/agent.sh | bash -s -- \\
-  --token ${createdServer.agentToken} \\
-  --server ws://185.197.251.176:8080/ws`}
+            <pre className="text-xs font-mono bg-slate-900 text-emerald-400 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap break-all max-h-32 overflow-y-auto">
+              {createdServer.sshPublicKey}
             </pre>
           </div>
 
-          <div className="flex gap-3">
+          <div className="bg-amber-50 rounded-xl p-4 mb-6 border border-amber-200">
+            <p className="text-xs text-amber-700 font-medium mb-2 uppercase tracking-wide">
+              📋 Commande à exécuter sur votre serveur
+            </p>
+            <pre className="text-xs font-mono bg-slate-900 text-slate-100 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap">
+{`# Copier-coller cette commande sur votre serveur :
+# (en SSH ou via votre console)
+
+echo '${createdServer.sshPublicKey}' >> /root/.ssh/authorized_keys
+chmod 600 /root/.ssh/authorized_keys
+mkdir -p /root/.ssh && chmod 700 /root/.ssh`}
+            </pre>
+            <p className="text-xs text-amber-600 mt-2">
+              💡 Ou utilisez : <code className="bg-amber-100 px-1 rounded">curl -sL https://srvly.app/connect.sh | bash</code>
+              (à venir)
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={handleTestConnection}
+              disabled={connecting}
+              className="w-full px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+            >
+              {connecting ? "🔌 Test en cours..." : "🔌 Tester la connexion"}
+            </button>
+            {connectStatus && (
+              <p className="text-sm text-center text-slate-600">{connectStatus}</p>
+            )}
             <button onClick={onClose}
-              className="flex-1 px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 transition-colors">
+              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-medium hover:bg-slate-50 transition-colors">
               Terminé
             </button>
           </div>

@@ -423,14 +423,12 @@ async function execTool(
         }
 
         try {
-          // Dispatch to member server agent via tunnel-server
-          const tunnelUrl = process.env.TUNNEL_URL || "http://tunnel-server:8080";
-          const dispatchRes = await fetch(`${tunnelUrl}/dispatch`, {
+          // Dispatch via SSH (through our own API endpoint)
+          const dispatchRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/dispatch`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              server_id: "unknown",
-              command_id: `tool-${crypto.randomUUID().slice(0, 8)}`,
+              server_id: args.id_serveur || "unknown",
               script: cmd,
               timeout: 60,
             }),

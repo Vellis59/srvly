@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     const name = domain.name;
     const port = domain.target_port || 80;
     const serverIp = domain.ip;
-    const tunnelUrl = env["TUNNEL_URL"] || "http://tunnel-server:8080";
+    const tunnelUrl = env["TUNNEL_URL"] || "http://localhost:3000";
 
     // Step 1: DNS check (verify the domain resolves to this server)
     const dnsCheck = await checkDns(name, serverIp);
@@ -76,12 +76,11 @@ NGINXCONF
 nginx -t && systemctl reload nginx
 echo "ACME_READY"
 `;
-    await fetch(`${tunnelUrl}/dispatch`, {
+    await fetch(`http://localhost:3000/api/dispatch`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        server_id: "unknown",
-        command_id: `acme-${domainId}`,
+        server_id: domain.server_id,
         script: acmeScript,
         timeout: 15,
       }),
@@ -148,12 +147,11 @@ nginx -t && systemctl reload nginx
 echo "SSL_ACTIVE"
 `;
 
-    const dispatchResp = await fetch(`${tunnelUrl}/dispatch`, {
+    const dispatchResp = await fetch(`http://localhost:3000/api/dispatch`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        server_id: "unknown",
-        command_id: `ssl-${domainId}`,
+        server_id: domain.server_id,
         script: sslScript,
         timeout: 90,
       }),

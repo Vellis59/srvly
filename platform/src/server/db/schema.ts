@@ -67,6 +67,8 @@ export const servers = pgTable("servers", {
   status: text("status").default("pending").notNull(),
   agentToken: text("agent_token").unique(),
   lastSeen: timestamp("last_seen"),
+  sshPrivateKey: text("ssh_private_key"),
+  sshPublicKey: text("ssh_public_key"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
