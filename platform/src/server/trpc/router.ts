@@ -58,8 +58,9 @@ export const serverRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       // Generate SSH key pair
-      const { privateKey } = generateKeyPairSync("rsa", {
+      const { publicKey, privateKey } = generateKeyPairSync("rsa", {
         modulusLength: 4096,
+        publicKeyEncoding: { type: "spki", format: "pem" },
         privateKeyEncoding: { type: "pkcs1", format: "pem" },
       });
 
