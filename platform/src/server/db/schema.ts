@@ -65,7 +65,6 @@ export const servers = pgTable("servers", {
   os: text("os"),
   ram: integer("ram"),
   status: text("status").default("pending").notNull(),
-  agentToken: text("agent_token").unique(),
   lastSeen: timestamp("last_seen"),
   sshPrivateKey: text("ssh_private_key"),
   sshPublicKey: text("ssh_public_key"),
