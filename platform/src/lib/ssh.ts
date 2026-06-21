@@ -1,7 +1,10 @@
-import { Client } from "ssh2";
+import { exec } from "child_process";
 import { db } from "@/server/db";
 import { servers } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
+import fs from "fs";
+import path from "path";
+import os from "os";
 
 type ExecResult = {
   success: boolean;
@@ -10,7 +13,7 @@ type ExecResult = {
 };
 
 /**
- * Execute a command on a remote server via SSH.
+ * Execute a command on a remote server via SSH (system ssh binary).
  * Looks up the server's SSH key from the DB.
  */
 export async function executeOnServer(
@@ -28,14 +31,18 @@ export async function executeOnServer(
     return { success: false, output: "", error: "Serveur introuvable" };
   }
   if (!server.sshPrivateKey || !server.ip) {
-    return { success: false, output: "", error: "Aucune clé SSH ou IP configurée pour ce serveur" };
+    return {
+      success: false,
+      output: "",
+      error: "Aucune clé SSH ou IP configurée pour ce serveur",
+    };
   }
 
   return executeRaw(server.ip, server.sshPrivateKey, script, timeout);
 }
 
 /**
- * Execute a command via raw SSH connection.
+ * Execute a command via raw SSH (system ssh binary).
  */
 export async function executeRaw(
   host: string,
@@ -43,74 +50,55 @@ export async function executeRaw(
   script: string,
   timeout = 60,
 ): Promise<ExecResult> {
+  // Write key to a temp file with secure permissions
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "srvly-ssh-"));
+  const keyPath = path.join(tmpDir, "id_rsa");
+  fs.writeFileSync(keyPath, privateKey, { mode: 0o600 });
+
+  // Write script to a temp file
+  const scriptPath = path.join(tmpDir, "script.sh");
+  fs.writeFileSync(scriptPath, script, { mode: 0o700 });
+
   return new Promise((resolve) => {
-    const conn = new Client();
-    let output = "";
-    let errorOutput = "";
-    let done = false;
+    const cmd = `ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -i "${keyPath}" root@${host} "bash -s" < "${scriptPath}"`;
 
-    const timer = setTimeout(() => {
-      if (!done) {
-        done = true;
-        conn.end();
-        resolve({
-          success: false,
-          output,
-          error: "Timeout: la commande a dépassé " + timeout + " secondes",
-        });
-      }
-    }, timeout * 1000);
+    exec(
+      cmd,
+      {
+        timeout: timeout * 1000,
+        maxBuffer: 5 * 1024 * 1024, // 5MB
+      },
+      (error, stdout, stderr) => {
+        // Cleanup temp files
+        try {
+          fs.rmSync(tmpDir, { recursive: true, force: true });
+        } catch {}
 
-    conn.on("ready", () => {
-      conn.exec(script, { pty: false }, (err, stream) => {
-        if (err) {
-          clearTimeout(timer);
-          done = true;
-          conn.end();
-          resolve({ success: false, output, error: err.message });
+        if (error && !stdout) {
+          resolve({
+            success: false,
+            output: stdout || "",
+            error: (stderr || error.message || "").slice(0, 2000),
+          });
           return;
         }
 
-        stream.on("data", (data: Buffer) => {
-          output += data.toString("utf-8");
+        resolve({
+          success: true,
+          output: truncateOutput(stdout || ""),
+          error: stderr ? truncateOutput(stderr) : undefined,
         });
-
-        stream.stderr.on("data", (data: Buffer) => {
-          errorOutput += data.toString("utf-8");
-        });
-
-        stream.on("close", (code: number | null) => {
-          clearTimeout(timer);
-          done = true;
-          conn.end();
-          resolve({
-            success: code === 0 || code === null,
-            output: truncateOutput(output),
-            error: errorOutput ? truncateOutput(errorOutput) : undefined,
-          });
-        });
-      });
-    });
-
-    conn.on("error", (err) => {
-      clearTimeout(timer);
-      if (!done) {
-        done = true;
-        resolve({ success: false, output, error: err.message });
-      }
-    });
-
-    conn.connect({
-      host,
-      username: "root",
-      privateKey,
-      readyTimeout: 10000,
-      keepaliveInterval: 10000,
-    });
+      },
+    );
   });
 }
 
 function truncateOutput(s: string, maxLen = 50000): string {
   if (s.length <= maxLen) return s;
-  return s.slice(0, maxLen) + "\n\n... [Tronqué: " + (s.length - maxLen) + " caractères supplémentaires]";
+  return (
+    s.slice(0, maxLen) +
+    "\n\n... [Tronqué: " +
+    (s.length - maxLen) +
+    " caractères supplémentaires]"
+  );
 }

@@ -9,7 +9,7 @@ RUN mkdir -p public && npm run build
 
 # Run
 FROM node:20-alpine
-RUN apk add --no-cache docker-cli curl git
+RUN apk add --no-cache docker-cli curl git openssh-client
 WORKDIR /app
 COPY --from=build /app/.next ./.next
 COPY --from=build /app/public ./public
