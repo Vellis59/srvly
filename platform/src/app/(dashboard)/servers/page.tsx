@@ -45,7 +45,7 @@ function AddServerModal({ onClose }: { onClose: () => void }) {
         if (result.success) {
           setConnectStatus("✅ Connecté ! Nom du serveur : " + result.output.trim());
         } else {
-          setConnectStatus("❌ " + (result.error || "Connexion échouée. Vérifie que la clé a bien été ajoutée au serveur."));
+          setConnectStatus("❌ " + ((result as any).error || "Connexion échouée. Vérifie que la clé a bien été ajoutée au serveur."));
         }
       } catch (err: any) {
         setConnectStatus("❌ Erreur : " + err.message);

@@ -118,7 +118,7 @@ export default function ServerDetailPage() {
       if (result.success) {
         setResults((prev) => ({ ...prev, [action]: result.output || "✅ Terminé" }));
       } else {
-        setResults((prev) => ({ ...prev, [action]: `❌ Erreur: ${result.error || result.output || "inconnue"}` }));
+        setResults((prev) => ({ ...prev, [action]: `❌ Erreur: ${((result as any).error) || result.output || "inconnue"}` }));
       }
     } catch (err: any) {
       setResults((prev) => ({ ...prev, [action]: `❌ Erreur de connexion: ${err.message}` }));
@@ -285,7 +285,7 @@ chmod 600 /root/.ssh/authorized_keys`}
                 if (result.success) {
                   refetch();
                 } else {
-                  alert("❌ " + (result.error || "Connexion échouée"));
+                  alert("❌ " + ((result as any).error || "Connexion échouée"));
                 }
               } catch (err: any) {
                 alert("❌ " + err.message);
