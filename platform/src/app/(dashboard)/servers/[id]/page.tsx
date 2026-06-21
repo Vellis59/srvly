@@ -104,6 +104,7 @@ export default function ServerDetailPage() {
   const [running, setRunning] = useState<string | null>(null);
   const [results, setResults] = useState<Record<string, string>>({});
   const [testing, setTesting] = useState(false);
+  const [scanning, setScanning] = useState(false);
 
   const runAction = async (action: keyof typeof ACTIONS) => {
     setRunning(action);
@@ -132,6 +133,15 @@ export default function ServerDetailPage() {
     onSuccess: () => router.push("/servers"),
     onError: (err) => alert("Erreur: " + err.message),
   });
+
+  const detectServer = async () => {
+    setScanning(true);
+    try {
+      await testConnection.mutateAsync({ id });
+      refetch();
+    } catch {}
+    setScanning(false);
+  };
 
   if (isLoading) return <div className="text-slate-400">Chargement...</div>;
   if (!server) return <div className="text-slate-500">Serveur introuvable</div>;
@@ -179,15 +189,27 @@ export default function ServerDetailPage() {
 
       {/* Info cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-white rounded-xl border border-slate-200 p-4">
+        <div className="bg-white rounded-xl border border-slate-200 p-4 relative">
           <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">OS</p>
           <p className="text-sm font-medium">{server.os || "Non détecté"}</p>
+          {!server.os && (
+            <button onClick={detectServer} disabled={scanning}
+              className="absolute top-2 right-2 text-xs text-emerald-600 hover:text-emerald-800">
+              {scanning ? "..." : "🔄 Détecter"}
+            </button>
+          )}
         </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-4">
+        <div className="bg-white rounded-xl border border-slate-200 p-4 relative">
           <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">RAM</p>
           <p className="text-sm font-medium">
             {server.ram ? (server.ram >= 1024 ? `${(server.ram / 1024).toFixed(1)} Go` : `${server.ram} Mo`) : "Non détecté"}
           </p>
+          {!server.ram && (
+            <button onClick={detectServer} disabled={scanning}
+              className="absolute top-2 right-2 text-xs text-emerald-600 hover:text-emerald-800">
+              {scanning ? "..." : "🔄 Détecter"}
+            </button>
+          )}
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-4">
           <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Clé SSH</p>
