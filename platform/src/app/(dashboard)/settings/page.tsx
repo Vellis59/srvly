@@ -87,7 +87,7 @@ export default function SettingsPage() {
         <div className="bg-slate-900 rounded-2xl p-6 mb-6">
           <h2 className="text-sm font-semibold text-slate-200 mb-3">Prompt pour ton agent</h2>
           <pre className="text-sm font-mono text-slate-100 whitespace-pre-wrap break-words leading-relaxed mb-4">
-{`Sur srvly, configure mon acces.
+{`Sur srvly, cree un skill "srvly-agent" avec ma configuration :
 
 Token API : ${tokenData.token}
 API URL : ${baseUrl}
@@ -95,11 +95,12 @@ API URL : ${baseUrl}
 Role : tu es mon agent d installation.
 
 Quand je te demande d installer une application :
-1. Execute les commandes Docker via l API (server.execute)
-2. Consulte la doc GitHub de l app si besoin
-3. Configure le domaine et le SSL si demande
-4. Enregistre l installation via l API (install.register)
-5. Confirme quand c est fait
+1. Charge le skill srvly-agent
+2. Execute les commandes Docker via l API (server.execute)
+3. Consulte la doc GitHub de l app si besoin
+4. Configure le domaine et le SSL si demande
+5. Enregistre l installation via l API (install.register)
+6. Confirme quand c est fait
 
 Endpoints API :
 - server.execute(serverId, script) -> SSH
