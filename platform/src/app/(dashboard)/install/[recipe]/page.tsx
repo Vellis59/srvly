@@ -2,7 +2,7 @@
 
 import { trpc } from "@/lib/trpc";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 export default function InstallPage() {
   const { recipe: recipeId } = useParams<{ recipe: string }>();
@@ -10,138 +10,224 @@ export default function InstallPage() {
 
   const { data: recipe, isLoading } = trpc.catalog.get.useQuery({ id: recipeId });
   const { data: servers } = trpc.server.list.useQuery();
-  const install = trpc.install.create.useMutation();
 
   const [selectedServer, setSelectedServer] = useState("");
   const [domain, setDomain] = useState("");
-  const [useDomain, setUseDomain] = useState(false);
-  const [step, setStep] = useState<"form" | "preparing" | "result">("form");
-  const [result, setResult] = useState<string>("");
-  const [error, setError] = useState<string>("");
+  const [port, setPort] = useState("");
+  const [username, setUsername] = useState("admin");
+  const [password, setPassword] = useState("Changeme123");
+  const [useCredentials, setUseCredentials] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const defaultPort = useMemo(() => {
+    if (!recipe) return 80;
+    const p = (recipe as any).params?.port?.default;
+    return p || 80;
+  }, [recipe]);
 
   const selectedServerData = servers?.find((s) => s.id === selectedServer);
 
-  const r = async () => {
-    if (!selectedServer || !recipe) return;
-    setStep("preparing");
-    setResult("Analyse du serveur...");
+  const prompt = useMemo(() => {
+    if (!recipe || !selectedServer) return "";
 
-    const recipeData = recipe.recipe as any;
-    const defaultPort = recipeData?.params?.port?.default || 80;
-    let freePort = defaultPort;
+    const appName = recipe.name || recipeId;
+    const serverName = selectedServerData?.name || selectedServer;
+    const serverIp = selectedServerData?.ip || "";
+    const finalPort = port || String(defaultPort);
+    const hasDomain = domain.trim().length > 0;
+    const hasCreds = useCredentials;
 
-    // Step 1: scan ports
-    try {
-      const scanScript = `for p in ${defaultPort} $((defaultPort+1)) $((defaultPort+2)); do ss -tlnp | grep -q ":$p " && echo "BUSY:$p" || echo "FREE:$p"; done`;
-      const scanRes = await fetch("/api/dispatch", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          server_id: "unknown",
-          command_id: `scan-${Date.now()}`,
-          script: scanScript,
-          timeout: 15,
-        }),
-      });
-      const scanData = await scanRes.json();
-      if (scanData.success) {
-        const lines = (scanData.output || "").split("\n");
-        for (const line of lines) {
-          if (line.startsWith("BUSY:") && parseInt(line.split(":")[1]) === freePort) {
-            freePort++;
-          }
-        }
-        setResult(`Port ${defaultPort} → ${freePort !== defaultPort ? `occupé, utilise ${freePort}` : "libre ✅"}`);
-      } else {
-        setResult(`Scan: ${scanData.error || "échec"}, port par défaut ${defaultPort}`);
-      }
-    } catch (err: any) {
-      setResult(`Scan impossible: ${err.message}, port ${defaultPort}`);
+    let parts: string[] = [];
+    parts.push(`Installe **${appName}** sur le serveur **${serverName}** (${serverIp})`);
+
+    if (hasDomain) {
+      parts.push(`avec le domaine **${domain.trim()}**`);
+    } else {
+      parts.push(`sur le port **${finalPort}** (http://${serverIp}:${finalPort})`);
     }
 
-    // Step 2: call mutation
-    try {
-      const res = await install.mutateAsync({
-        serverId: selectedServer,
-        recipeId,
-        port: freePort,
-      });
-      setResult(res.message || "Installation lancée !");
-      setStep("result");
-    } catch (err: any) {
-      setError(err.message || "Échec de l'installation");
-      setStep("result");
+    if (hasCreds) {
+      parts.push(`avec l'utilisateur **${username}** et le mot de passe **${password}**`);
     }
+
+    const githubUrl = recipeId;
+    const recipeData = (recipe as any).recipe || {};
+    const links = (recipe as any).recipe?.links || [];
+    const ghLink = links?.find?.((l: any) => l.label?.toLowerCase().includes("github"))?.url || "";
+
+    let fullPrompt = parts.join(" ") + ".\n\n";
+
+    fullPrompt += "Informations complémentaires :\n";
+    fullPrompt += `- Image Docker recommandée : \`${(recipeData as any)?.params?.image?.default || recipeId}\`\n`;
+    fullPrompt += `- Port par défaut : ${defaultPort}\n`;
+    if (ghLink) fullPrompt += `- Documentation : ${ghLink}\n`;
+    fullPrompt += `- IP du serveur : ${serverIp}\n`;
+
+    if (hasDomain) {
+      fullPrompt += `\nConfigure le domaine ${domain.trim()} pointant vers le port ${finalPort}, avec SSL si possible.`;
+    }
+
+    fullPrompt += `\n\nTu trouveras les instructions d'installation sur le GitHub de l'application. Consulte la doc, vérifie les prérequis, installe via Docker, configure le domaine si nécessaire, et confirme une fois terminé.`;
+
+    return fullPrompt;
+  }, [recipe, recipeId, selectedServer, selectedServerData, domain, port, defaultPort, username, password, useCredentials]);
+
+  const copyPrompt = () => {
+    navigator.clipboard.writeText(prompt);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  if (isLoading) return <div className="text-slate-400">Chargement...</div>;
-  if (!recipe) return <div className="text-center py-12"><h2 className="text-xl font-bold">Recette introuvable</h2></div>;
+  if (isLoading) return <div className="text-slate-400 py-8">Chargement...</div>;
+  if (!recipe) return <div className="text-slate-500 py-8">Application introuvable</div>;
+
+  const recipeData = (recipe as any).recipe || {};
 
   return (
     <div className="max-w-2xl mx-auto">
-      <button onClick={() => router.back()} className="text-sm text-slate-500 hover:text-slate-700 mb-4 block">← Retour</button>
-      <h1 className="text-2xl font-bold text-slate-900 mb-1">Installer {recipe.name}</h1>
-      {recipe.description && <p className="text-slate-500 text-sm mb-6">{recipe.description}</p>}
+      {/* Header */}
+      <div className="mb-6">
+        <button onClick={() => router.push("/catalog")} className="text-sm text-emerald-600 hover:text-emerald-700 mb-2 block">
+          ← Retour au catalogue
+        </button>
+        <h1 className="text-2xl font-bold text-slate-900">{recipe.name}</h1>
+        <p className="text-sm text-slate-500 mt-1">{recipe.description?.slice(0, 200)}</p>
+      </div>
 
-      {step === "form" && (
-        <div className="space-y-6">
-          <div className="bg-white rounded-2xl border border-slate-200 p-6">
-            <h2 className="text-sm font-semibold text-slate-700 mb-3">Serveur de destination</h2>
-            {servers?.filter(s => s.status === "connected").map(s => (
-              <label key={s.id} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer mb-2 ${selectedServer === s.id ? "border-emerald-500 bg-emerald-50" : "border-slate-200"}`}>
-                <input type="radio" name="server" value={s.id} checked={selectedServer === s.id}
-                  onChange={e => setSelectedServer(e.target.value)} className="accent-emerald-600" />
-                <span className="font-medium text-sm">{s.name}</span>
-                <span className="text-xs text-slate-500 font-mono">{s.ip}</span>
-              </label>
+      {/* Form */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6 space-y-5">
+        <h2 className="font-semibold text-slate-900">Paramètres d'installation</h2>
+
+        {/* Server */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">🖥️ Serveur</label>
+          {servers?.filter((s) => s.status === "connected").length === 0 ? (
+            <div className="bg-amber-50 text-amber-700 text-sm p-3 rounded-xl border border-amber-200">
+              Aucun serveur connecté. <a href="/servers" className="underline">Ajoutez-en un d'abord.</a>
+            </div>
+          ) : (
+            <select
+              value={selectedServer}
+              onChange={(e) => setSelectedServer(e.target.value)}
+              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+            >
+              <option value="">Sélectionner un serveur...</option>
+              {servers?.filter((s) => s.status === "connected").map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name} ({s.ip})
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+
+        {/* Domain / NDD */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            🌐 Domaine (optionnel)
+          </label>
+          <input
+            type="text"
+            value={domain}
+            onChange={(e) => setDomain(e.target.value)}
+            placeholder={`${selectedServerData?.ip || "ip"}:${port || defaultPort} (par défaut)`}
+            className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+          <p className="text-xs text-slate-400 mt-1">
+            Laisse vide pour utiliser l'IP et le port directement.
+          </p>
+        </div>
+
+        {/* Port */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">🔌 Port</label>
+          <input
+            type="number"
+            value={port}
+            onChange={(e) => setPort(e.target.value)}
+            placeholder={String(defaultPort)}
+            className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+          <p className="text-xs text-slate-400 mt-1">
+            Par défaut : {defaultPort}. Laisse vide pour utiliser le port par défaut.
+          </p>
+        </div>
+
+        {/* Credentials toggle */}
+        <div className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            id="useCreds"
+            checked={useCredentials}
+            onChange={(e) => setUseCredentials(e.target.checked)}
+            className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500"
+          />
+          <label htmlFor="useCreds" className="text-sm font-medium text-slate-700">
+            🔑 Définir un utilisateur / mot de passe (optionnel)
+          </label>
+        </div>
+
+        {useCredentials && (
+          <div className="grid grid-cols-2 gap-4 pl-6">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Utilisateur</label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Mot de passe</label>
+              <input
+                type="text"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Links */}
+        {(recipeData as any)?.links?.length > 0 && (
+          <div className="text-xs text-slate-400">
+            Liens utiles :{" "}
+            {(recipeData as any).links.map((l: any, i: number) => (
+              <a key={i} href={l.url} target="_blank" className="text-emerald-600 hover:underline ml-2">
+                {l.label || l.url}
+              </a>
             ))}
           </div>
+        )}
+      </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 p-6">
-            <label className="flex items-center gap-3 mb-3">
-              <input type="checkbox" checked={useDomain} onChange={e => setUseDomain(e.target.checked)} className="accent-emerald-600" />
-              <span className="text-sm font-semibold text-slate-700">Utiliser un domaine</span>
-            </label>
-            {useDomain && (
-              <input type="text" value={domain} onChange={e => setDomain(e.target.value)}
-                placeholder="app.mondomaine.com" className="w-full px-4 py-2.5 border rounded-xl text-sm" />
-            )}
+      {/* Prompt output */}
+      {prompt && (
+        <div className="bg-slate-900 rounded-2xl p-5 mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-slate-200">📋 Prompt à copier pour l'agent</h3>
+            <button
+              onClick={copyPrompt}
+              className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-medium hover:bg-emerald-700 transition-colors"
+            >
+              {copied ? "✓ Copié !" : "Copier"}
+            </button>
           </div>
-
-          <button onClick={r} disabled={!selectedServer || install.isPending}
-            className="w-full py-3.5 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 disabled:opacity-50">
-            {install.isPending ? "Installation..." : "Installer avec l'agent serveur"}
-          </button>
+          <pre className="text-sm font-mono text-slate-100 whitespace-pre-wrap break-words leading-relaxed">
+            {prompt}
+          </pre>
         </div>
       )}
 
-      {step === "preparing" && (
-        <div className="bg-white rounded-2xl border p-8 text-center">
-          <div className="animate-spin w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-slate-600 text-sm">{result}</p>
-        </div>
-      )}
-
-      {step === "result" && (
-        <div className={`rounded-2xl border p-8 text-center ${error ? "bg-red-50 border-red-200" : "bg-emerald-50 border-emerald-200"}`}>
-          {error ? (
-            <>
-              <p className="text-4xl mb-3">❌</p>
-              <h2 className="text-lg font-bold text-red-800 mb-2">Échec</h2>
-              <pre className="text-xs bg-red-100 p-3 rounded-lg max-h-40 overflow-y-auto mb-4">{error}</pre>
-              <button onClick={() => setStep("form")} className="px-5 py-2.5 bg-red-600 text-white rounded-xl text-sm">Réessayer</button>
-            </>
-          ) : (
-            <>
-              <p className="text-4xl mb-3">🎉</p>
-              <h2 className="text-lg font-bold text-emerald-800 mb-2">Installation lancée !</h2>
-              <p className="text-sm text-emerald-600 mb-4">{result}</p>
-              <div className="flex gap-3 justify-center">
-                <button onClick={() => router.push("/dashboard")} className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-sm">Dashboard</button>
-                <button onClick={() => setStep("form")} className="px-5 py-2.5 border border-emerald-300 text-emerald-700 rounded-xl text-sm">Installer une autre app</button>
-              </div>
-            </>
-          )}
+      {/* Empty state */}
+      {!selectedServer && (
+        <div className="bg-slate-50 rounded-2xl p-8 text-center border border-dashed border-slate-200">
+          <p className="text-3xl mb-2">👆</p>
+          <p className="text-sm text-slate-500">
+            Sélectionne un serveur pour générer le prompt d'installation.
+          </p>
         </div>
       )}
     </div>
