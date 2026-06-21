@@ -10,7 +10,7 @@ export async function createContext(opts: FetchCreateContextFnOptions) {
 
   // Check for API token in Authorization header
   let apiUser = null;
-  const authHeader = opts.info.headers.get("authorization");
+  const authHeader = (opts as any).info?.headers?.get?.("authorization") || (opts as any).req?.headers?.get?.("authorization") || "";
   if (authHeader?.startsWith("Bearer ")) {
     const token = authHeader.slice(7);
     if (token) {
@@ -23,7 +23,7 @@ export async function createContext(opts: FetchCreateContextFnOptions) {
     }
   }
 
-  return { db, session, apiUser, headers: opts.info.headers };
+  return { db, session, apiUser };
 }
 
 export type Context = Awaited<ReturnType<typeof createContext>>;
