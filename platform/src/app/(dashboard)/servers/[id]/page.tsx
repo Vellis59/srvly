@@ -442,54 +442,103 @@ function DomainItem({ domain, onDelete }: { domain: any; onDelete: () => void })
 
 function InstalledApps({ serverId }: { serverId: string }) {
   const utils = trpc.useUtils();
-  const { data: installations } = trpc.install.list.useQuery();
+  const { data: installations } = trpc.install.listForServer.useQuery({ serverId });
   const deleteApp = trpc.install.delete.useMutation({
-    onSuccess: () => utils.install.list.invalidate(),
+    onSuccess: () => utils.install.listForServer.invalidate({ serverId }),
   });
-  const apps = installations?.filter((i: any) => i.installations?.serverId === serverId || i.servers?.id === serverId) || [];
+  const restartApp = trpc.install.restart.useMutation({
+    onSuccess: () => utils.install.listForServer.invalidate({ serverId }),
+  });
+  const stopApp = trpc.install.stop.useMutation({
+    onSuccess: () => utils.install.listForServer.invalidate({ serverId }),
+  });
+  const startApp = trpc.install.start.useMutation({
+    onSuccess: () => utils.install.listForServer.invalidate({ serverId }),
+  });
+  const getLogs = trpc.install.logs.useMutation();
+  const getEnv = trpc.install.getEnv.useMutation();
+  const [actionOutput, setActionOutput] = useState<Record<string, string>>({});
+
+  const runAction = async (id: string, action: string, fn: any) => {
+    setActionOutput((prev) => ({ ...prev, [`${id}-${action}`]: "..." }));
+    try {
+      const result = await fn.mutateAsync({ id });
+      setActionOutput((prev) => ({ ...prev, [`${id}-${action}`]: result.output || result.message || "✅" }));
+    } catch (err: any) {
+      setActionOutput((prev) => ({ ...prev, [`${id}-${action}`]: `❌ ${err.message}` }));
+    }
+  };
+
+  const apps = installations || [];
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
       <h2 className="font-semibold text-slate-900 mb-4">📦 Apps installées</h2>
       {apps.length === 0 ? (
         <div className="text-sm text-slate-500 text-center py-6 border-2 border-dashed border-slate-200 rounded-xl">
-          Aucune installation. Lancez une app depuis le <a href="/catalog" className="text-emerald-600 hover:underline">catalogue</a>.
+          Aucune installation. Lancez une app depuis l'assistant IA.
         </div>
       ) : (
         <div className="space-y-3">
           {apps.map((item: any) => {
-            const inst = item.installations || item;
-            const rec = item.recipes || item;
+            const params = item.params || {};
+            const status = item.status || "unknown";
+            const statusColors: Record<string, string> = {
+              success: "bg-emerald-500",
+              running: "bg-amber-400",
+              failed: "bg-red-500",
+              stopped: "bg-slate-400",
+            };
+
             return (
-              <div key={inst.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                <span className={`w-2.5 h-2.5 rounded-full ${
-                  inst.status === "success" ? "bg-emerald-500" :
-                  inst.status === "running" ? "bg-amber-400" :
-                  inst.status === "failed" ? "bg-red-500" : "bg-slate-400"
-                }`} />
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm text-slate-900">{rec.name || "App"}</p>
-                  <p className="text-xs text-slate-500">
-                    Statut: {inst.status || "inconnu"}
-                    {inst.params?.port && ` • Port: ${inst.params.port}`}
-                  </p>
+              <div key={item.id} className="border border-slate-200 rounded-xl overflow-hidden">
+                <div className="flex items-center gap-3 p-3 bg-slate-50">
+                  <span className={`w-2.5 h-2.5 rounded-full ${statusColors[status] || "bg-slate-400"}`} />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm text-slate-900">{params.name || item.recipeId || "App"}</p>
+                    <p className="text-xs text-slate-500">
+                      {params.port && `Port ${params.port}`}
+                      {params.domain && ` • ${params.domain}`}
+                      {!params.port && !params.domain && `Statut: ${status}`}
+                    </p>
+                  </div>
+                  <div className="flex gap-1">
+                    <button onClick={() => runAction(item.id, "logs", getLogs)}
+                      className="text-xs bg-slate-200 hover:bg-slate-300 px-2 py-1 rounded-lg">📋 Logs</button>
+                    <button onClick={() => runAction(item.id, "restart", restartApp)}
+                      disabled={restartApp.isPending}
+                      className="text-xs bg-amber-100 hover:bg-amber-200 text-amber-700 px-2 py-1 rounded-lg">🔄</button>
+                    {status !== "stopped" ? (
+                      <button onClick={() => runAction(item.id, "stop", stopApp)}
+                        disabled={stopApp.isPending}
+                        className="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded-lg">⏹</button>
+                    ) : (
+                      <button onClick={() => runAction(item.id, "start", startApp)}
+                        disabled={startApp.isPending}
+                        className="text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-700 px-2 py-1 rounded-lg">▶</button>
+                    )}
+                    <button onClick={() => runAction(item.id, "env", getEnv)}
+                      className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded-lg">🔑 .env</button>
+                    <button onClick={() => { if (confirm("Désinstaller ?")) deleteApp.mutate({ id: item.id }); }}
+                      disabled={deleteApp.isPending}
+                      className="text-xs text-red-500 hover:text-red-700 px-2 py-1">✕</button>
+                  </div>
                 </div>
-                {inst.status === "running" && (
-                  <div className="animate-spin w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full" />
+                {actionOutput[`${item.id}-logs`] && (
+                  <pre className="text-xs font-mono bg-slate-900 text-slate-100 p-3 max-h-40 overflow-y-auto border-t border-slate-200">
+                    {actionOutput[`${item.id}-logs`]}
+                  </pre>
                 )}
-                {inst.logs && (
-                  <details className="text-xs">
-                    <summary className="text-slate-400 cursor-pointer">Logs</summary>
-                    <pre className="mt-2 bg-slate-900 text-slate-100 p-2 rounded-lg max-h-40 overflow-y-auto">{inst.logs}</pre>
-                  </details>
+                {actionOutput[`${item.id}-env`] && (
+                  <pre className="text-xs font-mono bg-slate-900 text-emerald-300 p-3 max-h-40 overflow-y-auto border-t border-slate-200">
+                    {actionOutput[`${item.id}-env`]}
+                  </pre>
                 )}
-                <button
-                  onClick={() => { if (confirm("Désinstaller " + (rec.name || "cette app") + " ?")) deleteApp.mutate({ id: inst.id }); }}
-                  disabled={deleteApp.isPending}
-                  className="text-xs text-red-500 hover:text-red-700 disabled:opacity-50"
-                >
-                  Supprimer
-                </button>
+                {(actionOutput[`${item.id}-restart`] || actionOutput[`${item.id}-stop`] || actionOutput[`${item.id}-start`]) && (
+                  <p className="text-xs text-slate-500 px-3 py-1 border-t border-slate-100">
+                    {actionOutput[`${item.id}-restart`] || actionOutput[`${item.id}-stop`] || actionOutput[`${item.id}-start`]}
+                  </p>
+                )}
               </div>
             );
           })}

@@ -133,17 +133,55 @@ export const serverRouter = router({
         .where(and(eq(servers.id, input.id), eq(servers.userId, ctx.user.id!)));
       if (!server) throw new TRPCError({ code: "NOT_FOUND" });
 
-      const result = await executeOnServer(input.id, "echo 'OK' && hostname", 15);
+      const result = await executeOnServer(
+        input.id,
+        `echo '---OS---'
+cat /etc/os-release 2>/dev/null | head -5 || cat /etc/*release 2>/dev/null | head -3 || uname -a
+echo '---RAM---'
+free -m 2>/dev/null | awk '/^Mem:/{print $2}' || echo "0"
+echo '---HOSTNAME---'
+hostname`,
+        15,
+      );
 
       if (result.success) {
+        let detectedOs = null;
+        let detectedRam: number | null = null;
+
+        const output = result.output || "";
+        const osMatch = output.match(/---OS---\n([\s\S]*?)---RAM---/);
+        if (osMatch) {
+          const osRaw = osMatch[1].trim().split("\n").slice(0, 3).join("; ");
+          // Try to extract PRETTY_NAME
+          const pretty = osRaw.match(/PRETTY_NAME="?([^"\n]+)"?/);
+          if (pretty) detectedOs = pretty[1];
+          else detectedOs = osRaw.slice(0, 100);
+        }
+
+        const ramMatch = output.match(/---RAM---\n(\d+)/);
+        if (ramMatch) {
+          detectedRam = parseInt(ramMatch[1], 10);
+          if (isNaN(detectedRam)) detectedRam = null;
+        }
+
         await ctx.db
           .update(servers)
-          .set({ status: "connected", lastSeen: new Date() })
+          .set({
+            status: "connected",
+            lastSeen: new Date(),
+            os: detectedOs,
+            ram: detectedRam,
+          })
           .where(eq(servers.id, input.id));
+
+        return {
+          success: true,
+          output: `OS: ${detectedOs || "inconnu"} • RAM: ${detectedRam ? (detectedRam >= 1024 ? `${(detectedRam/1024).toFixed(1)} Go` : `${detectedRam} Mo`) : "inconnue"}`,
+        };
       }
 
       return {
-        success: result.success,
+        success: false,
         output: result.output,
         error: result.error,
       };
@@ -388,6 +426,220 @@ export const installRouter = router({
 
       await ctx.db.delete(installations).where(eq(installations.id, input.id));
       return { success: true };
+    }),
+
+  // ── Agent API ──────────────────────────────────────────────
+
+  register: protectedProcedure
+    .input(
+      z.object({
+        serverId: z.string(),
+        name: z.string().min(1),
+        type: z.string().default("app"),
+        port: z.number().int().optional(),
+        domain: z.string().optional(),
+        image: z.string().optional(),
+        containerName: z.string().optional(),
+        notes: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [server] = await ctx.db
+        .select()
+        .from(servers)
+        .where(and(eq(servers.id, input.serverId), eq(servers.userId, ctx.user.id!)));
+      if (!server) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const [inst] = await ctx.db
+        .insert(installations)
+        .values({
+          serverId: input.serverId,
+          recipeId: input.type || "app",
+          status: "success",
+          params: {
+            name: input.name,
+            port: input.port,
+            domain: input.domain,
+            image: input.image,
+            containerName: input.containerName,
+            notes: input.notes,
+          },
+          result: {},
+          logs: "",
+        })
+        .returning();
+
+      return { id: inst.id, message: `${input.name} enregistrée` };
+    }),
+
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        status: z.enum(["running", "success", "failed", "stopped"]).optional(),
+        port: z.number().int().optional(),
+        domain: z.string().optional(),
+        containerName: z.string().optional(),
+        logs: z.string().optional(),
+        notes: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .select({ installation: installations, server: servers })
+        .from(installations)
+        .innerJoin(servers, eq(installations.serverId, servers.id))
+        .where(and(eq(installations.id, input.id), eq(servers.userId, ctx.user.id!)));
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const currentParams = (row.installation.params as any) || {};
+      const updates: any = { updatedAt: new Date() };
+      if (input.status) updates.status = input.status;
+      if (input.logs !== undefined) updates.logs = input.logs;
+      if (input.port || input.domain || input.containerName || input.notes) {
+        updates.params = {
+          ...currentParams,
+          ...(input.port ? { port: input.port } : {}),
+          ...(input.domain ? { domain: input.domain } : {}),
+          ...(input.containerName ? { containerName: input.containerName } : {}),
+          ...(input.notes ? { notes: input.notes } : {}),
+        };
+      }
+
+      await ctx.db
+        .update(installations)
+        .set(updates)
+        .where(eq(installations.id, input.id));
+
+      return { success: true };
+    }),
+
+  // ── App Actions (SSH) ──────────────────────────────────────
+
+  logs: protectedProcedure
+    .input(z.object({ id: z.string(), lines: z.number().int().default(100) }))
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .select({ installation: installations, server: servers })
+        .from(installations)
+        .innerJoin(servers, eq(installations.serverId, servers.id))
+        .where(and(eq(installations.id, input.id), eq(servers.userId, ctx.user.id!)));
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const params = (row.installation.params as any) || {};
+      const container = params.containerName || params.name || row.installation.recipeId;
+
+      const result = await executeOnServer(
+        row.server.id,
+        `docker logs --tail ${input.lines} ${container} 2>&1 || echo "CONTAINER_NOT_FOUND"`,
+        15,
+      );
+
+      return result;
+    }),
+
+  restart: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .select({ installation: installations, server: servers })
+        .from(installations)
+        .innerJoin(servers, eq(installations.serverId, servers.id))
+        .where(and(eq(installations.id, input.id), eq(servers.userId, ctx.user.id!)));
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const params = (row.installation.params as any) || {};
+      const container = params.containerName || params.name || row.installation.recipeId;
+
+      const result = await executeOnServer(
+        row.server.id,
+        `docker restart ${container} 2>&1 && echo "RESTARTED" || echo "RESTART_FAILED"`,
+        15,
+      );
+
+      return result;
+    }),
+
+  stop: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .select({ installation: installations, server: servers })
+        .from(installations)
+        .innerJoin(servers, eq(installations.serverId, servers.id))
+        .where(and(eq(installations.id, input.id), eq(servers.userId, ctx.user.id!)));
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const params = (row.installation.params as any) || {};
+      const container = params.containerName || params.name || row.installation.recipeId;
+
+      await executeOnServer(row.server.id, `docker stop ${container} 2>&1`, 15).catch(() => {});
+      await ctx.db
+        .update(installations)
+        .set({ status: "stopped", updatedAt: new Date() })
+        .where(eq(installations.id, input.id));
+
+      return { success: true, message: `${container} arrêté` };
+    }),
+
+  start: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .select({ installation: installations, server: servers })
+        .from(installations)
+        .innerJoin(servers, eq(installations.serverId, servers.id))
+        .where(and(eq(installations.id, input.id), eq(servers.userId, ctx.user.id!)));
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const params = (row.installation.params as any) || {};
+      const container = params.containerName || params.name || row.installation.recipeId;
+
+      await executeOnServer(row.server.id, `docker start ${container} 2>&1`, 15).catch(() => {});
+      await ctx.db
+        .update(installations)
+        .set({ status: "success", updatedAt: new Date() })
+        .where(eq(installations.id, input.id));
+
+      return { success: true, message: `${container} démarré` };
+    }),
+
+  getEnv: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .select({ installation: installations, server: servers })
+        .from(installations)
+        .innerJoin(servers, eq(installations.serverId, servers.id))
+        .where(and(eq(installations.id, input.id), eq(servers.userId, ctx.user.id!)));
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const params = (row.installation.params as any) || {};
+      const container = params.containerName || params.name || row.installation.recipeId;
+
+      const result = await executeOnServer(
+        row.server.id,
+        `docker inspect ${container} --format='{{range .Config.Env}}{{println .}}{{end}}' 2>&1 || echo "CONTAINER_NOT_FOUND"`,
+        15,
+      );
+
+      return result;
+    }),
+
+  listForServer: protectedProcedure
+    .input(z.object({ serverId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const [server] = await ctx.db
+        .select()
+        .from(servers)
+        .where(and(eq(servers.id, input.serverId), eq(servers.userId, ctx.user.id!)));
+      if (!server) return [];
+
+      return await ctx.db
+        .select()
+        .from(installations)
+        .where(eq(installations.serverId, input.serverId))
+        .orderBy(installations.createdAt);
     }),
 });
 
