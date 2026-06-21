@@ -188,7 +188,7 @@ export default function ServerDetailPage() {
       </div>
 
       {/* Info cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-white rounded-xl border border-slate-200 p-4 relative">
           <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">OS</p>
           <p className="text-sm font-medium">{server.os || "Non détecté"}</p>
@@ -202,8 +202,17 @@ export default function ServerDetailPage() {
         <div className="bg-white rounded-xl border border-slate-200 p-4 relative">
           <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">RAM</p>
           <p className="text-sm font-medium">
-            {server.ram ? (server.ram >= 1024 ? `${(server.ram / 1024).toFixed(1)} Go` : `${server.ram} Mo`) : "Non détecté"}
+            {server.systemInfo?.ramUsed
+              ? `${(server.systemInfo.ramUsed / 1024).toFixed(1)} / ${(server.systemInfo.ramTotal / 1024).toFixed(1)} Go`
+              : server.ram
+                ? `${(server.ram / 1024).toFixed(1)} Go`
+                : "Non détecté"}
           </p>
+          {server.systemInfo?.ramUsed && (
+            <p className="text-xs text-slate-400 mt-0.5">
+              Libre: {(server.systemInfo.ramAvailable / 1024).toFixed(1)} Go
+            </p>
+          )}
           {!server.ram && (
             <button onClick={detectServer} disabled={scanning}
               className="absolute top-2 right-2 text-xs text-emerald-600 hover:text-emerald-800">
@@ -211,11 +220,28 @@ export default function ServerDetailPage() {
             </button>
           )}
         </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-4">
-          <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Clé SSH</p>
-          <p className="text-xs font-mono text-emerald-600 truncate" title={server.sshPublicKey || ""}>
-            {server.sshPublicKey ? server.sshPublicKey.split(" ")[0] + " " + (server.sshPublicKey.split(" ")[2] || "srvly@platform") : "—"}
+        <div className="bg-white rounded-xl border border-slate-200 p-4 relative">
+          <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Disque</p>
+          <p className="text-sm font-medium">
+            {server.systemInfo?.diskTotal
+              ? `${server.systemInfo.diskUsed} / ${server.systemInfo.diskTotal} Go`
+              : "Non détecté"}
           </p>
+          {server.systemInfo?.diskTotal && (
+            <p className="text-xs text-slate-400 mt-0.5">
+              Libre: {server.systemInfo.diskAvailable} Go
+            </p>
+          )}
+          {!server.systemInfo?.diskTotal && (
+            <button onClick={detectServer} disabled={scanning}
+              className="absolute top-2 right-2 text-xs text-emerald-600 hover:text-emerald-800">
+              {scanning ? "..." : "🔄 Détecter"}
+            </button>
+          )}
+        </div>
+        <div className="bg-white rounded-xl border border-slate-200 p-4">
+          <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Uptime</p>
+          <p className="text-sm font-medium">{server.systemInfo?.uptime || "—"}</p>
         </div>
       </div>
 

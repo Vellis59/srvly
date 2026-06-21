@@ -135,34 +135,63 @@ export const serverRouter = router({
 
       const result = await executeOnServer(
         input.id,
-        `echo '---OS---'
-cat /etc/os-release 2>/dev/null | head -5 || cat /etc/*release 2>/dev/null | head -3 || uname -a
-echo '---RAM---'
-free -m 2>/dev/null | awk '/^Mem:/{print $2}' || echo "0"
-echo '---HOSTNAME---'
-hostname`,
+        [
+          "echo '---OS---'",
+          "cat /etc/os-release 2>/dev/null | head -5 || cat /etc/*release 2>/dev/null | head -3 || uname -a",
+          "echo '---RAM---'",
+          "free -m 2>/dev/null | awk '/^Mem:/{print $2\" \"$3\" \"$4}' || echo '0 0 0'",
+          "echo '---DISK---'",
+          "df -BG / 2>/dev/null | awk 'NR==2{print $2\" \"$3\" \"$4}' || echo '0 0 0'",
+          "echo '---UPTIME---'",
+          "uptime -p 2>/dev/null || uptime",
+          "echo '---HOSTNAME---'",
+          "hostname",
+        ].join("\n"),
         15,
       );
 
       if (result.success) {
         let detectedOs = null;
-        let detectedRam: number | null = null;
-
+        let systemInfo: Record<string, any> = {};
         const output = result.output || "";
+
+        // OS
         const osMatch = output.match(/---OS---\n([\s\S]*?)---RAM---/);
         if (osMatch) {
           const osRaw = osMatch[1].trim().split("\n").slice(0, 3).join("; ");
-          // Try to extract PRETTY_NAME
           const pretty = osRaw.match(/PRETTY_NAME="?([^"\n]+)"?/);
-          if (pretty) detectedOs = pretty[1];
-          else detectedOs = osRaw.slice(0, 100);
+          detectedOs = pretty ? pretty[1] : osRaw.slice(0, 100);
         }
 
-        const ramMatch = output.match(/---RAM---\n(\d+)/);
+        // RAM: total used available (MB)
+        const ramMatch = output.match(/---RAM---\n(.+?)\n/);
         if (ramMatch) {
-          detectedRam = parseInt(ramMatch[1], 10);
-          if (isNaN(detectedRam)) detectedRam = null;
+          const parts = ramMatch[1].trim().split(/\s+/);
+          if (parts.length >= 3) {
+            systemInfo.ramTotal = parseInt(parts[0], 10) || 0;
+            systemInfo.ramUsed = parseInt(parts[1], 10) || 0;
+            systemInfo.ramAvailable = parseInt(parts[2], 10) || 0;
+          }
         }
+
+        // Disk: size used available (GB suffix)
+        const diskMatch = output.match(/---DISK---\n(.+?)\n/);
+        if (diskMatch) {
+          const parts = diskMatch[1].trim().split(/\s+/);
+          if (parts.length >= 3) {
+            systemInfo.diskTotal = parseInt(parts[0].replace("G", ""), 10) || 0;
+            systemInfo.diskUsed = parseInt(parts[1].replace("G", ""), 10) || 0;
+            systemInfo.diskAvailable = parseInt(parts[2].replace("G", ""), 10) || 0;
+          }
+        }
+
+        // Uptime
+        const uptimeMatch = output.match(/---UPTIME---\n(.+?)\n/);
+        if (uptimeMatch) {
+          systemInfo.uptime = uptimeMatch[1].trim().replace(/^up\s*/, "");
+        }
+
+        const detectedRam = systemInfo.ramTotal || null;
 
         await ctx.db
           .update(servers)
@@ -171,13 +200,26 @@ hostname`,
             lastSeen: new Date(),
             os: detectedOs,
             ram: detectedRam,
+            systemInfo,
           })
           .where(eq(servers.id, input.id));
 
-        return {
-          success: true,
-          output: `OS: ${detectedOs || "inconnu"} • RAM: ${detectedRam ? (detectedRam >= 1024 ? `${(detectedRam/1024).toFixed(1)} Go` : `${detectedRam} Mo`) : "inconnue"}`,
-        };
+        // Build readable summary
+        const parts: string[] = [];
+        parts.push(`OS: ${detectedOs || "inconnu"}`);
+        if (systemInfo.ramTotal) {
+          const total = (systemInfo.ramTotal / 1024).toFixed(1);
+          const used = (systemInfo.ramUsed / 1024).toFixed(1);
+          parts.push(`RAM: ${used}/${total} Go`);
+        }
+        if (systemInfo.diskTotal) {
+          parts.push(`Disque: ${systemInfo.diskUsed}/${systemInfo.diskTotal} Go`);
+        }
+        if (systemInfo.uptime) {
+          parts.push(`Uptime: ${systemInfo.uptime}`);
+        }
+
+        return { success: true, output: parts.join(" \u2022 ") };
       }
 
       return {
