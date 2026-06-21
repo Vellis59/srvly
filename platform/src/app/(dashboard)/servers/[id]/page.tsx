@@ -146,6 +146,8 @@ export default function ServerDetailPage() {
   if (isLoading) return <div className="text-slate-400">Chargement...</div>;
   if (!server) return <div className="text-slate-500">Serveur introuvable</div>;
 
+  const sysInfo = (server.systemInfo || {}) as Record<string, any>;
+
   const statusColors: Record<string, string> = {
     pending: "bg-yellow-400",
     connected: "bg-emerald-500",
@@ -202,15 +204,15 @@ export default function ServerDetailPage() {
         <div className="bg-white rounded-xl border border-slate-200 p-4 relative">
           <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">RAM</p>
           <p className="text-sm font-medium">
-            {server.systemInfo?.ramUsed
-              ? `${((server.systemInfo as any).ramUsed / 1024).toFixed(1)} / ${((server.systemInfo as any).ramTotal / 1024).toFixed(1)} Go`
+            {sysInfo.ramUsed
+              ? `${(sysInfo.ramUsed / 1024).toFixed(1)} / ${(sysInfo.ramTotal / 1024).toFixed(1)} Go`
               : server.ram
                 ? `${(server.ram / 1024).toFixed(1)} Go`
                 : "Non détecté"}
           </p>
-          {server.systemInfo?.ramUsed && (
+          {sysInfo.ramUsed && (
             <p className="text-xs text-slate-400 mt-0.5">
-              Libre: {((server.systemInfo as any).ramAvailable / 1024).toFixed(1)} Go
+              Libre: {(sysInfo.ramAvailable / 1024).toFixed(1)} Go
             </p>
           )}
           {!server.ram && (
@@ -223,16 +225,16 @@ export default function ServerDetailPage() {
         <div className="bg-white rounded-xl border border-slate-200 p-4 relative">
           <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Disque</p>
           <p className="text-sm font-medium">
-            {server.systemInfo?.diskTotal
-              ? `${(server.systemInfo as any).diskUsed} / ${(server.systemInfo as any).diskTotal} Go`
+            {sysInfo.diskTotal
+              ? `${sysInfo.diskUsed} / ${sysInfo.diskTotal} Go`
               : "Non détecté"}
           </p>
-          {server.systemInfo?.diskTotal && (
+          {sysInfo.diskTotal && (
             <p className="text-xs text-slate-400 mt-0.5">
-              Libre: {(server.systemInfo as any).diskAvailable} Go
+              Libre: {sysInfo.diskAvailable} Go
             </p>
           )}
-          {!server.systemInfo?.diskTotal && (
+          {!sysInfo.diskTotal && (
             <button onClick={detectServer} disabled={scanning}
               className="absolute top-2 right-2 text-xs text-emerald-600 hover:text-emerald-800">
               {scanning ? "..." : "🔄 Détecter"}
@@ -241,7 +243,7 @@ export default function ServerDetailPage() {
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-4">
           <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Uptime</p>
-          <p className="text-sm font-medium">{(server.systemInfo as any)?.uptime || "\u2014"}</p>
+          <p className="text-sm font-medium">{sysInfo.uptime || "\u2014"}</p>
         </div>
       </div>
 
