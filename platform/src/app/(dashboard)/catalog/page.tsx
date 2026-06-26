@@ -195,10 +195,10 @@ export default function CatalogPage() {
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
               {categories?.filter(c => c.count > 0).map((cat) => (
-                <button
+                <Link
                   key={cat.id}
-                  onClick={() => handleCategoryClick(cat.id)}
-                  className="bg-white rounded-xl border border-slate-200 p-4 hover:border-emerald-300 hover:shadow-sm transition-all text-left"
+                  href={`/catalog/${cat.id}`}
+                  className="bg-white rounded-xl border border-slate-200 p-4 hover:border-emerald-300 hover:shadow-sm transition-all text-left block"
                 >
                   <div className="flex items-center gap-3 mb-1">
                     <span className="text-2xl">{cat.icon}</span>
@@ -210,7 +210,7 @@ export default function CatalogPage() {
                   <p className="text-[11px] text-slate-400 line-clamp-2 mt-1">
                     {cat.description}
                   </p>
-                </button>
+                </Link>
               ))}
             </div>
           </div>
