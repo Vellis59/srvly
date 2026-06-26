@@ -2,7 +2,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, agentProcedure } from "@/server/trpc/context";
 import { servers, installations, recipes, domains, users } from "@/server/db/schema";
-import { eq, and, or, ilike } from "drizzle-orm";
+import { eq, and, or, ilike, inArray, sql } from "drizzle-orm";
 import { executeOnServer } from "@/lib/ssh";
 import { generateKeyPairSync, createHash } from "crypto";
 import fs from "fs";
@@ -944,12 +944,111 @@ echo "NGINX_CONFIGURED"
 
 // ─── Main router ───
 
+export const dashboardRouter = router({
+  stats: agentProcedure.query(async ({ ctx }) => {
+    const userServers = await ctx.db
+      .select()
+      .from(servers)
+      .where(eq(servers.userId, ctx.user.id!));
+
+    const serverIds = userServers.map((s) => s.id);
+
+    // Installation counts by status
+    let installByStatus: { status: string; count: number }[] = [];
+    let domainCount = 0;
+    if (serverIds.length > 0) {
+      installByStatus = await ctx.db
+        .select({
+          status: installations.status,
+          count: sql<number>`cast(count(*) as int)`,
+        })
+        .from(installations)
+        .where(inArray(installations.serverId, serverIds))
+        .groupBy(installations.status);
+
+      const dc = await ctx.db
+        .select({ count: sql<number>`cast(count(*) as int)` })
+        .from(domains)
+        .where(inArray(domains.serverId, serverIds));
+      domainCount = dc[0]?.count || 0;
+    }
+
+    const catalogCount = await ctx.db
+      .select({ count: sql<number>`cast(count(*) as int)` })
+      .from(recipes);
+
+    const getCount = (status: string) =>
+      installByStatus.find((r) => r.status === status)?.count || 0;
+
+    // Aggregate system info across servers
+    let totalDiskTotal = 0,
+      totalDiskUsed = 0,
+      totalRamTotal = 0,
+      totalRamUsed = 0;
+    for (const s of userServers) {
+      const info = (s.systemInfo || {}) as Record<string, any>;
+      totalDiskTotal += parseInt(info.diskTotal) || 0;
+      totalDiskUsed += parseInt(info.diskUsed) || 0;
+      totalRamTotal += parseInt(info.ramTotal) || 0;
+      totalRamUsed += parseInt(info.ramUsed) || 0;
+    }
+
+    return {
+      totalServers: userServers.length,
+      connectedServers: userServers.filter((s) => s.status === "connected").length,
+      pendingServers: userServers.filter((s) => s.status === "pending").length,
+      totalDomains: domainCount,
+      totalCatalog: catalogCount[0]?.count || 0,
+      // Installation counts
+      installSuccess: getCount("success"),
+      installRunning: getCount("running"),
+      installFailed: getCount("failed"),
+      installStopped: getCount("stopped"),
+      totalApps: installByStatus.reduce((sum, r) => sum + r.count, 0),
+      // Aggregated disk/RAM
+      totalDiskTotal,
+      totalDiskUsed,
+      totalRamTotal,
+      totalRamUsed,
+    };
+  }),
+
+  recentActivity: agentProcedure
+    .input(z.object({ limit: z.number().int().positive().default(8) }).optional())
+    .query(async ({ ctx, input }) => {
+      if (ctx.user.id! === "") return [];
+      const rows = await ctx.db
+        .select({
+          id: installations.id,
+          recipeId: installations.recipeId,
+          status: installations.status,
+          params: installations.params,
+          updatedAt: installations.updatedAt,
+          createdAt: installations.createdAt,
+          serverName: servers.name,
+          serverId: servers.id,
+          recipeName: recipes.name,
+        })
+        .from(installations)
+        .innerJoin(servers, eq(installations.serverId, servers.id))
+        .innerJoin(recipes, eq(installations.recipeId, recipes.id))
+        .where(eq(servers.userId, ctx.user.id!))
+        .orderBy(
+          sql`COALESCE(${installations.updatedAt}, ${installations.createdAt}) DESC`
+        )
+        .limit(input?.limit || 8);
+
+      return rows;
+    }),
+});
+
 export const appRouter = router({
   server: serverRouter,
   catalog: catalogRouter,
   install: installRouter,
   domain: domainRouter,
   user: userRouter,
+  dashboard: dashboardRouter,
 });
 
 export type AppRouter = typeof appRouter;
