@@ -136,7 +136,21 @@ export default function CatalogPage() {
       </div>
 
       {/* Category pills */}
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-thin scrollbar-thumb-slate-200">
+      <div className="flex flex-wrap gap-2 mb-6">
+        <button
+          onClick={() => { setSelectedCategory(null); setSelectedSubcategory(null); }}
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+            !selectedCategory
+              ? "bg-emerald-600 text-white shadow-sm"
+              : "bg-white border border-slate-200 text-slate-600 hover:border-emerald-300 hover:text-emerald-700"
+          }`}
+        >
+          <span>📋</span>
+          <span>All</span>
+          <span className={`text-xs ml-1 ${!selectedCategory ? "text-emerald-200" : "text-slate-400"}`}>
+            {categories?.reduce((s, c) => s + (c.count || 0), 0) || 0}
+          </span>
+        </button>
         {categories?.map((cat) => (
           <button
             key={cat.id}
@@ -160,8 +174,8 @@ export default function CatalogPage() {
 
       {/* Subcategory pills */}
       {hasSubcategories && (
-        <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-thin scrollbar-thumb-slate-200">
-          {subcategories.map((sub) => (
+        <div className="flex flex-wrap gap-2 mb-4">
+          {subcategories.filter((s: any) => s.apps.length > 0).map((sub) => (
             <button
               key={sub.id}
               onClick={() => handleSubcategoryClick(sub.id)}
@@ -188,7 +202,7 @@ export default function CatalogPage() {
                 <span className="w-5 h-5 bg-amber-100 rounded-full flex items-center justify-center text-[10px]">⭐</span>
                 Popular apps
               </h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {featured.map((app: any) => (
                   <AppCard key={app.id} app={app} />
                 ))}
@@ -203,7 +217,7 @@ export default function CatalogPage() {
                 <span className="w-5 h-5 bg-emerald-100 rounded-full flex items-center justify-center text-[10px]">✨</span>
                 Recently added
               </h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {recentApps.slice(0, 6).map((app) => (
                   <AppCard key={app.id} app={app} />
                 ))}
@@ -217,7 +231,7 @@ export default function CatalogPage() {
               <span className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center text-[10px]">📂</span>
               Browse by category
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {categories?.filter(c => c.count > 0).map((cat) => (
                 <Link
                   key={cat.id}
@@ -275,7 +289,7 @@ export default function CatalogPage() {
                           {sub.apps.length}
                         </span>
                       </div>
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                         {sub.apps.map((app) => (
                           <AppCard key={app.id} app={app} />
                         ))}
@@ -290,7 +304,7 @@ export default function CatalogPage() {
                           {categoryData.uncategorized.length}
                         </span>
                       </div>
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                         {categoryData.uncategorized.map((app: any) => (
                           <AppCard key={app.id} app={app} />
                         ))}
@@ -299,7 +313,7 @@ export default function CatalogPage() {
                   )}
                 </>
               ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                   {filtered.map((app) => (
                     <AppCard key={app.id} app={app} />
                   ))}

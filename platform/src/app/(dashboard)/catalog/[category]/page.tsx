@@ -96,10 +96,10 @@ export default function CategoryPage() {
 
       {/* Subcategory pills */}
       {subcategories.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-thin scrollbar-thumb-slate-200">
+        <div className="flex flex-wrap gap-2 mb-6">
           <button
             onClick={() => setSelectedSub(null)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
               !selectedSub
                 ? "bg-emerald-600 text-white"
                 : "bg-white border border-slate-200 text-slate-600 hover:border-emerald-300"
@@ -111,7 +111,7 @@ export default function CategoryPage() {
             <button
               key={sub.id}
               onClick={() => setSelectedSub(sub.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 selectedSub === sub.id
                   ? "bg-emerald-600 text-white"
                   : "bg-white border border-slate-200 text-slate-600 hover:border-emerald-300"
@@ -126,7 +126,7 @@ export default function CategoryPage() {
       {/* Apps */}
       {selectedSubData ? (
         <div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {selectedSubData.apps.map((app: any) => (
               <AppCard key={app.id} app={app} />
             ))}
@@ -142,7 +142,7 @@ export default function CategoryPage() {
                   {sub.apps.length}
                 </span>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {sub.apps.map((app: any) => (
                   <AppCard key={app.id} app={app} />
                 ))}
@@ -157,7 +157,7 @@ export default function CategoryPage() {
                   {uncategorized.length}
                 </span>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {uncategorized.map((app: any) => (
                   <AppCard key={app.id} app={app} />
                 ))}
