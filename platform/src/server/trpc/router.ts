@@ -447,7 +447,7 @@ export const installRouter = router({
         id: inst.id,
         port: port,
         script: script,
-        message: `Installation de ${recipe.name} lancée sur le port ${port}...`,
+        message: `Installation of ${recipe.name} started on port ${port}...`,
       };
     }),
 
@@ -511,7 +511,7 @@ export const installRouter = router({
         })
         .returning();
 
-      return { id: inst.id, message: `${input.name} enregistrée` };
+      return { id: inst.id, message: `${input.name} registered` };
     }),
 
   update: agentProcedure
@@ -621,7 +621,7 @@ export const installRouter = router({
         .set({ status: "stopped", updatedAt: new Date() })
         .where(eq(installations.id, input.id));
 
-      return { success: true, message: `${container} arrêté` };
+      return { success: true, message: `${container} stopped` };
     }),
 
   start: agentProcedure
@@ -643,7 +643,7 @@ export const installRouter = router({
         .set({ status: "success", updatedAt: new Date() })
         .where(eq(installations.id, input.id));
 
-      return { success: true, message: `${container} démarré` };
+      return { success: true, message: `${container} started` };
     }),
 
   getEnv: agentProcedure

@@ -44,11 +44,10 @@ export async function POST(req: NextRequest) {
     const dnsCheck = await checkDns(name, serverIp);
     if (!dnsCheck.ok) {
       return NextResponse.json({
-        error: "DNS non configuré",
-        detail: `Ajoutez un enregistrement A pour ${name} pointant vers ${serverIp}. Actuellement: ${dnsCheck.got || "DNS introuvable"}`,
-        expected_ip: serverIp,
+        error: "DNS not configured",
+        detail: `Add an A record for ${name} pointing to ${serverIp}. Currently: ${dnsCheck.got || "DNS not found"}`,
+        fix: `Create an A record: ${name} → ${serverIp} (TTL: 300s)`,
         got: dnsCheck.got,
-        fix: `Créez un enregistrement A: ${name} → ${serverIp} (TTL: 300s)`,
       }, { status: 400 });
     }
 
@@ -173,7 +172,7 @@ echo "SSL_ACTIVE"
     return NextResponse.json({
       success: true,
       url: `https://${name}`,
-      message: "SSL activé !",
+      message: "SSL activated!",
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

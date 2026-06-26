@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
       .select()
       .from(servers)
       .where(and(eq(servers.id, serverId), eq(servers.userId, user.id)));
-    if (!server) return error("Serveur introuvable", 404);
+    if (!server) return error("Server not found", 404);
 
     const [inst] = await db
       .insert(installations)
@@ -75,7 +75,7 @@ export async function GET(req: NextRequest) {
       .select()
       .from(servers)
       .where(and(eq(servers.id, serverId), eq(servers.userId, user.id)));
-    if (!server) return error("Serveur introuvable", 404);
+    if (!server) return error("Server not found", 404);
 
     const apps = await db
       .select()

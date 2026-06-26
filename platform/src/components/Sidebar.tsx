@@ -68,7 +68,7 @@ export default function Sidebar() {
                 onClick={() => signOut()}
                 className="text-xs text-slate-400 hover:text-white transition-colors"
               >
-                Déconnexion
+                Sign out
               </button>
             </div>
           </div>

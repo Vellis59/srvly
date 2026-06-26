@@ -7,8 +7,8 @@ import { auth } from "@/server/auth";
 
 /**
  * POST /api/dispatch
- * Exécute une commande sur un serveur via SSH.
- * Le body doit contenir : { server_id, script, timeout? }
+ * Executes a command on a server via SSH.
+ * Body must contain: { server_id, script, timeout? }
  */
 export async function POST(req: NextRequest) {
   // Auth check (optional for now — falls back to first server matching the IP)
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
 
     if (!script) {
       return NextResponse.json(
-        { success: false, error: "Paramètre 'script' requis" },
+        { success: false, error: "'script' parameter is required" },
         { status: 400 }
       );
     }
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
 
     if (!targetServer || !targetServer.sshPrivateKey || !targetServer.ip) {
       return NextResponse.json(
-        { success: false, error: "Aucun serveur connecté avec clé SSH disponible" },
+        { success: false, error: "No connected server with SSH key available" },
         { status: 404 }
       );
     }

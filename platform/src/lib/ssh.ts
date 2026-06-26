@@ -28,13 +28,13 @@ export async function executeOnServer(
     .limit(1);
 
   if (!server) {
-    return { success: false, output: "", error: "Serveur introuvable" };
+    return { success: false, output: "", error: "Server not found" };
   }
   if (!server.sshPrivateKey || !server.ip) {
     return {
       success: false,
       output: "",
-      error: "Aucune clé SSH ou IP configurée pour ce serveur",
+      error: "No SSH key or IP configured for this server",
     };
   }
 
@@ -97,8 +97,8 @@ function truncateOutput(s: string, maxLen = 50000): string {
   if (s.length <= maxLen) return s;
   return (
     s.slice(0, maxLen) +
-    "\n\n... [Tronqué: " +
+    "\n\n... [Truncated: " +
     (s.length - maxLen) +
-    " caractères supplémentaires]"
+    " extra characters]"
   );
 }

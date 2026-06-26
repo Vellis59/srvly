@@ -3,8 +3,8 @@ import { Providers } from "@/lib/providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "srvly — Plateforme SaaS IA",
-  description: "Déploiement 1-clic d'applications sur vos serveurs",
+  title: "srvly — AI Server Management",
+  description: "AI-Powered 1-click app deployment on your servers",
 };
 
 export default function RootLayout({
