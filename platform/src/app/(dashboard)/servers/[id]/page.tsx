@@ -1020,6 +1020,9 @@ function DomainItem({ domain, onDelete }: { domain: any; onDelete: () => void })
 function InstalledApps({ serverId }: { serverId: string }) {
   const utils = trpc.useUtils();
   const { data: installations } = trpc.install.listForServer.useQuery({ serverId });
+  const backupAppMutation = trpc.backup.appBackup.useMutation();
+  const [backupBusy, setBackupBusy] = useState<Record<string, boolean>>({});
+  const [backupMsg, setBackupMsg] = useState<Record<string, string>>({});
   const deleteApp = trpc.install.delete.useMutation({ onSuccess: () => utils.install.listForServer.invalidate({ serverId }) });
   const restartApp = trpc.install.restart.useMutation();
   const stopApp = trpc.install.stop.useMutation({ onSuccess: () => utils.install.listForServer.invalidate({ serverId }) });
@@ -1063,6 +1066,23 @@ function InstalledApps({ serverId }: { serverId: string }) {
       }
     } catch {}
     setStatsLoading(false);
+  };
+
+  const backupApp = async (item: any) => {
+    setBackupBusy((prev) => ({ ...prev, [item.id]: true }));
+    setBackupMsg((prev) => ({ ...prev, [item.id]: "..." }));
+    try {
+      const result = (await backupAppMutation.mutateAsync({ installationId: item.id })) as any;
+      if (result.success) {
+        setBackupMsg((prev) => ({ ...prev, [item.id]: `✓ ${result.filename}` }));
+        utils.backup.list.invalidate({ serverId });
+      } else {
+        setBackupMsg((prev) => ({ ...prev, [item.id]: `✗ ${result.error || "failed"}` }));
+      }
+    } catch (err: any) {
+      setBackupMsg((prev) => ({ ...prev, [item.id]: `✗ ${err.message}` }));
+    }
+    setBackupBusy((prev) => ({ ...prev, [item.id]: false }));
   };
 
   const fetchLogs = async (id: string, lines?: number) => {
@@ -1312,6 +1332,12 @@ function InstalledApps({ serverId }: { serverId: string }) {
                       }`}>
                       🔑 .env
                     </button>
+                    {/* Backup */}
+                    <button onClick={() => backupApp(item)}
+                      disabled={backupBusy[item.id]}
+                      className="text-xs bg-purple-50 hover:bg-purple-100 text-purple-700 px-2.5 py-1.5 rounded-lg font-medium transition-colors">
+                      {backupBusy[item.id] ? "..." : "💾 Backup"}
+                    </button>
                     {/* Delete */}
                     <button onClick={() => { if (confirm("Uninstall this app?")) deleteApp.mutate({ id: item.id }); }}
                       disabled={deleteApp.isPending}
@@ -1320,6 +1346,19 @@ function InstalledApps({ serverId }: { serverId: string }) {
                     </button>
                   </div>
                 </div>
+
+                {/* ── Backup result message ── */}
+                {backupMsg[item.id] && (
+                  <div className={`border-t border-slate-200 px-3 py-1.5 text-[11px] font-mono ${
+                    backupMsg[item.id].startsWith("✓")
+                      ? "bg-emerald-50 text-emerald-700"
+                      : backupMsg[item.id].startsWith("✗")
+                      ? "bg-red-50 text-red-700"
+                      : "bg-blue-50 text-blue-700"
+                  }`}>
+                    {backupMsg[item.id]}
+                  </div>
+                )}
 
                 {/* ── Details panel (status, health, uptime, image, ports, volumes) ── */}
                 {insp.status && !openPanels[`${item.id}-logs`] && !openPanels[`${item.id}-env`] && (

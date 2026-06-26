@@ -2050,6 +2050,100 @@ export const backupRouter = router({
       return { success: result.success, output: result.output, error: (result as any).error };
     }),
 
+  appBackup: agentProcedure
+    .input(z.object({ installationId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Look up installation + server + resolve container name
+      const [row] = await ctx.db
+        .select({ installation: installations, server: servers })
+        .from(installations)
+        .innerJoin(servers, eq(installations.serverId, servers.id))
+        .where(and(eq(installations.id, input.installationId), eq(servers.userId, ctx.user.id!)));
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const params = (row.installation.params as any) || {};
+      const appName = params.name || row.installation.recipeId || "app";
+      const containerName = params.containerName || params.name || row.installation.recipeId;
+
+      // Inspect container to find its volumes
+      const inspectResult = await executeOnServer(
+        row.server.id,
+        `docker inspect ${containerName} --format '{{range .Mounts}}{{.Name}}|{{end}}' 2>&1 || echo INSPECT_FAILED`,
+        30,
+      );
+
+      if (!inspectResult.success || (inspectResult.output || "").includes("INSPECT_FAILED")) {
+        return { success: false, error: `Cannot inspect container "${containerName}" — make sure SSH and Docker are working.` };
+      }
+
+      const volumeList = (inspectResult.output || "")
+        .replace("INSPECT_FAILED", "")
+        .trim()
+        .split("|")
+        .filter((v: string) => v && v.length > 0);
+
+      if (volumeList.length === 0) {
+        return { success: false, error: `Container "${containerName}" has no named volumes to backup.` };
+      }
+
+      // Create backup record per volume with app name
+      const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+      const safeApp = appName.replace(/[^a-zA-Z0-9_.-]/g, "-");
+      const createdBackups: any[] = [];
+
+      for (const volume of volumeList) {
+        const filename = `${safeApp}-${volume.slice(0, 40)}-${ts}.tar.gz`;
+
+        const [backupRow] = await ctx.db
+          .insert(backups)
+          .values({
+            serverId: row.server.id,
+            userId: ctx.user.id!,
+            type: "volume",
+            targetName: volume,
+            filename,
+            status: "running",
+          })
+          .returning();
+
+        try {
+          const result = await executeOnServer(
+            row.server.id,
+            buildVolumeBackupScript(volume, filename),
+            300,
+          );
+
+          const sizeMatch = result.output?.match(/(\d+)\s*$/m);
+          const sizeBytes = sizeMatch ? parseInt(sizeMatch[1], 10) : 0;
+
+          await ctx.db
+            .update(backups)
+            .set({
+              status: result.success ? "success" : "failed",
+              sizeBytes,
+              errorMessage: result.success ? null : ((result as any).error || result.output || "unknown"),
+            })
+            .where(eq(backups.id, backupRow!.id));
+
+          createdBackups.push({ volume, filename, success: result.success });
+        } catch (err: any) {
+          await ctx.db
+            .update(backups)
+            .set({ status: "failed", errorMessage: err.message })
+            .where(eq(backups.id, backupRow!.id));
+          createdBackups.push({ volume, filename, success: false, error: err.message });
+        }
+      }
+
+      const allSuccess = createdBackups.every((b) => b.success);
+      return {
+        success: allSuccess,
+        filename: createdBackups.map((b) => b.filename).join(", "),
+        volumes: createdBackups,
+        appName,
+      };
+    }),
+
   delete: agentProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
