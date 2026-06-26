@@ -519,7 +519,21 @@ export default function AppDetailPage() {
               <div key={agent.id} className="bg-slate-50 rounded-xl p-4 border border-slate-200">
                 <div className="flex items-center justify-between mb-2">
                   <p className="font-medium text-sm text-slate-900">{agent.label}</p>
-                  <button onClick={() => navigator.clipboard.writeText(agent.prompt).then(() => {/*copied*/}).catch(() => {/*fallback*/})}
+                  <button onClick={() => function() {
+  const t = agent.prompt;
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(t);
+  } else {
+    const ta = document.createElement("textarea");
+    ta.value = t;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+  }
+}}
                     className="text-[10px] px-2 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 text-slate-600 font-medium transition-colors">
                     Copy
                   </button>
