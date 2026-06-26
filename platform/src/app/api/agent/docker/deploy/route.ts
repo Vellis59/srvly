@@ -54,28 +54,31 @@ export async function POST(req: NextRequest) {
       "mkdir -p " + appDir,
       "",
       'echo ">>> RUN"',
-      "docker run -d --name " + containerName,
-      "  --restart unless-stopped",
-      "  -p " + appPort + ":" + appPort,
     ];
 
-    // Add env vars
+    // Build docker run command as one continuous line (multi-line breaks the shell)
+    let runCmd = "docker run -d --name " + containerName;
+    runCmd += " --restart unless-stopped";
+    runCmd += " -p " + appPort + ":" + appPort;
+
+    // Add env vars to run command
     if (env && typeof env === "object") {
       for (const [k, v] of Object.entries(env)) {
-        scriptLines.push("  -e " + k + "='" + String(v) + "'");
+        runCmd += " -e " + k + "='" + String(v) + "'";
       }
     }
 
-    // Add volumes
+    // Add volumes to run command
     if (volumes && Array.isArray(volumes)) {
       for (const vol of volumes) {
         const parts = vol.split(":");
         const hostPath = appDir + "/" + parts[0];
-        scriptLines.push("  -v " + hostPath + ":" + parts[1]);
+        runCmd += " -v " + hostPath + ":" + parts[1];
       }
     }
 
-    scriptLines.push("  " + imageName + " 2>&1");
+    runCmd += " " + imageName + " 2>&1";
+    scriptLines.push(runCmd);
     scriptLines.push("");
     scriptLines.push('echo ">>> WAIT"');
     scriptLines.push("sleep 3");
