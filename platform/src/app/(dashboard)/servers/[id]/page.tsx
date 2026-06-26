@@ -478,6 +478,11 @@ export default function ServerDetailPage() {
         </>
       )}
 
+      {/* ── Monitoring ── */}
+      {server.status === "connected" && (
+        <MonitoringSection serverId={id} />
+      )}
+
       {/* ── Row: Quick commands + Action history ── */}
       {server.status === "connected" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -581,6 +586,148 @@ chmod 600 /root/.ssh/authorized_keys`}
             {testing ? "Testing..." : "Test connection"}
           </button>
         </div>
+      )}
+    </div>
+  );
+}
+
+// ─── MonitoringSection ───
+
+function Sparkline({ values, maxVal, color }: { values: number[]; maxVal: number; color: string }) {
+  const h = 32;
+  const w = 120;
+  if (values.length < 2) return <div className="text-[10px] text-slate-400">—</div>;
+  const max = Math.max(...values, maxVal);
+  const pts = values.map((v, i) => `${(i / (values.length - 1)) * w},${h - (v / max) * h}`).join(" ");
+  return (
+    <svg width={w} height={h} className="overflow-visible">
+      <polyline points={pts} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function MonitoringSection({ serverId }: { serverId: string }) {
+  const { data: metricsData, isLoading, refetch } = trpc.server.metrics.useQuery({ id: serverId, limit: 24 });
+  const collectMetrics = trpc.server.collectMetrics.useMutation();
+  const [collecting, setCollecting] = useState(false);
+  const [collected, setCollected] = useState(false);
+
+  const handleCollect = async () => {
+    setCollecting(true);
+    try {
+      await collectMetrics.mutateAsync({ id: serverId });
+      setCollected(true);
+      refetch();
+    } catch {}
+    setCollecting(false);
+  };
+
+  const metrics = metricsData?.metrics || [];
+  const warnings = metricsData?.warnings || [];
+  const latest = metrics.length > 0 ? metrics[metrics.length - 1] : null;
+
+  const ramPct = latest ? Math.round((latest.ramUsed / (latest.ramTotal || 1)) * 100) : 0;
+  const diskPct = latest ? parseFloat(latest.diskUsePct || "0") : 0;
+
+  const ramHistory = metrics.map((m: any) => Math.round((m.ramUsed / (m.ramTotal || 1)) * 100));
+  const diskHistory = metrics.map((m: any) => parseFloat(m.diskUsePct || "0"));
+
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-semibold text-slate-900">📊 Monitoring</h2>
+        <button onClick={handleCollect} disabled={collecting}
+          className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1 ${
+            collected ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+          }`}>
+          <span className={collecting ? "animate-pulse" : ""}>📡</span>
+          {collecting ? "Collecting..." : collected ? "Collected ✓" : "Collect metrics"}
+        </button>
+      </div>
+
+      {/* Warning alerts */}
+      {warnings.length > 0 && (
+        <div className="space-y-2 mb-4">
+          {warnings.map((w, i) => (
+            <div key={i} className={`text-xs px-3 py-2 rounded-lg flex items-center gap-2 ${
+              w.includes("⚠") ? "bg-red-50 text-red-700 border border-red-200" :
+              w.includes("⚡") ? "bg-amber-50 text-amber-700 border border-amber-200" :
+              "bg-blue-50 text-blue-700 border border-blue-200"
+            }`}>
+              {w}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {metrics.length === 0 ? (
+        <div className="text-center py-6 text-slate-400">
+          <p className="text-sm">No metrics collected yet</p>
+          <p className="text-xs text-slate-300 mt-1">Click "Collect metrics" to take the first snapshot</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* CPU Load */}
+          <div className="bg-slate-50 rounded-xl p-4">
+            <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-2">CPU Load</p>
+            <div className="flex items-end gap-3 mb-2">
+              <p className="text-lg font-bold text-slate-900">{(latest.cpuLoad1 || 0).toFixed(2)}</p>
+              <div className="flex gap-2 text-[10px] text-slate-400">
+                <span>5m: {(latest.cpuLoad5 || 0).toFixed(2)}</span>
+                <span>15m: {(latest.cpuLoad15 || 0).toFixed(2)}</span>
+              </div>
+            </div>
+            <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+              <div className={`h-full rounded-full ${
+                (latest.cpuLoad1 || 0) > 2.0 ? "bg-red-500" :
+                (latest.cpuLoad1 || 0) > 1.0 ? "bg-amber-500" : "bg-blue-500"
+              }`} style={{ width: `${Math.min(100, ((latest.cpuLoad1 || 0) / 4) * 100)}%` }} />
+            </div>
+            <p className="text-[10px] text-slate-400 mt-1">Cores: {Math.round((latest.cpuLoad1 || 0))}/4</p>
+          </div>
+
+          {/* RAM with sparkline */}
+          <div className="bg-slate-50 rounded-xl p-4">
+            <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-2">RAM</p>
+            <div className="flex items-end gap-3 mb-1">
+              <p className={`text-lg font-bold ${ramPct > 85 ? "text-red-600" : ramPct > 70 ? "text-amber-600" : "text-slate-900"}`}>
+                {latest ? `${Math.round(latest.ramUsed / 1024 * 10) / 10} / ${Math.round(latest.ramTotal / 1024 * 10) / 10} GB` : "—"}
+              </p>
+              <span className={`text-xs font-medium ${ramPct > 85 ? "text-red-600" : ramPct > 70 ? "text-amber-600" : "text-slate-500"}`}>
+                {ramPct}%
+              </span>
+            </div>
+            <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden mb-1">
+              <div className={`h-full rounded-full ${ramPct > 85 ? "bg-red-500" : ramPct > 70 ? "bg-amber-500" : "bg-blue-500"}`}
+                style={{ width: `${Math.min(100, ramPct)}%` }} />
+            </div>
+            <Sparkline values={ramHistory} maxVal={100} color={ramPct > 70 ? "#f59e0b" : "#3b82f6"} />
+          </div>
+
+          {/* Disk with sparkline */}
+          <div className="bg-slate-50 rounded-xl p-4">
+            <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-2">Disk</p>
+            <div className="flex items-end gap-3 mb-1">
+              <p className={`text-lg font-bold ${diskPct > 85 ? "text-red-600" : diskPct > 70 ? "text-amber-600" : "text-slate-900"}`}>
+                {latest ? `${latest.diskUsed} / ${latest.diskTotal} GB` : "—"}
+              </p>
+              <span className={`text-xs font-medium ${diskPct > 85 ? "text-red-600" : diskPct > 70 ? "text-amber-600" : "text-slate-500"}`}>
+                {diskPct}%
+              </span>
+            </div>
+            <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden mb-1">
+              <div className={`h-full rounded-full ${diskPct > 85 ? "bg-red-500" : diskPct > 70 ? "bg-amber-500" : "bg-emerald-500"}`}
+                style={{ width: `${Math.min(100, diskPct)}%` }} />
+            </div>
+            <Sparkline values={diskHistory} maxVal={100} color={diskPct > 70 ? "#f59e0b" : "#10b981"} />
+          </div>
+        </div>
+      )}
+
+      {metrics.length > 1 && (
+        <p className="text-[10px] text-slate-400 mt-3 text-center">
+          {metrics.length} snapshots collected · {metrics.length > 1 ? `Spanning ${Math.min(metrics.length, 48)} observations` : ""}
+        </p>
       )}
     </div>
   );

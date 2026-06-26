@@ -245,6 +245,136 @@ export const serverRouter = router({
       };
     }),
 
+  collectMetrics: agentProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [server] = await ctx.db
+        .select()
+        .from(servers)
+        .where(and(eq(servers.id, input.id), eq(servers.userId, ctx.user.id!)));
+      if (!server) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const result = await executeOnServer(
+        input.id,
+        [
+          "echo '---LOAD---'",
+          "cat /proc/loadavg 2>/dev/null | awk '{print $1,$2,$3}' || echo '0 0 0'",
+          "echo '---RAM---'",
+          "free -m 2>/dev/null | awk '/^Mem:/{print $2,$3,$4,$7}' || echo '0 0 0 0'",
+          "echo '---DISK---'",
+          "df -BG / 2>/dev/null | awk 'NR==2{print $2,$3,$4,$5}' | sed 's/G//g' || echo '0 0 0 0%'",
+          "echo '---DOCKER---'",
+          "docker info --format '{{.ContainersRunning}}/{{.Containers}}' 2>/dev/null || echo '0/0'",
+          "docker system df --format '{{.Type}}|{{.Size}}' 2>/dev/null | head -5",
+          "docker ps -q 2>/dev/null | wc -l",
+          "echo '---UPTIME---'",
+          "uptime -p 2>/dev/null || uptime",
+        ].join("\n"),
+        15,
+      );
+
+      if (!result.success) return { success: false, output: result.output, error: result.error };
+
+      const output = result.output || "";
+
+      // Parse load
+      const loadMatch = output.match(/---LOAD---\n(.+?)\n/);
+      const loadParts = loadMatch ? loadMatch[1].trim().split(/\s+/) : ["0","0","0"];
+
+      // Parse RAM
+      const ramMatch = output.match(/---RAM---\n(.+?)\n/);
+      const ramParts = ramMatch ? ramMatch[1].trim().split(/\s+/) : ["0","0","0","0"];
+
+      // Parse disk
+      const diskMatch = output.match(/---DISK---\n(.+?)\n/);
+      const diskParts = diskMatch ? diskMatch[1].trim().split(/\s+/) : ["0","0","0","0%"];
+
+      // Parse docker
+      const dockerLine = (output.split("---DOCKER---")[1]?.split("---UPTIME---")[0] || "").trim();
+      const containerLine = dockerLine.split("\n").filter(l => l.includes("/"))[0] || "0/0";
+      const [containersRunning, containersTotal] = containerLine.split("/").map(Number);
+
+      // Current disk
+      const currentInfo = (server.systemInfo || {}) as Record<string, any>;
+      const metricsHistory = (currentInfo.metricsHistory || []) as any[];
+
+      const entry = {
+        ts: new Date().toISOString(),
+        cpuLoad1: parseFloat(loadParts[0]) || 0,
+        cpuLoad5: parseFloat(loadParts[1]) || 0,
+        cpuLoad15: parseFloat(loadParts[2]) || 0,
+        ramTotal: parseInt(ramParts[0]) || 0,
+        ramUsed: parseInt(ramParts[1]) || 0,
+        ramAvailable: parseInt(ramParts[3]) || parseInt(ramParts[2]) || 0,
+        diskTotal: parseInt(diskParts[0]) || 0,
+        diskUsed: parseInt(diskParts[1]) || 0,
+        diskAvailable: parseInt(diskParts[2]) || 0,
+        diskUsePct: (diskParts[3] || "0%").replace("%", ""),
+        containersRunning: containersRunning || 0,
+        containersTotal: containersTotal || 0,
+      };
+
+      // Keep last 48 entries
+      metricsHistory.push(entry);
+      if (metricsHistory.length > 48) metricsHistory.splice(0, metricsHistory.length - 48);
+
+      // Update server info
+      await ctx.db
+        .update(servers)
+        .set({
+          systemInfo: {
+            ...currentInfo,
+            ramTotal: entry.ramTotal,
+            ramUsed: entry.ramUsed,
+            ramAvailable: entry.ramAvailable,
+            diskTotal: entry.diskTotal,
+            diskUsed: entry.diskUsed,
+            diskAvailable: entry.diskAvailable,
+            diskUsePct: entry.diskUsePct,
+            uptime: (output.split("---UPTIME---")[1] || "").trim().replace(/^up\s*/, "") || currentInfo.uptime,
+            metricsHistory,
+          },
+          lastSeen: new Date(),
+        })
+        .where(eq(servers.id, input.id));
+
+      return { success: true, ...entry, metricsCount: metricsHistory.length };
+    }),
+
+  metrics: agentProcedure
+    .input(z.object({ id: z.string(), limit: z.number().int().positive().default(24) }))
+    .query(async ({ ctx, input }) => {
+      const [server] = await ctx.db
+        .select()
+        .from(servers)
+        .where(and(eq(servers.id, input.id), eq(servers.userId, ctx.user.id!)));
+      if (!server) return { metrics: [], warnings: [] };
+
+      const info = (server.systemInfo || {}) as Record<string, any>;
+      const history = (info.metricsHistory || []).slice(-input.limit);
+
+      // Compute warnings
+      const warnings: string[] = [];
+      if (history.length > 0) {
+        const latest = history[history.length - 1];
+        const diskPct = parseFloat(latest.diskUsePct || "0");
+        const ramTotal = latest.ramTotal || 1;
+        const ramPct = Math.round((latest.ramUsed / ramTotal) * 100);
+        if (diskPct > 85) warnings.push(`⚠️ Disk at ${diskPct}% — critical threshold exceeded`);
+        else if (diskPct > 70) warnings.push(`⚡ Disk at ${diskPct}% — approaching limit`);
+        if (ramPct > 85) warnings.push(`⚠️ RAM at ${ramPct}% — critical`);
+        else if (ramPct > 70) warnings.push(`⚡ RAM at ${ramPct}% — elevated`);
+        const cpuLoad1 = latest.cpuLoad1 || 0;
+        if (cpuLoad1 > 2.0) warnings.push(`⚠️ CPU load high (${cpuLoad1})`);
+        else if (cpuLoad1 > 1.0) warnings.push(`⚡ CPU load elevated (${cpuLoad1})`);
+        if (latest.containersRunning < latest.containersTotal) {
+          warnings.push(`⚠️ ${latest.containersTotal - latest.containersRunning} container(s) not running`);
+        }
+      }
+
+      return { metrics: history, warnings };
+    }),
+
   testConnection: agentProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
