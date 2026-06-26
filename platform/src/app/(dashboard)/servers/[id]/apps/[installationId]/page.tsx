@@ -27,6 +27,7 @@ export default function AppDetailPage() {
   // Mutations
   const getLogs = trpc.install.logs.useMutation();
   const getEnv = trpc.install.getEnv.useMutation();
+  const updateEnv = trpc.install.updateEnv.useMutation();
   const restartApp = trpc.install.restart.useMutation();
   const stopApp = trpc.install.stop.useMutation();
   const startApp = trpc.install.start.useMutation();
@@ -41,6 +42,10 @@ export default function AppDetailPage() {
   const [insp, setInsp] = useState<any>(null);
   const [envData, setEnvData] = useState<string>("");
   const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
+  const [showAllSecrets, setShowAllSecrets] = useState(false);
+  const [editingEnv, setEditingEnv] = useState(false);
+  const [editValues, setEditValues] = useState<Record<string, string>>({});
+  const [savingEnv, setSavingEnv] = useState(false);
   const [restoreMsg, setRestoreMsg] = useState("");
 
   if (isLoading) return <div className="p-8 text-slate-400">Loading...</div>;
@@ -89,6 +94,31 @@ export default function AppDetailPage() {
     } catch (err: any) {
       setOutput((p) => ({ ...p, env: `Error: ${err.message}` }));
     }
+  };
+
+  const startEditing = () => {
+    const env: Record<string, string> = {};
+    for (const line of (envData || "").split("\n")) {
+      const eq = line.indexOf("=");
+      if (eq > 0) env[line.substring(0, eq)] = line.substring(eq + 1);
+    }
+    setEditValues(env);
+    setEditingEnv(true);
+  };
+
+  const saveEnvChanges = async () => {
+    setSavingEnv(true);
+    try {
+      const r = await updateEnv.mutateAsync({ id: installationId, env: editValues }) as any;
+      setOutput((p) => ({ ...p, "env-save": r.message || r.error || "Done" }));
+      setEditingEnv(false);
+      setShowAllSecrets(false);
+      // Refresh env display
+      fetchEnv();
+    } catch (err: any) {
+      setOutput((p) => ({ ...p, "env-save": `Error: ${err.message}` }));
+    }
+    setSavingEnv(false);
   };
 
   const fetchInspect = async () => {
@@ -250,11 +280,72 @@ export default function AppDetailPage() {
       {activeTab === "env" && (
         <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-slate-900">Environment variables</h2>
-            <button onClick={fetchEnv}
-              className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded-lg font-medium">↻ Load</button>
+            <h2 className="font-semibold text-slate-900">🔑 Environment variables</h2>
+            <div className="flex items-center gap-2">
+              {output.env && !editingEnv && (
+                <>
+                  <button onClick={() => setShowAllSecrets((p) => !p)}
+                    className="text-xs px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg font-medium">
+                    {showAllSecrets ? "🔒 Hide secrets" : "👁 Show secrets"}
+                  </button>
+                  <button onClick={() => startEditing()}
+                    className="text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium">
+                    ✏️ Edit
+                  </button>
+                </>
+              )}
+              <button onClick={fetchEnv}
+                className="text-xs px-3 py-1.5 bg-slate-600 hover:bg-slate-700 text-white rounded-lg font-medium">
+                ↻ Load
+              </button>
+            </div>
           </div>
-          {output.env ? (
+
+          {!output.env ? (
+            <div className="text-center py-8 text-slate-400">
+              <p>Click "Load" to fetch environment variables</p>
+            </div>
+          ) : editingEnv ? (
+            /* ── Edit mode ── */
+            <div>
+              <div className="space-y-2 max-h-96 overflow-y-auto mb-4">
+                {Object.entries(editValues).map(([k, v]) => {
+                  const isSecret = /pass|secret|token|key|auth|credential|private/i.test(k);
+                  return (
+                    <div key={k} className="flex items-center gap-2 text-xs font-mono bg-slate-50 rounded-lg px-3 py-1.5">
+                      <span className="text-slate-700 font-medium min-w-[140px] truncate">{k}=</span>
+                      <input type={isSecret && !showSecrets[k] ? "password" : "text"}
+                        value={v}
+                        onChange={(e) => setEditValues((p) => ({ ...p, [k]: e.target.value }))}
+                        className="flex-1 px-2 py-1 border border-slate-200 rounded bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      />
+                      {isSecret && (
+                        <button onClick={() => setShowSecrets((p) => ({ ...p, [k]: !p[k] }))}
+                          className="text-[10px] text-blue-500 hover:text-blue-700 shrink-0">
+                          {showSecrets[k] ? "🙈" : "👁️"}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="flex gap-2 justify-end">
+                <button onClick={() => { setEditingEnv(false); }}
+                  className="text-xs px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium">
+                  Cancel
+                </button>
+                <button onClick={saveEnvChanges}
+                  disabled={savingEnv}
+                  className="text-xs px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-lg font-medium">
+                  {savingEnv ? "Saving..." : "💾 Save & restart"}
+                </button>
+              </div>
+              {output["env-save"] && (
+                <p className="text-xs text-slate-500 mt-2">{output["env-save"]}</p>
+              )}
+            </div>
+          ) : (
+            /* ── Display mode ── */
             <div className="space-y-1 max-h-96 overflow-y-auto">
               {envData.split("\n").filter(l => l.trim()).map((line, i) => {
                 const eq = line.indexOf("=");
@@ -262,7 +353,7 @@ export default function AppDetailPage() {
                 const key = line.slice(0, eq);
                 const val = line.slice(eq + 1);
                 const secret = /pass|secret|token|key|auth|credential|private/i.test(key);
-                const revealed = showSecrets[key];
+                const revealed = showAllSecrets || showSecrets[key];
                 return (
                   <div key={i} className="flex items-center gap-2 text-xs font-mono bg-slate-50 rounded-lg px-3 py-1.5">
                     <span className="text-slate-700 font-medium shrink-0">{key}</span>
@@ -270,19 +361,18 @@ export default function AppDetailPage() {
                     <span className={secret && !revealed ? "text-slate-300" : "text-slate-900 break-all"}>
                       {secret && !revealed ? "****" : val}
                     </span>
-                    {secret && (
-                      <button onClick={() => setShowSecrets(p => ({ ...p, [key]: !revealed }))}
+                    {secret && !showAllSecrets && (
+                      <button onClick={() => setShowSecrets(p => ({ ...p, [key]: !p[key] }))}
                         className="text-[10px] text-blue-500 hover:text-blue-700 shrink-0">
                         {revealed ? "Hide" : "Show"}
                       </button>
                     )}
+                    {secret && showAllSecrets && (
+                      <span className="text-[10px] text-amber-500 shrink-0">🔓</span>
+                    )}
                   </div>
                 );
               })}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-slate-400">
-              <p>Click "Load" to fetch environment variables</p>
             </div>
           )}
         </div>
