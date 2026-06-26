@@ -32,11 +32,11 @@ function ok(data: any) {
 export async function POST(req: NextRequest) {
   try {
     const user = await authUser(req);
-    if (!user) return error("Token invalide", 401);
+    if (!user) return error("Invalid token", 401);
 
     const body = await req.json();
     const { serverId, name, port, domain, image, containerName, notes } = body;
-    if (!serverId || !name) return error("serverId et name requis");
+    if (!serverId || !name) return error("serverId and name required");
 
     const [server] = await db
       .select()
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
       })
       .returning();
 
-    return ok({ id: inst.id, message: `${name} enregistree` });
+    return ok({ id: inst.id, message: `${name} registered` });
   } catch (err: any) {
     return error(err.message, 500);
   }
@@ -66,10 +66,10 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     const user = await authUser(req);
-    if (!user) return error("Token invalide", 401);
+    if (!user) return error("Invalid token", 401);
 
     const serverId = req.nextUrl.searchParams.get("serverId");
-    if (!serverId) return error("serverId requis");
+    if (!serverId) return error("serverId required");
 
     const [server] = await db
       .select()

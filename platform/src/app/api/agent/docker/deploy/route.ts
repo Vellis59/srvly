@@ -26,11 +26,11 @@ function ok(data: any) {
 export async function POST(req: NextRequest) {
   try {
     const user = await authUser(req);
-    if (!user) return error("Token invalide", 401);
+    if (!user) return error("Invalid token", 401);
 
     const body = await req.json();
     const { serverId, name, image, port, domain, env, volumes } = body;
-    if (!serverId || !name) return error("serverId et name requis");
+    if (!serverId || !name) return error("serverId and name required");
 
     const [server] = await db
       .select()
@@ -163,8 +163,8 @@ export async function POST(req: NextRequest) {
       output: result.output?.slice(0, 3000),
       error: result.error,
       message: success
-        ? name + " installee sur le port " + appPort + (domain ? " avec " + domain : "")
-        : "Echec de l installation",
+        ? name + " installed on port " + appPort + (domain ? " with " + domain : "")
+        : "Installation failed",
     });
   } catch (err: any) {
     return error(err.message, 500);
