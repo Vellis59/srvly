@@ -17,16 +17,24 @@ function getColor(id: string): string {
   return COLORS[Math.abs(hash) % COLORS.length];
 }
 
-function AppCard({ app }: { app: { id: string; name: string; description?: string | null } }) {
+function AppCard({ app }: { app: { id: string; name: string; description?: string | null; icon?: string | null } }) {
   const initial = (app.name || app.id).charAt(0).toUpperCase();
+  const hasIcon = app.icon && (app.icon.startsWith("http") || app.icon.startsWith("data:"));
   return (
     <Link
       href={`/install/${app.id}`}
       className="group bg-white rounded-xl border border-slate-200 p-4 hover:border-emerald-300 hover:shadow-md transition-all flex items-start gap-3"
     >
-      <div className={`w-10 h-10 ${getColor(app.id)} rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0`}>
-        {initial}
-      </div>
+      {hasIcon ? (
+        <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 bg-slate-50 flex items-center justify-center">
+          <img src={app.icon!} alt={app.name} className="w-7 h-7 object-contain"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+        </div>
+      ) : (
+        <div className={`w-10 h-10 ${getColor(app.id)} rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0`}>
+          {initial}
+        </div>
+      )}
       <div className="flex-1 min-w-0">
         <h3 className="font-medium text-sm text-slate-900 group-hover:text-emerald-700 transition-colors truncate">
           {app.name}
