@@ -54,18 +54,48 @@ export const serverRouter = router({
       z.object({
         name: z.string().min(1).max(50),
         ip: z.string().min(7).max(50),
+        sshKey: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Generate SSH key pair
-      const { publicKey, privateKey } = generateKeyPairSync("rsa", {
-        modulusLength: 4096,
-        publicKeyEncoding: { type: "spki", format: "pem" },
-        privateKeyEncoding: { type: "pkcs1", format: "pem" },
-      });
+      let sshPrivateKey: string;
+      let sshPublicKey: string;
 
-      // Extract public key via ssh-keygen (guarantees correct OpenSSH format)
-      const sshPublicKey = pemToOpenSsh(privateKey);
+      if (input.sshKey) {
+        // User provided their own public key — use it directly
+        // We need a private key to connect, but if the user only provides
+        // a public key, we can't SSH. However, this is the key that's
+        // already authorized on the server, so we create a placeholder
+        // and let the test-connection flow handle auth.
+        // For now: store the provided key as public, generate a matching private key approach.
+        // Actually: if they provide a public key, they likely have the private key
+        // on their own machine. srvly needs its OWN key pair to connect.
+        // The user-provided key means "this key is already authorized on the server".
+        // We still need our own pair for srvly to SSH.
+        // SOLUTION: generate srvly's key pair, but also store the user's key
+        // so we can show them the command to add BOTH keys.
+        
+        // Generate srvly's own key pair
+        const { publicKey, privateKey } = generateKeyPairSync("rsa", {
+          modulusLength: 4096,
+          publicKeyEncoding: { type: "spki", format: "pem" },
+          privateKeyEncoding: { type: "pkcs1", format: "pem" },
+        });
+        sshPrivateKey = privateKey;
+        sshPublicKey = pemToOpenSsh(privateKey);
+        
+        // The user's key is stored separately for display in the connect command
+        // (used in the response to show the combined command)
+      } else {
+        // Generate fresh key pair (default behavior)
+        const { publicKey, privateKey } = generateKeyPairSync("rsa", {
+          modulusLength: 4096,
+          publicKeyEncoding: { type: "spki", format: "pem" },
+          privateKeyEncoding: { type: "pkcs1", format: "pem" },
+        });
+        sshPrivateKey = privateKey;
+        sshPublicKey = pemToOpenSsh(privateKey);
+      }
 
       const [server] = await ctx.db
         .insert(servers)
@@ -73,12 +103,21 @@ export const serverRouter = router({
           userId: ctx.user.id!,
           name: input.name,
           ip: input.ip,
-          sshPrivateKey: privateKey,
+          sshPrivateKey,
           sshPublicKey,
+          userSshKey: input.sshKey || null,
           status: "pending",
         })
         .returning();
-      return server;
+
+      // If user provided a key, return combined installation command
+      return {
+        ...server,
+        userSshKey: input.sshKey || null,
+        connectCommand: input.sshKey
+          ? `echo '${input.sshKey}' >> /root/.ssh/authorized_keys && echo '${sshPublicKey}' >> /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys && mkdir -p /root/.ssh && chmod 700 /root/.ssh`
+          : `echo '${sshPublicKey}' >> /root/.ssh/authorized_keys\nchmod 600 /root/.ssh/authorized_keys\nmkdir -p /root/.ssh && chmod 700 /root/.ssh`,
+      };
     }),
 
   delete: agentProcedure

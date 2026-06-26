@@ -31,6 +31,7 @@ function AddServerModal({ onClose }: { onClose: () => void }) {
   const testConnection = trpc.server.testConnection.useMutation();
   const [name, setName] = useState("");
   const [ip, setIp] = useState("");
+  const [sshKey, setSshKey] = useState("");
   const [createdServer, setCreatedServer] = useState<any>(null);
   const [connecting, setConnecting] = useState(false);
   const [connectStatus, setConnectStatus] = useState<string>("");
@@ -75,15 +76,8 @@ function AddServerModal({ onClose }: { onClose: () => void }) {
               Command to run on your server
             </p>
             <pre className="text-xs font-mono bg-slate-900 text-slate-100 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap">
-{`# Run this on your server (via SSH or console):
-
-echo '${createdServer.sshPublicKey}' >> /root/.ssh/authorized_keys
-chmod 600 /root/.ssh/authorized_keys
-mkdir -p /root/.ssh && chmod 700 /root/.ssh`}
+{createdServer.connectCommand ? `# One-line command (copy-paste in your server terminal):\n\n${createdServer.connectCommand}` : `# Run these commands on your server (via SSH or console):\n\necho '${createdServer.sshPublicKey}' >> /root/.ssh/authorized_keys\nchmod 600 /root/.ssh/authorized_keys\nmkdir -p /root/.ssh && chmod 700 /root/.ssh`}
             </pre>
-            <p className="text-xs text-amber-600 mt-2">
-              Or use: <code className="bg-amber-100 px-1 rounded">curl -sL https://srvly.app/connect.sh | bash</code> (coming soon)
-            </p>
           </div>
 
           <div className="flex flex-col gap-3">
@@ -139,6 +133,23 @@ mkdir -p /root/.ssh && chmod 700 /root/.ssh`}
             />
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              SSH Public Key (optional)
+            </label>
+            <textarea
+              value={sshKey}
+              onChange={(e) => setSshKey(e.target.value)}
+              placeholder="ssh-ed25519 AAAAC3... leave empty to generate a new one"
+              rows={2}
+              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+            <p className="text-xs text-slate-400 mt-1">
+              Paste a public key that is already authorized on your server.
+              If left empty, srvly will generate a new key pair.
+            </p>
+          </div>
+
           <div className="bg-slate-50 rounded-xl p-4 text-sm text-slate-600">
             <p className="font-medium text-slate-800 mb-1">
               Next step
@@ -156,7 +167,7 @@ mkdir -p /root/.ssh && chmod 700 /root/.ssh`}
             Cancel
           </button>
           <button
-            onClick={() => createServer.mutate({ name, ip })}
+            onClick={() => createServer.mutate({ name, ip, sshKey: sshKey || undefined })}
             disabled={!name || !ip || createServer.isPending}
             className="flex-1 px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 transition-colors">
             {createServer.isPending ? "Creating..." : "Add"}

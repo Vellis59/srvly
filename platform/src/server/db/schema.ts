@@ -69,6 +69,7 @@ export const servers = pgTable("servers", {
   lastSeen: timestamp("last_seen"),
   sshPrivateKey: text("ssh_private_key"),
   sshPublicKey: text("ssh_public_key"),
+  userSshKey: text("user_ssh_key"),
   systemInfo: jsonb("system_info"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
