@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, agentProcedure } from "@/server/trpc/context";
-import { servers, installations, recipes, domains, users } from "@/server/db/schema";
+import { servers, installations, recipes, domains, users, backups } from "@/server/db/schema";
 import { eq, and, or, ilike, inArray, sql } from "drizzle-orm";
 import { executeOnServer } from "@/lib/ssh";
 import { generateKeyPairSync, createHash } from "crypto";
@@ -1738,6 +1738,307 @@ export const dashboardRouter = router({
     }),
 });
 
+// ─── Backup routes (Phase 6) ───
+
+const BACKUP_DIR = "/srvly-backups";
+
+function buildVolumeBackupScript(volumeName: string, filename: string): string {
+  // Stop nothing, use a temp container to mount the volume and tar it.
+  // This avoids disrupting running containers that use the volume.
+  return [
+    `mkdir -p ${BACKUP_DIR}`,
+    `docker run --rm -v ${volumeName}:/volume -v ${BACKUP_DIR}:/backup alpine sh -c "tar czf /backup/${filename} -C /volume ."`,
+    `ls -lh ${BACKUP_DIR}/${filename}`,
+    `stat -c '%s' ${BACKUP_DIR}/${filename}`,
+  ].join("\n");
+}
+
+function buildDbBackupScript(container: string, dbType: string, dbName: string, filename: string): string {
+  let cmd = "";
+  if (dbType === "postgres") {
+    cmd = `docker exec ${container} pg_dump -U postgres ${dbName} > ${BACKUP_DIR}/${filename}`;
+  } else if (dbType === "mysql") {
+    cmd = `docker exec ${container} sh -c 'mysqldump --all-databases -uroot -p"$MYSQL_ROOT_PASSWORD"' > ${BACKUP_DIR}/${filename}`;
+  } else if (dbType === "mongodb") {
+    cmd = `docker exec ${container} mongodump --archive > ${BACKUP_DIR}/${filename}`;
+  } else if (dbType === "redis") {
+    cmd = `docker exec ${container} sh -c 'redis-cli SAVE && cat /data/dump.rdb' > ${BACKUP_DIR}/${filename}`;
+  }
+  return [
+    `mkdir -p ${BACKUP_DIR}`,
+    cmd,
+    `ls -lh ${BACKUP_DIR}/${filename}`,
+    `stat -c '%s' ${BACKUP_DIR}/${filename}`,
+  ].join("\n");
+}
+
+function buildVolumeRestoreScript(volumeName: string, backupFilename: string): string {
+  return [
+    `ls -lh ${BACKUP_DIR}/${backupFilename}`,
+    `docker run --rm -v ${volumeName}:/volume -v ${BACKUP_DIR}:/backup alpine sh -c "cd /volume && tar xzf /backup/${backupFilename} --strip-components=0"`,
+    `echo "RESTORED"`,
+  ].join("\n");
+}
+
+function buildDbRestoreScript(container: string, dbType: string, backupFilename: string): string {
+  let cmd = "";
+  if (dbType === "postgres") {
+    cmd = `cat ${BACKUP_DIR}/${backupFilename} | docker exec -i ${container} psql -U postgres`;
+  } else if (dbType === "mysql") {
+    cmd = `docker exec -i ${container} sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD"' < ${BACKUP_DIR}/${backupFilename}`;
+  } else if (dbType === "mongodb") {
+    cmd = `docker exec -i ${container} mongorestore --archive < ${BACKUP_DIR}/${backupFilename}`;
+  } else if (dbType === "redis") {
+    cmd = `docker exec -i ${container} sh -c 'cat > /data/dump.rdb' < ${BACKUP_DIR}/${backupFilename} && docker restart ${container}`;
+  }
+  return [
+    `ls -lh ${BACKUP_DIR}/${backupFilename}`,
+    cmd,
+    `echo "RESTORED"`,
+  ].join("\n");
+}
+
+export const backupRouter = router({
+  list: agentProcedure
+    .input(z.object({ serverId: z.string(), limit: z.number().int().positive().default(20) }))
+    .query(async ({ ctx, input }) => {
+      const [server] = await ctx.db
+        .select()
+        .from(servers)
+        .where(and(eq(servers.id, input.serverId), eq(servers.userId, ctx.user.id!)));
+      if (!server) return [];
+
+      return await ctx.db
+        .select()
+        .from(backups)
+        .where(eq(backups.serverId, input.serverId))
+        .orderBy(sql`${backups.createdAt} DESC`)
+        .limit(input.limit);
+    }),
+
+  discoverTargets: agentProcedure
+    .input(z.object({ serverId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [server] = await ctx.db
+        .select()
+        .from(servers)
+        .where(and(eq(servers.id, input.serverId), eq(servers.userId, ctx.user.id!)));
+      if (!server) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const result = await executeOnServer(
+        input.serverId,
+        [
+          "echo '---VOLUMES---'",
+          "docker volume ls --format '{{.Name}}' 2>&1",
+          "echo '---CONTAINERS---",
+          'docker ps -a --format "{{.Names}}|{{.Image}}" 2>&1',
+        ].join("\n"),
+        15,
+      );
+
+      if (!result.success) return { success: false, volumes: [], containers: [] };
+
+      const output = result.output || "";
+      const volPart = output.split("---VOLUMES---")[1]?.split("---CONTAINERS---")[0]?.trim() || "";
+      const conPart = output.split("---CONTAINERS---")[1]?.trim() || "";
+
+      const volumes = volPart.split("\n").filter((l) => l.trim()).slice(0, 50);
+      const containers = conPart
+        .split("\n")
+        .filter((l) => l.includes("|"))
+        .map((l) => {
+          const [name, image] = l.split("|");
+          return { name: name.trim(), image: image.trim() };
+        })
+        .slice(0, 50);
+
+      // Identify DB containers by image name
+      const dbContainers = containers.filter((c) =>
+        /postgres|mysql|mariadb|mongo|redis|cockroach/i.test(c.image)
+      );
+
+      return { success: true, volumes, containers, dbContainers };
+    }),
+
+  volumeBackup: agentProcedure
+    .input(z.object({ serverId: z.string(), volumeName: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [server] = await ctx.db
+        .select()
+        .from(servers)
+        .where(and(eq(servers.id, input.serverId), eq(servers.userId, ctx.user.id!)));
+      if (!server) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const safeVol = input.volumeName.replace(/[^a-zA-Z0-9_.-]/g, "-");
+      const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+      const filename = `${safeVol}-${ts}.tar.gz`;
+
+      const [row] = await ctx.db
+        .insert(backups)
+        .values({
+          serverId: input.serverId,
+          userId: ctx.user.id!,
+          type: "volume",
+          targetName: input.volumeName,
+          filename,
+          status: "running",
+        })
+        .returning();
+
+      try {
+        const result = await executeOnServer(
+          input.serverId,
+          buildVolumeBackupScript(input.volumeName, filename),
+          300,
+        );
+
+        const sizeMatch = result.output?.match(/(\d+)\s*$/m);
+        const sizeBytes = sizeMatch ? parseInt(sizeMatch[1], 10) : 0;
+
+        await ctx.db
+          .update(backups)
+          .set({
+            status: result.success ? "success" : "failed",
+            sizeBytes,
+            errorMessage: result.success ? null : ((result as any).error || result.output || "unknown"),
+          })
+          .where(eq(backups.id, row!.id));
+
+        return { success: result.success, backupId: row!.id, filename, sizeBytes };
+      } catch (err: any) {
+        await ctx.db
+          .update(backups)
+          .set({ status: "failed", errorMessage: err.message })
+          .where(eq(backups.id, row!.id));
+        return { success: false, error: err.message };
+      }
+    }),
+
+  dbBackup: agentProcedure
+    .input(z.object({
+      serverId: z.string(),
+      containerName: z.string(),
+      dbType: z.enum(["postgres", "mysql", "mongodb", "redis"]),
+      dbName: z.string().default(""),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const [server] = await ctx.db
+        .select()
+        .from(servers)
+        .where(and(eq(servers.id, input.serverId), eq(servers.userId, ctx.user.id!)));
+      if (!server) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const safeName = input.containerName.replace(/[^a-zA-Z0-9_.-]/g, "-");
+      const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+      const ext = input.dbType === "redis" ? "rdb" : input.dbType === "mongodb" ? "archive" : "sql";
+      const filename = `${safeName}-${input.dbType}-${ts}.${ext}`;
+
+      const [row] = await ctx.db
+        .insert(backups)
+        .values({
+          serverId: input.serverId,
+          userId: ctx.user.id!,
+          type: input.dbType,
+          targetName: input.containerName + (input.dbName ? `:${input.dbName}` : ""),
+          filename,
+          status: "running",
+        })
+        .returning();
+
+      try {
+        const result = await executeOnServer(
+          input.serverId,
+          buildDbBackupScript(input.containerName, input.dbType, input.dbName, filename),
+          300,
+        );
+
+        const sizeMatch = result.output?.match(/(\d+)\s*$/m);
+        const sizeBytes = sizeMatch ? parseInt(sizeMatch[1], 10) : 0;
+
+        await ctx.db
+          .update(backups)
+          .set({
+            status: result.success ? "success" : "failed",
+            sizeBytes,
+            errorMessage: result.success ? null : ((result as any).error || result.output || "unknown"),
+          })
+          .where(eq(backups.id, row!.id));
+
+        return { success: result.success, backupId: row!.id, filename, sizeBytes };
+      } catch (err: any) {
+        await ctx.db
+          .update(backups)
+          .set({ status: "failed", errorMessage: err.message })
+          .where(eq(backups.id, row!.id));
+        return { success: false, error: err.message };
+      }
+    }),
+
+  restoreVolume: agentProcedure
+    .input(z.object({ serverId: z.string(), volumeName: z.string(), backupFilename: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [server] = await ctx.db
+        .select()
+        .from(servers)
+        .where(and(eq(servers.id, input.serverId), eq(servers.userId, ctx.user.id!)));
+      if (!server) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const result = await executeOnServer(
+        input.serverId,
+        buildVolumeRestoreScript(input.volumeName, input.backupFilename),
+        300,
+      );
+
+      return { success: result.success, output: result.output, error: (result as any).error };
+    }),
+
+  restoreDb: agentProcedure
+    .input(z.object({
+      serverId: z.string(),
+      containerName: z.string(),
+      dbType: z.enum(["postgres", "mysql", "mongodb", "redis"]),
+      backupFilename: z.string(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const [server] = await ctx.db
+        .select()
+        .from(servers)
+        .where(and(eq(servers.id, input.serverId), eq(servers.userId, ctx.user.id!)));
+      if (!server) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const result = await executeOnServer(
+        input.serverId,
+        buildDbRestoreScript(input.containerName, input.dbType, input.backupFilename),
+        300,
+      );
+
+      return { success: result.success, output: result.output, error: (result as any).error };
+    }),
+
+  delete: agentProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .select()
+        .from(backups)
+        .innerJoin(servers, eq(backups.serverId, servers.id))
+        .where(and(eq(backups.id, input.id), eq(servers.userId, ctx.user.id!)));
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+
+      // Remove the file on the server (best-effort)
+      try {
+        await executeOnServer(
+          row.backups.serverId,
+          `rm -f ${BACKUP_DIR}/${row.backups.filename} && echo "FILE_DELETED"`,
+          15,
+        );
+      } catch {}
+
+      await ctx.db.delete(backups).where(eq(backups.id, input.id));
+      return { success: true };
+    }),
+});
+
 export const appRouter = router({
   server: serverRouter,
   catalog: catalogRouter,
@@ -1745,6 +2046,7 @@ export const appRouter = router({
   domain: domainRouter,
   user: userRouter,
   dashboard: dashboardRouter,
+  backup: backupRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -112,3 +112,17 @@ export const domains = pgTable("domains", {
   targetApp: text("target_app"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// ─── Backups ───
+export const backups = pgTable("backups", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  serverId: uuid("server_id").references(() => servers.id, { onDelete: "cascade" }).notNull(),
+  userId: text("user_id").references(() => users.id).notNull(),
+  type: text("type").notNull(), // 'volume' | 'postgres' | 'mysql' | 'mongodb' | 'redis'
+  targetName: text("target_name").notNull(), // volume name / db name / container name
+  filename: text("filename").notNull(), // local file path on the server
+  sizeBytes: integer("size_bytes").default(0),
+  status: text("status").default("running").notNull(), // running | success | failed
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});

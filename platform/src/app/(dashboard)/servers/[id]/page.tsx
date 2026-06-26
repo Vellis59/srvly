@@ -552,6 +552,7 @@ export default function ServerDetailPage() {
       <InstalledApps serverId={server.id} />
 
       {/* ── Domains ── */}
+      <BackupSection serverId={server.id} />
       <DomainSection serverId={server.id} />
 
       {/* ── Not connected state ── */}
@@ -1455,6 +1456,274 @@ function InstalledApps({ serverId }: { serverId: string }) {
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── BackupSection (Phase 6) ───
+
+function BackupSection({ serverId }: { serverId: string }) {
+  const utils = trpc.useUtils();
+  const { data: backups, isLoading } = trpc.backup.list.useQuery({ serverId });
+  const discover = trpc.backup.discoverTargets.useMutation();
+  const volumeBackup = trpc.backup.volumeBackup.useMutation();
+  const dbBackup = trpc.backup.dbBackup.useMutation();
+  const restoreVolume = trpc.backup.restoreVolume.useMutation();
+  const restoreDb = trpc.backup.restoreDb.useMutation();
+  const deleteBackup = trpc.backup.delete.useMutation();
+
+  const [targets, setTargets] = useState<any>(null);
+  const [actionMsg, setActionMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [selectedVolume, setSelectedVolume] = useState("");
+  const [selectedDb, setSelectedDb] = useState({ container: "", type: "postgres", dbName: "" });
+  const [restoreOpen, setRestoreOpen] = useState<string | null>(null);
+
+  const handleDiscover = async () => {
+    setActionMsg(null);
+    try {
+      const result = await discover.mutateAsync({ serverId });
+      setTargets(result);
+      if (result.success && result.volumes.length > 0 && !selectedVolume) {
+        setSelectedVolume(result.volumes[0]);
+      }
+    } catch (err: any) {
+      setActionMsg({ type: "error", text: err.message });
+    }
+  };
+
+  const handleVolumeBackup = async () => {
+    if (!selectedVolume) return;
+    setActionMsg({ type: "success", text: "Starting backup..." });
+    try {
+      const result = (await volumeBackup.mutateAsync({ serverId, volumeName: selectedVolume })) as any;
+      if (result.success) {
+        setActionMsg({ type: "success", text: `Backup created: ${result.filename}` });
+        utils.backup.list.invalidate({ serverId });
+      } else {
+        setActionMsg({ type: "error", text: "Backup failed" });
+      }
+    } catch (err: any) {
+      setActionMsg({ type: "error", text: err.message });
+    }
+  };
+
+  const handleDbBackup = async () => {
+    if (!selectedDb.container) return;
+    setActionMsg({ type: "success", text: "Starting database backup..." });
+    try {
+      const result = (await dbBackup.mutateAsync({
+        serverId,
+        containerName: selectedDb.container,
+        dbType: selectedDb.type as any,
+        dbName: selectedDb.dbName,
+      })) as any;
+      if (result.success) {
+        setActionMsg({ type: "success", text: `Database backup created: ${result.filename}` });
+        utils.backup.list.invalidate({ serverId });
+      } else {
+        setActionMsg({ type: "error", text: "Database backup failed" });
+      }
+    } catch (err: any) {
+      setActionMsg({ type: "error", text: err.message });
+    }
+  };
+
+  const handleRestore = async (backup: any) => {
+    if (!confirm(`Restore ${backup.filename}? This will overwrite current data.`)) return;
+    setActionMsg({ type: "success", text: "Restoring..." });
+    try {
+      let result;
+      if (backup.type === "volume") {
+        // Extract volume name from targetName
+        result = await restoreVolume.mutateAsync({
+          serverId,
+          volumeName: backup.targetName,
+          backupFilename: backup.filename,
+        });
+      } else {
+        result = await restoreDb.mutateAsync({
+          serverId,
+          containerName: backup.targetName.split(":")[0],
+          dbType: backup.type as any,
+          backupFilename: backup.filename,
+        });
+      }
+      if (result.success) {
+        setActionMsg({ type: "success", text: `Restored successfully` });
+      } else {
+        setActionMsg({ type: "error", text: `Restore failed: ${(result as any).error || "unknown"}` });
+      }
+    } catch (err: any) {
+      setActionMsg({ type: "error", text: err.message });
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this backup? The file on the server will also be removed.")) return;
+    try {
+      await deleteBackup.mutateAsync({ id });
+      utils.backup.list.invalidate({ serverId });
+    } catch (err: any) {
+      setActionMsg({ type: "error", text: err.message });
+    }
+  };
+
+  const formatSize = (bytes: number): string => {
+    if (!bytes) return "—";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+    return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
+  };
+
+  const formatDate = (d: Date | string) => new Date(d).toLocaleString();
+
+  const typeIcons: Record<string, string> = {
+    volume: "💾",
+    postgres: "🐘",
+    mysql: "🐬",
+    mongodb: "🍃",
+    redis: "🟥",
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-semibold text-slate-900">🗄️ Backups</h2>
+        <button onClick={handleDiscover} disabled={discover.isPending}
+          className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1">
+          <span className={discover.isPending ? "animate-pulse" : ""}>🔍</span>
+          {discover.isPending ? "Scanning..." : "Discover"}
+        </button>
+      </div>
+
+      {/* Create backup */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        {/* Volume backup */}
+        <div className="bg-slate-50 rounded-xl p-4">
+          <p className="text-sm font-medium text-slate-700 mb-2">💾 Backup a volume</p>
+          {targets && targets.volumes.length > 0 ? (
+            <>
+              <select value={selectedVolume} onChange={(e) => setSelectedVolume(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white mb-2">
+                {targets.volumes.map((v: string) => (
+                  <option key={v} value={v}>{v}</option>
+                ))}
+              </select>
+              <button onClick={handleVolumeBackup}
+                disabled={volumeBackup.isPending || !selectedVolume}
+                className="w-full px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors">
+                {volumeBackup.isPending ? "Backing up..." : "Backup"}
+              </button>
+            </>
+          ) : (
+            <p className="text-xs text-slate-400">Click Discover to scan volumes</p>
+          )}
+        </div>
+
+        {/* DB backup */}
+        <div className="bg-slate-50 rounded-xl p-4">
+          <p className="text-sm font-medium text-slate-700 mb-2">🐘 Backup a database</p>
+          {targets && targets.dbContainers.length > 0 ? (
+            <>
+              <select value={selectedDb.container}
+                onChange={(e) => setSelectedDb((p) => ({ ...p, container: e.target.value }))}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white mb-2">
+                <option value="">Select container</option>
+                {targets.dbContainers.map((c: any) => (
+                  <option key={c.name} value={c.name}>{c.name} ({c.image})</option>
+                ))}
+              </select>
+              <select value={selectedDb.type}
+                onChange={(e) => setSelectedDb((p) => ({ ...p, type: e.target.value }))}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white mb-2">
+                <option value="postgres">PostgreSQL</option>
+                <option value="mysql">MySQL / MariaDB</option>
+                <option value="mongodb">MongoDB</option>
+                <option value="redis">Redis</option>
+              </select>
+              <input type="text" value={selectedDb.dbName}
+                onChange={(e) => setSelectedDb((p) => ({ ...p, dbName: e.target.value }))}
+                placeholder="DB name (optional)"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white mb-2" />
+              <button onClick={handleDbBackup}
+                disabled={dbBackup.isPending || !selectedDb.container}
+                className="w-full px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors">
+                {dbBackup.isPending ? "Backing up..." : "Backup"}
+              </button>
+            </>
+          ) : (
+            <p className="text-xs text-slate-400">
+              {targets ? "No DB containers found (postgres/mysql/mongo/redis)" : "Click Discover to scan containers"}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Action message */}
+      {actionMsg && (
+        <div className={`text-xs px-3 py-2 rounded-lg mb-4 ${
+          actionMsg.type === "success"
+            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+            : "bg-red-50 text-red-700 border border-red-200"
+        }`}>
+          {actionMsg.text}
+        </div>
+      )}
+
+      {/* History */}
+      <div>
+        <h3 className="text-sm font-medium text-slate-700 mb-2">History</h3>
+        {isLoading && <div className="text-sm text-slate-400 text-center py-3">Loading backups...</div>}
+        {!isLoading && (!backups || backups.length === 0) && (
+          <div className="text-sm text-slate-400 text-center py-4 border-2 border-dashed border-slate-200 rounded-xl">
+            No backups yet. Discover volumes or DB containers and click Backup.
+          </div>
+        )}
+        {backups && backups.length > 0 && (
+          <div className="space-y-2">
+            {backups.map((b: any) => {
+              const isRunning = b.status === "running";
+              const isFailed = b.status === "failed";
+              return (
+                <div key={b.id} className={`border rounded-xl overflow-hidden ${
+                  isFailed ? "border-red-200 bg-red-50" : "border-slate-200 bg-white"
+                }`}>
+                  <div className="flex items-center gap-3 p-3">
+                    <span className="text-base">{typeIcons[b.type] || "💾"}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-mono text-xs text-slate-900 truncate">{b.filename}</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        {b.targetName} · {formatSize(b.sizeBytes)} · {formatDate(b.createdAt)}
+                        {isRunning && <span className="ml-2 text-blue-600">⏳ Running</span>}
+                        {isFailed && <span className="ml-2 text-red-600">❌ Failed</span>}
+                      </p>
+                    </div>
+                    <div className="flex gap-1">
+                      {!isRunning && (
+                        <button onClick={() => handleRestore(b)}
+                          className="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2 py-1 rounded-lg font-medium">
+                          ↻ Restore
+                        </button>
+                      )}
+                      <button onClick={() => handleDelete(b.id)}
+                        disabled={deleteBackup.isPending}
+                        className="text-xs text-red-500 hover:text-red-700 px-2 py-1">
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                  {isFailed && b.errorMessage && (
+                    <div className="border-t border-red-200 px-3 py-2 text-xs text-red-700 font-mono break-words">
+                      {b.errorMessage}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
