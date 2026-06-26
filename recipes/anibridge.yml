@@ -1,0 +1,44 @@
+metadata:
+  name: AniBridge
+  version: latest
+  description: AniBridge is a media synchronization tool that keeps your anime watch activity perfectly in sync across library providers (Plex, Jellyfin, Emby) and list trackers (AniList, MyAnimeList). It includes a web dashboard with a real-time sync timeline, profile manager, custom mapping editor, log viewer, and automatic list backups.
+  category: media
+  tags:
+  - Media
+  - Anime
+  - Synchronization
+  - Self-Hosted
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: App Service Image
+    default: ghcr.io/anibridge/anibridge:v2.1.4
+  port:
+    type: integer
+    title: Port HTTP
+    default: 4848
+links:
+- label: Website
+  url: https://anibridge.eliasbenb.dev
+- label: GitHub
+  url: https://github.com/anibridge/anibridge
+install:
+- docker:
+    image: $IMAGE
+    name: anibridge
+    port: $PORT:4848
+    volumes:
+    - /config
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp

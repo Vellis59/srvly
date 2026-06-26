@@ -1,0 +1,42 @@
+metadata:
+  name: SnapOtter
+  version: latest
+  description: SnapOtter is a self-hosted, privacy-first image manipulation platform packed into a single Docker container. Offers 50+ image tools including resizing, compression, format conversion, AI background removal, upscaling, OCR, and more.
+  category: media
+  tags:
+  - Images
+  - Media
+  - Editing
+  - Self-Hosted
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image
+    default: ghcr.io/snapotter/snapotter:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: GitHub
+  url: https://github.com/snapotter/snapotter
+install:
+- docker:
+    image: $IMAGE
+    name: snapotter
+    port: $PORT:3000
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp

@@ -2,7 +2,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, agentProcedure } from "@/server/trpc/context";
 import { servers, installations, recipes, domains, users } from "@/server/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, or, ilike } from "drizzle-orm";
 import { executeOnServer } from "@/lib/ssh";
 import { generateKeyPairSync, createHash } from "crypto";
 import fs from "fs";
@@ -253,20 +253,52 @@ export const serverRouter = router({
 // ─── Catalog / Recipe routes ───
 
 export const catalogRouter = router({
-  list: publicProcedure.query(async ({ ctx }) => {
-    return await ctx.db
-      .select({
-        id: recipes.id,
-        name: recipes.name,
-        description: recipes.description,
-        category: recipes.category,
-        version: recipes.version,
-        icon: recipes.icon,
-        dependencies: recipes.dependencies,
-      })
-      .from(recipes)
-      .orderBy(recipes.name);
-  }),
+  list: publicProcedure
+    .input(
+      z
+        .object({
+          category: z.string().optional(),
+          subcategory: z.string().optional(),
+          search: z.string().optional(),
+          limit: z.number().int().positive().optional(),
+        })
+        .optional()
+    )
+    .query(async ({ ctx, input }) => {
+      const conditions: any[] = [];
+
+      if (input?.category) {
+        conditions.push(eq(recipes.category, input.category));
+      }
+      if (input?.subcategory) {
+        conditions.push(eq(recipes.subcategory, input.subcategory));
+      }
+      if (input?.search) {
+        conditions.push(
+          or(
+            ilike(recipes.name, `%${input.search}%`),
+            ilike(recipes.description, `%${input.search}%`)
+          )
+        );
+      }
+
+      const results = await ctx.db
+        .select({
+          id: recipes.id,
+          name: recipes.name,
+          description: recipes.description,
+          category: recipes.category,
+          subcategory: recipes.subcategory,
+          version: recipes.version,
+          icon: recipes.icon,
+          dependencies: recipes.dependencies,
+        })
+        .from(recipes)
+        .where(conditions.length > 0 ? and(...conditions) : undefined)
+        .orderBy(recipes.name);
+
+      return input?.limit ? results.slice(0, input.limit) : results;
+    }),
 
   get: publicProcedure
     .input(z.object({ id: z.string() }))
@@ -277,6 +309,66 @@ export const catalogRouter = router({
         .where(eq(recipes.id, input.id));
       if (!recipe) throw new TRPCError({ code: "NOT_FOUND" });
       return recipe;
+    }),
+
+  /** Return taxonomy with per-category counts */
+  categories: publicProcedure.query(async ({ ctx }) => {
+    const all = await ctx.db
+      .select({ category: recipes.category })
+      .from(recipes);
+
+    const counts: Record<string, number> = {};
+    for (const r of all) {
+      const cat = r.category || "other";
+      counts[cat] = (counts[cat] || 0) + 1;
+    }
+
+    const { TAXONOMY } = await import("@/lib/taxonomy");
+    return TAXONOMY.map((cat) => ({
+      ...cat,
+      count: counts[cat.id] || 0,
+    }));
+  }),
+
+  /** Get category page: category info + apps grouped by subcategory */
+  category: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { TAXONOMY } = await import("@/lib/taxonomy");
+      const catDef = TAXONOMY.find((c) => c.id === input.id);
+      if (!catDef) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const apps = await ctx.db
+        .select({
+          id: recipes.id,
+          name: recipes.name,
+          description: recipes.description,
+          subcategory: recipes.subcategory,
+          version: recipes.version,
+          icon: recipes.icon,
+          dependencies: recipes.dependencies,
+        })
+        .from(recipes)
+        .where(eq(recipes.category, input.id))
+        .orderBy(recipes.name);
+
+      // Group by subcategory
+      const grouped: Record<string, typeof apps> = {};
+      for (const app of apps) {
+        const sub = app.subcategory || "_uncategorized";
+        if (!grouped[sub]) grouped[sub] = [];
+        grouped[sub].push(app);
+      }
+
+      return {
+        category: catDef,
+        total: apps.length,
+        subcategories: catDef.subcategories.map((sc) => ({
+          ...sc,
+          apps: grouped[sc.id] || [],
+        })),
+        uncategorized: grouped["_uncategorized"] || [],
+      };
     }),
 });
 

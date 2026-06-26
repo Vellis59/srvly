@@ -1,0 +1,42 @@
+metadata:
+  name: WP AutoFlow
+  version: latest
+  description: WP AutoFlow is the ultimate self-hosted orchestrator for WordPress automation. It allows you to scrape content, rewrite using advanced AI, handle media with custom watermarking, and publish directly to WordPress.
+  category: automation
+  tags:
+  - WordPress
+  - Automation
+  - AI
+  - Content
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image
+    default: ghcr.io/wp-autoflow/wp-autoflow:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: GitHub
+  url: https://github.com/wp-autoflow/wp-autoflow
+install:
+- docker:
+    image: $IMAGE
+    name: wp-autoflow
+    port: $PORT:3000
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp

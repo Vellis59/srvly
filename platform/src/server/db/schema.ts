@@ -80,6 +80,7 @@ export const recipes = pgTable("recipes", {
   version: text("version"),
   description: text("description"),
   category: text("category"),
+  subcategory: text("subcategory"),
   icon: text("icon"),
   osSupport: text("os_support").array(),
   dependencies: text("dependencies").array(),

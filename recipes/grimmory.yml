@@ -1,12 +1,12 @@
 metadata:
-  name: Firefly III
+  name: Grimmory
   version: latest
-  description: Firefly III is a self-hosted financial manager. It helps you keep track of expenses, income, budgets and everything in between. It supports transactions, budgets, categories, tags, bills, and reports.
-  category: finance
+  description: Grimmory is a self-hosted digital library for serious readers. It lets you organize, read, and manage books across multiple formats including EPUB, MOBI, AZW3, PDF, CBZ, and audiobook formats.
+  category: media
   tags:
-  - Finance
-  - Budgeting
-  - Accounting
+  - Books
+  - Reading
+  - Media
   - Self-Hosted
   dependencies:
   - docker
@@ -14,20 +14,18 @@ params:
   image:
     type: string
     title: Image
-    default: fireflyiii/core:latest
+    default: ghcr.io/grimmory/grimmory:latest
   port:
     type: integer
     title: Port HTTP
     default: 8080
 links:
-- label: Website
-  url: https://www.firefly-iii.org/
 - label: GitHub
-  url: https://github.com/firefly-iii/firefly-iii
+  url: https://github.com/grimmory/grimmory
 install:
 - docker:
     image: $IMAGE
-    name: fireflyiii
+    name: grimmory
     port: $PORT:8080
     volumes:
     - /data

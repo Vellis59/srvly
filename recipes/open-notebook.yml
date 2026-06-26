@@ -1,0 +1,43 @@
+metadata:
+  name: Open Notebook
+  version: latest
+  description: An open-source, privacy-focused alternative to Google's Notebook LM. Supports 18+ AI providers, multi-modal content (PDFs, videos, audio, web pages), podcast generation, full-text and vector search, and a full REST API.
+  category: ai
+  tags:
+  - AI
+  - Notebook
+  - LLM
+  - Productivity
+  - Self-Hosted
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image
+    default: ghcr.io/open-notebook/open-notebook:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: GitHub
+  url: https://github.com/open-notebook/open-notebook
+install:
+- docker:
+    image: $IMAGE
+    name: open-notebook
+    port: $PORT:3000
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp

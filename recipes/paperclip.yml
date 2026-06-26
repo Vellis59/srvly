@@ -1,0 +1,42 @@
+metadata:
+  name: Paperclip
+  version: latest
+  description: Paperclip is an open-source orchestration platform for running autonomous AI-powered businesses. It coordinates teams of AI agents supporting Claude Code, Codex, Cursor, Bash, and more.
+  category: ai
+  tags:
+  - AI
+  - Agents
+  - Automation
+  - Self-Hosted
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image
+    default: ghcr.io/paperclip/paperclip:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: GitHub
+  url: https://github.com/paperclip/paperclip
+install:
+- docker:
+    image: $IMAGE
+    name: paperclip
+    port: $PORT:3000
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp

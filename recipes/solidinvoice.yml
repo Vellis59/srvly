@@ -1,33 +1,33 @@
 metadata:
-  name: Firefly III
+  name: SolidInvoice
   version: latest
-  description: Firefly III is a self-hosted financial manager. It helps you keep track of expenses, income, budgets and everything in between. It supports transactions, budgets, categories, tags, bills, and reports.
+  description: SolidInvoice is a self-hosted invoicing and billing platform built with Symfony and Vue.js. Create and send professional invoices and quotes, track payments, manage clients and contacts, and accept online payments.
   category: finance
   tags:
   - Finance
-  - Budgeting
-  - Accounting
-  - Self-Hosted
+  - Invoicing
+  - Billing
+  - Business
   dependencies:
   - docker
 params:
   image:
     type: string
     title: Image
-    default: fireflyiii/core:latest
+    default: solidinvoice/solidinvoice:latest
   port:
     type: integer
     title: Port HTTP
     default: 8080
 links:
 - label: Website
-  url: https://www.firefly-iii.org/
+  url: https://solidinvoice.co/
 - label: GitHub
-  url: https://github.com/firefly-iii/firefly-iii
+  url: https://github.com/SolidInvoice/SolidInvoice
 install:
 - docker:
     image: $IMAGE
-    name: fireflyiii
+    name: solidinvoice
     port: $PORT:8080
     volumes:
     - /data

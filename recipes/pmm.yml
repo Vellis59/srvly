@@ -1,0 +1,44 @@
+metadata:
+  name: Percona PMM
+  version: latest
+  description: Percona Monitoring and Management (PMM) is an open-source monitoring platform for MySQL, PostgreSQL, MongoDB, and cloud-native workloads. Provides metrics, query analytics, alerts, and dashboards.
+  category: monitoring
+  tags:
+  - Monitoring
+  - Database
+  - DevOps
+  - Metrics
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image
+    default: percona/pmm-server:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 443
+links:
+- label: Website
+  url: https://www.percona.com/software/database-tools/percona-monitoring-and-management
+- label: GitHub
+  url: https://github.com/percona/pmm
+install:
+- docker:
+    image: $IMAGE
+    name: pmm
+    port: $PORT:443
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp

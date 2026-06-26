@@ -1,12 +1,12 @@
 metadata:
-  name: Firefly III
+  name: Calagopus
   version: latest
-  description: Firefly III is a self-hosted financial manager. It helps you keep track of expenses, income, budgets and everything in between. It supports transactions, budgets, categories, tags, bills, and reports.
-  category: finance
+  description: Calagopus is a modern open-source game server management panel built in Rust and React. It features a refreshed UI, an extensible plugin architecture, and high-performance reimplementation of game server management.
+  category: gaming
   tags:
-  - Finance
-  - Budgeting
-  - Accounting
+  - Gaming
+  - Server Management
+  - Rust
   - Self-Hosted
   dependencies:
   - docker
@@ -14,20 +14,18 @@ params:
   image:
     type: string
     title: Image
-    default: fireflyiii/core:latest
+    default: ghcr.io/calagopus/calagopus:latest
   port:
     type: integer
     title: Port HTTP
     default: 8080
 links:
-- label: Website
-  url: https://www.firefly-iii.org/
 - label: GitHub
-  url: https://github.com/firefly-iii/firefly-iii
+  url: https://github.com/calagopus/calagopus
 install:
 - docker:
     image: $IMAGE
-    name: fireflyiii
+    name: calagopus
     port: $PORT:8080
     volumes:
     - /data

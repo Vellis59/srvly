@@ -1,0 +1,42 @@
+metadata:
+  name: Quackback
+  version: latest
+  description: An open-source alternative to Canny and UserVoice — a self-hosted feedback management platform with public roadmaps, changelog notifications, AI-powered triage, and 24+ integrations including Slack, Linear, Jira, and GitHub.
+  category: project-management
+  tags:
+  - Feedback
+  - Project Management
+  - Product
+  - Self-Hosted
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image
+    default: ghcr.io/quackback/quackback:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: GitHub
+  url: https://github.com/quackback/quackback
+install:
+- docker:
+    image: $IMAGE
+    name: quackback
+    port: $PORT:3000
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp

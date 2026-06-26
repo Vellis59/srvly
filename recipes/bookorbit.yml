@@ -1,0 +1,42 @@
+metadata:
+  name: BookOrbit
+  version: latest
+  description: BookOrbit is a self-hosted book management and reading tracker application. Organize your library, track reading progress, manage wishlists, and get AI-powered book recommendations.
+  category: media
+  tags:
+  - Books
+  - Media
+  - Reading
+  - Self-Hosted
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image
+    default: ghcr.io/bookorbit/bookorbit:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8081
+links:
+- label: GitHub
+  url: https://github.com/bookorbit/bookorbit
+install:
+- docker:
+    image: $IMAGE
+    name: bookorbit
+    port: $PORT:8081
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp

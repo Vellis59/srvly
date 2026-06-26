@@ -1,33 +1,32 @@
 metadata:
-  name: Firefly III
+  name: ZeroClaw
   version: latest
-  description: Firefly III is a self-hosted financial manager. It helps you keep track of expenses, income, budgets and everything in between. It supports transactions, budgets, categories, tags, bills, and reports.
-  category: finance
+  description: ZeroClaw is a fast, small, and fully autonomous AI personal assistant infrastructure built in 100% Rust. Connect any LLM provider and deploy anywhere.
+  category: ai
   tags:
-  - Finance
-  - Budgeting
-  - Accounting
+  - AI
+  - Assistant
+  - Rust
   - Self-Hosted
+  - Agents
   dependencies:
   - docker
 params:
   image:
     type: string
     title: Image
-    default: fireflyiii/core:latest
+    default: ghcr.io/zeroclaw/zeroclaw:latest
   port:
     type: integer
     title: Port HTTP
     default: 8080
 links:
-- label: Website
-  url: https://www.firefly-iii.org/
 - label: GitHub
-  url: https://github.com/firefly-iii/firefly-iii
+  url: https://github.com/zeroclaw/zeroclaw
 install:
 - docker:
     image: $IMAGE
-    name: fireflyiii
+    name: zeroclaw
     port: $PORT:8080
     volumes:
     - /data

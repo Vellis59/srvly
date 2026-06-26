@@ -1,0 +1,42 @@
+metadata:
+  name: BamBuddy
+  version: latest
+  description: BamBuddy is a self-hosted command center for managing Bambu Lab 3D printers locally, with no cloud dependency. It supports single printers up to 40-printer farms and includes real-time monitoring, live camera streaming, and print management.
+  category: iot
+  tags:
+  - 3D Printing
+  - IoT
+  - Monitoring
+  - Self-Hosted
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image
+    default: ghcr.io/natesales/bambuddy:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8989
+links:
+- label: GitHub
+  url: https://github.com/natesales/bambuddy
+install:
+- docker:
+    image: $IMAGE
+    name: bambuddy
+    port: $PORT:8989
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp

@@ -1,33 +1,33 @@
 metadata:
-  name: Firefly III
+  name: Zulip
   version: latest
-  description: Firefly III is a self-hosted financial manager. It helps you keep track of expenses, income, budgets and everything in between. It supports transactions, budgets, categories, tags, bills, and reports.
-  category: finance
+  description: Zulip is a powerful team collaboration platform that combines the immediacy of chat with the organization of email. It features topic-based threading for efficient team communication.
+  category: messaging
   tags:
-  - Finance
-  - Budgeting
-  - Accounting
-  - Self-Hosted
+  - Chat
+  - Collaboration
+  - Messaging
+  - Team
   dependencies:
   - docker
 params:
   image:
     type: string
     title: Image
-    default: fireflyiii/core:latest
+    default: zulip/docker-zulip:latest
   port:
     type: integer
     title: Port HTTP
     default: 8080
 links:
 - label: Website
-  url: https://www.firefly-iii.org/
+  url: https://zulip.com/
 - label: GitHub
-  url: https://github.com/firefly-iii/firefly-iii
+  url: https://github.com/zulip/zulip
 install:
 - docker:
     image: $IMAGE
-    name: fireflyiii
+    name: zulip
     port: $PORT:8080
     volumes:
     - /data

@@ -1,0 +1,44 @@
+metadata:
+  name: Redash
+  version: latest
+  description: Redash helps teams become data-driven by connecting to data sources, building queries, creating visualizations, and sharing dashboards across the organization.
+  category: analytics
+  tags:
+  - Analytics
+  - Dashboard
+  - Data
+  - Visualization
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image
+    default: redash/redash:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5000
+links:
+- label: Website
+  url: https://redash.io/
+- label: GitHub
+  url: https://github.com/getredash/redash
+install:
+- docker:
+    image: $IMAGE
+    name: redash
+    port: $PORT:5000
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp

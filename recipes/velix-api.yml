@@ -1,12 +1,12 @@
 metadata:
-  name: Firefly III
+  name: Velix API
   version: latest
-  description: Firefly III is a self-hosted financial manager. It helps you keep track of expenses, income, budgets and everything in between. It supports transactions, budgets, categories, tags, bills, and reports.
-  category: finance
+  description: Velix is a self-hosted WhatsApp API built in Go. Connect multiple WhatsApp numbers, send and receive messages via REST, get real-time webhooks, and integrate with n8n and Chatwoot out of the box.
+  category: messaging
   tags:
-  - Finance
-  - Budgeting
-  - Accounting
+  - WhatsApp
+  - Messaging
+  - API
   - Self-Hosted
   dependencies:
   - docker
@@ -14,20 +14,18 @@ params:
   image:
     type: string
     title: Image
-    default: fireflyiii/core:latest
+    default: ghcr.io/velix-api/velix-api:latest
   port:
     type: integer
     title: Port HTTP
     default: 8080
 links:
-- label: Website
-  url: https://www.firefly-iii.org/
 - label: GitHub
-  url: https://github.com/firefly-iii/firefly-iii
+  url: https://github.com/velix-api/velix-api
 install:
 - docker:
     image: $IMAGE
-    name: fireflyiii
+    name: velix-api
     port: $PORT:8080
     volumes:
     - /data

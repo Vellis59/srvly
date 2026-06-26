@@ -1,0 +1,42 @@
+metadata:
+  name: Faved
+  version: latest
+  description: Faved is a privately-hosted, open-source bookmark manager with customizable nested tags, designed for handling large collections efficiently. It offers automatic title and description fetching, duplicate detection, and powerful search.
+  category: bookmark
+  tags:
+  - Bookmarks
+  - Links
+  - Self-Hosted
+  - Productivity
+  dependencies:
+  - docker
+params:
+  image:
+    type: string
+    title: Image
+    default: ghcr.io/faved/faved:latest
+  port:
+    type: integer
+    title: Port HTTP
+    default: 3000
+links:
+- label: GitHub
+  url: https://github.com/faved/faved
+install:
+- docker:
+    image: $IMAGE
+    name: faved
+    port: $PORT:3000
+    volumes:
+    - /data
+    extra_ports: []
+verify:
+- http_get:
+    url: http://localhost:$PORT
+    expect:
+    - 200
+    - 301
+    - 302
+output:
+  url: http://{{ server_ip }}:$PORT
+  type: webapp
