@@ -64,8 +64,17 @@ export default function CatalogPage() {
     { enabled: !!selectedCategory }
   );
 
-  // Fetch recent apps (latest 6)
-  const { data: recentApps } = trpc.catalog.list.useQuery({ limit: 6 });
+  // Fetch recent apps (newest by created_at)
+  const { data: recentApps } = trpc.catalog.list.useQuery({ sort: "recent", limit: 12 });
+
+  // Featured apps
+  const FEATURED_IDS = ["nextcloud", "vaultwarden", "jellyfin", "n8n", "actualbudget", "ghost", "homeassistant", "nginx"];
+  const { data: allForFeatured } = trpc.catalog.list.useQuery({ limit: 999 });
+
+  const featured = useMemo(() => {
+    if (!allForFeatured) return [];
+    return FEATURED_IDS.map(id => allForFeatured.find(a => a.id === id)).filter(Boolean);
+  }, [allForFeatured]);
 
   const filtered = useMemo(() => {
     if (!apps) return [];
@@ -172,6 +181,21 @@ export default function CatalogPage() {
       {/* Content area */}
       {!selectedCategory && !search.trim() ? (
         <>
+          {/* Popular apps */}
+          {featured && featured.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                <span className="w-5 h-5 bg-amber-100 rounded-full flex items-center justify-center text-[10px]">⭐</span>
+                Popular apps
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+                {featured.map((app: any) => (
+                  <AppCard key={app.id} app={app} />
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Recent apps */}
           {recentApps && recentApps.length > 0 && (
             <div className="mb-8">
@@ -180,7 +204,7 @@ export default function CatalogPage() {
                 Recently added
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                {recentApps.map((app) => (
+                {recentApps.slice(0, 6).map((app) => (
                   <AppCard key={app.id} app={app} />
                 ))}
               </div>

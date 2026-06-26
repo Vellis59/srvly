@@ -260,6 +260,7 @@ export const catalogRouter = router({
           category: z.string().optional(),
           subcategory: z.string().optional(),
           search: z.string().optional(),
+          sort: z.enum(["name", "recent"]).optional(),
           limit: z.number().int().positive().optional(),
         })
         .optional()
@@ -295,7 +296,7 @@ export const catalogRouter = router({
         })
         .from(recipes)
         .where(conditions.length > 0 ? and(...conditions) : undefined)
-        .orderBy(recipes.name);
+        .orderBy(input?.sort === "recent" ? recipes.createdAt : recipes.name);
 
       return input?.limit ? results.slice(0, input.limit) : results;
     }),
