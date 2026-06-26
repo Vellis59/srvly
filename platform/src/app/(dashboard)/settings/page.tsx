@@ -16,7 +16,7 @@ export default function SettingsPage() {
   if (!session) return null;
 
   const handleRegenerate = async () => {
-    if (!confirm("Regenerer le token ? L'ancien ne fonctionnera plus.")) return;
+    if (!confirm("Regenerate the token? The old one will stop working.")) return;
     setRegenerating(true);
     try {
       await regenerate.mutateAsync();
@@ -32,10 +32,10 @@ export default function SettingsPage() {
   };
 
   const promptText = [
-    'Sur srvly, cree un skill "srvly-agent" avec ma configuration :',
+    'On srvly, create a skill "srvly-agent" with my configuration:',
     "",
-    "Token API : " + (tokenData?.token || ""),
-    "API URL : " + baseUrl,
+    "Token API: " + (tokenData?.token || ""),
+    "API URL: " + baseUrl,
     "",
     "Role: you are my installation agent.",
     "",
@@ -55,28 +55,28 @@ export default function SettingsPage() {
     "  Body: { serverId, name, port?, domain?, image?, containerName? }",
     "- GET " + baseUrl + "/api/agent/install/list?serverId=xxx",
     "",
-    "Le token s envoie dans le header: Authorization: Bearer ***",
+    "The token is sent in the header: Authorization: Bearer ***",
   ].join("\n");
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-slate-900 mb-6">Parametres</h1>
+      <h1 className="text-2xl font-bold text-slate-900 mb-6">Settings</h1>
 
       <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
-        <h2 className="font-semibold text-slate-900 mb-4">Profil</h2>
+        <h2 className="font-semibold text-slate-900 mb-4">Profile</h2>
         <p className="text-sm text-slate-600">
-          Connecte en tant que <strong>{session.user?.name || session.user?.email}</strong>
+          Signed in as <strong>{session.user?.name || session.user?.email}</strong>
         </p>
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
-        <h2 className="font-semibold text-slate-900 mb-1">Token API</h2>
+        <h2 className="font-semibold text-slate-900 mb-1">API Token</h2>
         <p className="text-sm text-slate-500 mb-4">
-          Utilise ce token pour connecter ton agent IA (Hermes, OpenCLAW...) a srvly.
+          Use this token to connect your AI agent (Hermes, OpenCLAW...) to srvly.
         </p>
 
         {isLoading ? (
-          <div className="text-sm text-slate-400">Chargement...</div>
+          <div className="text-sm text-slate-400">Loading...</div>
         ) : (
           <>
             <div className="bg-slate-900 rounded-xl p-4 mb-4">
@@ -88,21 +88,21 @@ export default function SettingsPage() {
                   onClick={() => handleCopy(tokenData?.token || "")}
                   className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-medium hover:bg-emerald-700 shrink-0"
                 >
-                  {copied ? "Copie" : "Copier"}
+                  {copied ? "Copied" : "Copy"}
                 </button>
               </div>
             </div>
 
             <div className="flex items-center justify-between">
               <p className="text-xs text-slate-400">
-                Ne partage pas ce token. Regener-le si tu penses qu il a fuite.
+                Do not share this token. Regenerate it if you think it leaked.
               </p>
               <button
                 onClick={handleRegenerate}
                 disabled={regenerating}
                 className="text-xs text-red-500 hover:text-red-700 disabled:opacity-50"
               >
-                {regenerating ? "..." : "Regenerer"}
+                {regenerating ? "..." : "Regenerate"}
               </button>
             </div>
           </>
@@ -111,13 +111,13 @@ export default function SettingsPage() {
 
       {tokenData?.token && (
         <div className="bg-slate-900 rounded-2xl p-6 mb-6">
-          <h2 className="text-sm font-semibold text-slate-200 mb-3">Prompt pour ton agent</h2>
+          <h2 className="text-sm font-semibold text-slate-200 mb-3">Prompt for your agent</h2>
           <pre className="text-sm font-mono text-slate-100 whitespace-pre-wrap break-words leading-relaxed mb-4">{promptText}</pre>
           <button
             onClick={() => handleCopy(promptText)}
             className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 transition-colors"
           >
-            {copied ? "Copie !" : "Copier le prompt"}
+            {copied ? "Copied!" : "Copy prompt"}
           </button>
         </div>
       )}
