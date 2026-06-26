@@ -68,14 +68,17 @@ echo "Run: certbot --nginx -d your-domain.com"`,
   },
 };
 
-const QUICK_COMMANDS: Record<string, { label: string; cmd: string }> = {
+const QUICK_COMMANDS: Record<string, { label: string; cmd: string; requiresConfirm?: string }> = {
   docker_ps: { label: "🐳 docker ps", cmd: "docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}' 2>&1 | head -30" },
   disk: { label: "💾 df -h", cmd: "df -h / && echo '---' && lsblk 2>/dev/null | head -10 || true" },
   memory: { label: "📊 free -h", cmd: "free -h && echo '---' && uptime" },
   all_apps: { label: "📦 All containers", cmd: "docker ps -a --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}' 2>&1 | head -40" },
   compose: { label: "📋 docker compose ps", cmd: "cd /opt 2>/dev/null && find . -name 'docker-compose*' -maxdepth 3 2>/dev/null | head -5; docker compose ls 2>/dev/null || true" },
   nginx_test: { label: "🌐 nginx -t", cmd: "nginx -t 2>&1 || true" },
-  prune: { label: "🧹 Docker cleanup", cmd: "echo 'Cleaning build cache...' && docker builder prune -af 2>&1 && echo '---' && echo 'Removing dangling images...' && docker image prune -f 2>&1 && echo '---' && echo 'Removing stopped containers...' && docker container prune -f 2>&1 && echo '---' && df -h / | tail -1 && echo 'DONE'" },
+  prune_containers: { label: "🧹 Prune containers", cmd: "docker container prune -f 2>&1 && echo 'DONE'" },
+  prune_images: { label: "🧹 Prune images", cmd: "docker image prune -f 2>&1 && echo 'DONE'" },
+  prune_cache: { label: "🧹 Prune build cache", cmd: "docker builder prune -af 2>&1 && echo 'DONE'" },
+  prune_volumes: { label: "🧹 Prune volumes", cmd: "docker volume prune -f 2>&1 && echo 'DONE'", requiresConfirm: "This will remove all unused Docker volumes, including their data. Continue?" },
 };
 
 // ─── Helper components ───
@@ -492,7 +495,10 @@ export default function ServerDetailPage() {
             <h2 className="font-semibold text-slate-900 mb-4">⚡ Quick commands</h2>
             <div className="flex flex-wrap gap-2 mb-4">
               {Object.entries(QUICK_COMMANDS).map(([key, cmd]) => (
-                <button key={key} onClick={() => runQuickCmd(cmd.label, cmd.cmd)}
+                <button key={key} onClick={() => {
+                  if (cmd.requiresConfirm && !confirm(cmd.requiresConfirm)) return;
+                  runQuickCmd(cmd.label, cmd.cmd);
+                }}
                   disabled={quickCmd === cmd.label}
                   className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${
                     quickCmd === cmd.label
