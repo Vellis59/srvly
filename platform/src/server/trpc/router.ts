@@ -144,6 +144,107 @@ export const serverRouter = router({
       return result;
     }),
 
+  checkServices: agentProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [server] = await ctx.db
+        .select()
+        .from(servers)
+        .where(and(eq(servers.id, input.id), eq(servers.userId, ctx.user.id!)));
+      if (!server) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const result = await executeOnServer(
+        input.id,
+        [
+          "echo '---DOCKER---'",
+          "docker --version 2>/dev/null && echo 'DOCKER_ENGINE_OK' || true",
+          'docker ps --format "{{.Names}}|{{.Status}}|{{.Image}}" 2>/dev/null | head -30',
+          "echo '---CADDY---'",
+          "caddy version 2>/dev/null && echo 'CADDY_OK' || echo 'CADDY:not found'",
+          'systemctl is-active caddy 2>/dev/null || true',
+          "echo '---NGINX---'",
+          "nginx -v 2>&1 && echo 'NGINX_OK' || echo 'NGINX:not found'",
+          'systemctl is-active nginx 2>/dev/null || true',
+          "echo '---UFW---'",
+          "ufw status verbose 2>/dev/null | head -10 || echo 'UFW:not found'",
+          "echo '---FAIL2BAN---'",
+          "fail2ban-client status 2>/dev/null | head -5 || echo 'FAIL2BAN:not found'",
+          "echo '---DISK---'",
+          'df -h / 2>/dev/null | awk \'NR==2{print $2"|"$3"|"$4"|"$5}\' || echo "0|0|0|0"',
+          "echo '---RAM---'",
+          'free -m 2>/dev/null | awk \'/^Mem:/{print $2"|"$3"|"$4}\' || echo "0|0|0"',
+          "echo '---UPTIME---'",
+          "uptime -p 2>/dev/null || uptime",
+        ].join("\n"),
+        30,
+      );
+
+      if (!result.success) return { success: false, output: result.output, error: result.error };
+
+      const output = result.output || "";
+      const services: Record<string, string> = {};
+
+      const extract = (marker: string) => {
+        const parts = output.split(`---${marker}---`);
+        if (parts.length < 2) return "";
+        return parts[1].split("\n---")[0]?.trim() || "";
+      };
+
+      services.docker = extract("DOCKER");
+      services.caddy = extract("CADDY");
+      services.nginx = extract("NGINX");
+      services.ufw = extract("UFW");
+      services.fail2ban = extract("FAIL2BAN");
+
+      // Disk & RAM
+      const diskRaw = extract("DISK");
+      const ramRaw = extract("RAM");
+      const uptime = extract("UPTIME");
+
+      // Detect which services are active
+      const status: Record<string, "installed" | "missing" | "error"> = {};
+      status.docker = services.docker.includes("DOCKER_ENGINE_OK") ? "installed" : "missing";
+      status.nginx = services.nginx.includes("NGINX_OK") ? "installed" : "missing";
+      status.caddy = services.caddy.includes("CADDY_OK") ? "installed" : "missing";
+      status.ufw = services.ufw.includes("Status: active") || services.ufw.includes("Status: inactive") ? "installed" : "missing";
+      status.fail2ban = services.fail2ban.includes("Status") ? "installed" : "missing";
+
+      // Update system info with refreshed data
+      const currentInfo = (server.systemInfo || {}) as Record<string, any>;
+      const updates: Record<string, any> = { lastSeen: new Date() };
+
+      // Parse disk: "size|used|avail|use%"
+      if (diskRaw && diskRaw !== "0|0|0|0") {
+        const dp = diskRaw.split("|");
+        currentInfo.diskTotal = dp[0]?.replace("G", "") || currentInfo.diskTotal;
+        currentInfo.diskUsed = dp[1]?.replace("G", "") || currentInfo.diskUsed;
+        currentInfo.diskAvailable = dp[2]?.replace("G", "") || currentInfo.diskAvailable;
+        currentInfo.diskUsePct = dp[3] || "";
+      }
+      // Parse RAM: "total|used|available"
+      if (ramRaw && ramRaw !== "0|0|0") {
+        const rp = ramRaw.split("|");
+        currentInfo.ramTotal = parseInt(rp[0]) || currentInfo.ramTotal;
+        currentInfo.ramUsed = parseInt(rp[1]) || currentInfo.ramUsed;
+        currentInfo.ramAvailable = parseInt(rp[2]) || currentInfo.ramAvailable;
+      }
+      if (uptime) currentInfo.uptime = uptime.replace(/^up\s*/, "");
+
+      currentInfo.services = status;
+      updates.systemInfo = currentInfo;
+
+      await ctx.db.update(servers).set(updates).where(eq(servers.id, input.id));
+
+      return {
+        success: true,
+        services: status,
+        containers: services.docker.split("\n").filter((l) => l.includes("|")).length,
+        disk: currentInfo.diskTotal ? `${currentInfo.diskUsed}/${currentInfo.diskTotal}GB` : null,
+        ram: currentInfo.ramTotal ? `${Math.round(currentInfo.ramUsed/1024*10)/10}/${Math.round(currentInfo.ramTotal/1024*10)/10}GB` : null,
+        uptime: currentInfo.uptime || null,
+      };
+    }),
+
   testConnection: agentProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
