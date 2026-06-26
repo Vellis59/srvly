@@ -1340,13 +1340,30 @@ export const domainRouter = router({
       for (const d of rows) {
         let appName = d.targetApp || null;
         if (d.targetApp) {
-          const [inst] = await ctx.db
-            .select({ name: installations.params })
-            .from(installations)
-            .where(eq(installations.id, d.targetApp))
-            .limit(1);
+          // targetApp can be either an installation UUID or a plain app name
+          // Try UUID match first, then fallback to matching by params->>name
+          const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(d.targetApp);
+          let inst = null;
+          if (isUuid) {
+            const rows2 = await ctx.db
+              .select({ params: installations.params })
+              .from(installations)
+              .where(eq(installations.id, d.targetApp))
+              .limit(1);
+            inst = rows2[0] || null;
+          } else {
+            // Match by recipeId or name in params
+            const allInstalls = await ctx.db
+              .select({ id: installations.id, params: installations.params, recipeId: installations.recipeId })
+              .from(installations)
+              .where(eq(installations.serverId, input.serverId));
+            inst = allInstalls.find((i: any) => {
+              const p = i.params as any;
+              return i.recipeId === d.targetApp || p?.name === d.targetApp;
+            }) || null;
+          }
           if (inst) {
-            const p = inst.name as any;
+            const p = inst.params as any;
             appName = (p?.name) || d.targetApp;
           }
         }
