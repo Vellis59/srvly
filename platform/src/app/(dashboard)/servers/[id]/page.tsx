@@ -75,6 +75,7 @@ const QUICK_COMMANDS: Record<string, { label: string; cmd: string }> = {
   all_apps: { label: "📦 All containers", cmd: "docker ps -a --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}' 2>&1 | head -40" },
   compose: { label: "📋 docker compose ps", cmd: "cd /opt 2>/dev/null && find . -name 'docker-compose*' -maxdepth 3 2>/dev/null | head -5; docker compose ls 2>/dev/null || true" },
   nginx_test: { label: "🌐 nginx -t", cmd: "nginx -t 2>&1 || true" },
+  prune: { label: "🧹 Docker cleanup", cmd: "echo 'Cleaning build cache...' && docker builder prune -af 2>&1 && echo '---' && echo 'Removing dangling images...' && docker image prune -f 2>&1 && echo '---' && echo 'Removing stopped containers...' && docker container prune -f 2>&1 && echo '---' && df -h / | tail -1 && echo 'DONE'" },
 };
 
 // ─── Helper components ───
