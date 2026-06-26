@@ -139,12 +139,17 @@ function AddServerModal({ onClose }: { onClose: () => void }) {
 
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
-              SSH Public Key (optional)
+              SSH Public Key <span className="text-xs text-slate-400 font-normal">(optional — what's this? 🛈)</span>
             </label>
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-2 text-xs text-blue-700">
+              <p className="font-medium mb-1">💡 Don't worry if you don't know what this is.</p>
+              <p>Leave this field <strong>empty</strong> and srvly will do everything automatically.
+              After adding the server, just run the one-line command shown on the next screen.</p>
+            </div>
             <textarea
               value={sshKey}
               onChange={(e) => setSshKey(e.target.value)}
-              placeholder="ssh-ed25519 AAAAC3... leave empty to generate a new one"
+              placeholder="Leave empty unless you want to use your own key"
               rows={2}
               className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
