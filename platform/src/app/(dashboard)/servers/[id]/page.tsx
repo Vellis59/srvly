@@ -1692,9 +1692,14 @@ function BackupSection({ serverId }: { serverId: string }) {
                   <div className="flex items-center gap-3 p-3">
                     <span className="text-base">{typeIcons[b.type] || "💾"}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="font-mono text-xs text-slate-900 truncate">{b.filename}</p>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
-                        {b.targetName} · {formatSize(b.sizeBytes)} · {formatDate(b.createdAt)}
+                      <p className="text-sm font-medium text-slate-900 truncate">
+                        {b.humanName || b.targetName}
+                      </p>
+                      <p className="text-[11px] text-slate-500 mt-0.5 font-mono truncate">
+                        {b.filename}
+                      </p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        {formatSize(b.sizeBytes)} · {formatDate(b.createdAt)}
                         {isRunning && <span className="ml-2 text-blue-600">⏳ Running</span>}
                         {isFailed && <span className="ml-2 text-red-600">❌ Failed</span>}
                       </p>

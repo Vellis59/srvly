@@ -1808,12 +1808,47 @@ export const backupRouter = router({
         .where(and(eq(servers.id, input.serverId), eq(servers.userId, ctx.user.id!)));
       if (!server) return [];
 
-      return await ctx.db
+      const rows = await ctx.db
         .select()
         .from(backups)
         .where(eq(backups.serverId, input.serverId))
         .orderBy(sql`${backups.createdAt} DESC`)
         .limit(input.limit);
+
+      // For volume backups with hash-like names, try to resolve to a human name
+      // by finding which container(s) mount the volume on the server.
+      return await Promise.all(rows.map(async (row) => {
+        if (row.type === "volume" && /^[0-9a-f]{20,}/.test(row.targetName)) {
+          try {
+            const r = await executeOnServer(
+              input.serverId,
+              `docker ps -a --format '{{.Names}}|{{.Mounts}}' 2>&1 | grep -F '${row.targetName}' | head -1`,
+              10,
+            );
+            const line = (r.output || "").trim().split("\n")[0];
+            if (line) {
+              const [containerName] = line.split("|");
+              if (containerName) {
+                // Find linked installation
+                const installs = await ctx.db
+                  .select()
+                  .from(installations)
+                  .where(eq(installations.serverId, input.serverId));
+                const linked = installs.find((i: any) => {
+                  const p = (i.params || {}) as any;
+                  return p.containerName === containerName || p.name === containerName || i.recipeId === containerName;
+                });
+                if (linked) {
+                  const p = (linked.params || {}) as any;
+                  return { ...row, humanName: p.name || linked.recipeId || containerName };
+                }
+                return { ...row, humanName: containerName };
+              }
+            }
+          } catch {}
+        }
+        return { ...row, humanName: null as string | null };
+      }));
     }),
 
   discoverTargets: agentProcedure
