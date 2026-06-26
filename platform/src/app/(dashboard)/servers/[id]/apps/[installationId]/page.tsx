@@ -36,10 +36,13 @@ export default function AppDetailPage() {
   const restoreMutation = trpc.backup.restoreApp.useMutation();
   const { data: backups } = trpc.backup.list.useQuery({ serverId, limit: 20 });
   const inspectApp = trpc.install.inspect.useMutation();
+  const getStats = trpc.install.containerStats.useMutation();
 
   const [logLines, setLogLines] = useState(100);
   const [output, setOutput] = useState<Record<string, string>>({});
   const [insp, setInsp] = useState<any>(null);
+  const [statsData, setStatsData] = useState<any>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
   const [envData, setEnvData] = useState<string>("");
   const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
   const [showAllSecrets, setShowAllSecrets] = useState(false);
@@ -130,6 +133,21 @@ export default function AppDetailPage() {
     }
   };
 
+  const fetchStats = async () => {
+    setStatsLoading(true);
+    try {
+      const result = await getStats.mutateAsync({ serverId }) as any;
+      if (result.success && result.stats) {
+        const cname = containerName;
+        const s = result.stats[cname];
+        if (s) {
+          setStatsData({ cpu: s.cpu, mem: s.mem, memPct: s.memPct, disk: (result.sizes || {})[cname] || "—" });
+        }
+      }
+    } catch {}
+    setStatsLoading(false);
+  };
+
   const handleBackup = async () => {
     setOutput((p) => ({ ...p, backup: "..." }));
     try {
@@ -153,9 +171,11 @@ export default function AppDetailPage() {
 
   const tabs = [
     { id: "actions", label: "⚡ Actions" },
+    { id: "monitoring", label: "📊 Monitoring" },
     { id: "logs", label: "📋 Logs" },
     { id: "env", label: "🔑 .env" },
     { id: "backup", label: "💾 Backup" },
+    { id: "agent", label: "🤖 Agent" },
     { id: "details", label: "🔍 Details" },
   ];
 
@@ -375,6 +395,142 @@ export default function AppDetailPage() {
               })}
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── Monitoring tab ── */}
+      {activeTab === "monitoring" && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-slate-900">📊 Container monitoring</h2>
+            <div className="flex items-center gap-2">
+              <button onClick={fetchStats}
+                className="text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium">
+                {statsLoading ? "⟳ Loading..." : "📡 Collect"}
+              </button>
+              <button onClick={fetchInspect}
+                className="text-xs px-3 py-1.5 bg-slate-600 hover:bg-slate-700 text-white rounded-lg font-medium">
+                {insp ? "🔄 Refresh" : "🔍 Inspect"}
+              </button>
+            </div>
+          </div>
+
+          {statsData && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+              <div className="bg-slate-50 rounded-xl p-3 text-center">
+                <p className="text-xs text-slate-400 uppercase mb-1">CPU</p>
+                <p className="text-lg font-semibold text-slate-900">{statsData.cpu || "—"}</p>
+              </div>
+              <div className="bg-slate-50 rounded-xl p-3 text-center">
+                <p className="text-xs text-slate-400 uppercase mb-1">RAM</p>
+                <p className="text-lg font-semibold text-slate-900">{statsData.mem || "—"}</p>
+                <p className="text-[10px] text-slate-400">{statsData.memPct ? "(" + statsData.memPct + ")" : ""}</p>
+              </div>
+              <div className="bg-slate-50 rounded-xl p-3 text-center">
+                <p className="text-xs text-slate-400 uppercase mb-1">Disk</p>
+                <p className="text-lg font-semibold text-slate-900">{statsData.disk || "—"}</p>
+              </div>
+              <div className="bg-slate-50 rounded-xl p-3 text-center">
+                <p className="text-xs text-slate-400 uppercase mb-1">Network</p>
+                {insp?.ports ? (
+                  <>
+                    <p className="text-lg font-semibold text-slate-900">Active</p>
+                    {insp.network && <p className="text-[10px] text-slate-400">{insp.network}</p>}
+                  </>
+                ) : <p className="text-lg font-semibold text-slate-900">—</p>}
+              </div>
+            </div>
+          )}
+
+          {insp && insp.status && (
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium text-slate-700">Container info</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-[10px] text-slate-400 uppercase">Health</p>
+                  <p className={"text-sm font-mono font-medium mt-0.5 " + (
+                    insp.health === "healthy" ? "text-emerald-600" :
+                    insp.health === "unhealthy" ? "text-red-600" :
+                    insp.health === "starting" ? "text-amber-600" :
+                    "text-slate-500"
+                  )}>{insp.health || (insp.status === "running" ? "—" : insp.status)}</p>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-[10px] text-slate-400 uppercase">Image</p>
+                  <p className="text-sm font-mono text-slate-900 mt-0.5 truncate">{(insp.image || "").split("/").pop() || "—"}</p>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-[10px] text-slate-400 uppercase">Restart</p>
+                  <p className="text-sm font-mono text-slate-900 mt-0.5">{insp.restartPolicy || "—"}</p>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-[10px] text-slate-400 uppercase">Network</p>
+                  <p className="text-sm font-mono text-slate-900 mt-0.5">{insp.network || "—"}</p>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-[10px] text-slate-400 uppercase">Uptime</p>
+                  <p className="text-sm font-mono text-slate-900 mt-0.5">{insp.uptime || "—"}</p>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-[10px] text-slate-400 uppercase">Ports</p>
+                  <p className="text-sm font-mono text-slate-900 mt-0.5 truncate">{insp.ports || "—"}</p>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-[10px] text-slate-400 uppercase">Volumes</p>
+                  <p className="text-sm font-mono text-slate-900 mt-0.5">{insp.volumes ? insp.volumes.split("|").length : "0"}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!statsData && !insp && (
+            <div className="text-center py-8 text-slate-400">
+              <p>Click "Collect" to fetch live stats, or "Inspect" for container details</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Agent prompts tab ── */}
+      {activeTab === "agent" && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-slate-900">🤖 AI agent prompts</h2>
+            <p className="text-xs text-slate-400">Copy a prompt to give your agent context</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {[
+              {id:"debug",label:"🐛 Debug",desc:"Diagnose issues with this app",
+               prompt:("I need help debugging " + appName + " on server " + (app.server?.name || "my server") + ".\n\nContext:\n- App: " + appName + "\n- Container: " + containerName + "\n- Image: " + (params.image || "unknown") + "\n- Port: " + (params.port || "unknown") + "\n- Domain: " + (params.domain || "none") + "\n- Status: " + status + "\n\nPlease:\n1. SSH into the server and check container logs\n2. Check if the container is running\n3. Check port bindings\n4. Suggest fixes")},
+              {id:"migrate",label:"📦 Migrate",desc:"Move this app to another server",
+               prompt:("I need to migrate " + appName + " to a new server.\n\nCurrent:\n- App: " + appName + "\n- Container: " + containerName + "\n- Image: " + (params.image || "unknown") + "\n- Port: " + (params.port || "unknown") + "\n- Server: " + (app.server?.name || "unknown") + "\n\nPlease generate a migration plan: backup volumes, setup on new server, transfer, restore.")},
+              {id:"update",label:"🔄 Update",desc:"Update to the latest version",
+               prompt:("I need to update " + appName + ".\n\nCurrent:\n- Container: " + containerName + "\n- Image: " + (params.image || "unknown") + "\n- Port: " + (params.port || "unknown") + "\n\nPlease: backup volumes, pull the new image, stop old container, start new one, verify.")},
+              {id:"backup-prompt",label:"💾 Backup",desc:"Full backup of all app data",
+               prompt:("I need to backup " + appName + ".\n\nContainer: " + containerName + "\nPort: " + (params.port || "unknown") + "\n\nPlease: stop the container, backup Docker volumes, restart, verify.")},
+              {id:"ssl",label:"🔒 SSL",desc:"Set up or renew SSL",
+               prompt:("I need SSL for " + appName + ".\n\nDomain: " + (params.domain || "not set") + "\nPort: " + (params.port || "unknown") + "\n\n" + (params.domain ? "Please set up Let's Encrypt: DNS check, certbot, nginx config, auto-renewal." : "I need a domain configured first."))},
+              {id:"config",label:"⚙️ Config",desc:"Modify configuration or env",
+               prompt:("I need to modify the configuration of " + appName + ".\n\nContainer: " + containerName + "\n\nPlease: read current env, update variables or config files, restart container, verify.")},
+              {id:"domain",label:"🌍 Domain",desc:"Add or change the domain",
+               prompt:("I need to configure a domain for " + appName + ".\n\nContainer: " + containerName + "\nPort: " + (params.port || "unknown") + "\n" + (params.domain ? "- Current domain: " + params.domain : "\nPlease: configure DNS A record, set up Nginx/Caddy reverse proxy, enable SSL, verify."))},
+            ].map((agent) => (
+              <div key={agent.id} className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="font-medium text-sm text-slate-900">{agent.label}</p>
+                  <button onClick={() => navigator.clipboard.writeText(agent.prompt).then(() => {/*copied*/}).catch(() => {/*fallback*/})}
+                    className="text-[10px] px-2 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 text-slate-600 font-medium transition-colors">
+                    Copy
+                  </button>
+                </div>
+                <p className="text-xs text-slate-500 mb-2">{agent.desc}</p>
+                <pre className="text-[10px] font-mono text-slate-700 bg-white rounded-lg p-2 max-h-24 overflow-y-auto whitespace-pre-wrap border border-slate-100">
+                  {agent.prompt.slice(0, 200)}{agent.prompt.length > 200 ? "..." : ""}
+                </pre>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
