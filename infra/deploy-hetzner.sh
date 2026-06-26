@@ -54,20 +54,20 @@ pg = "".join(secrets.choice(a) for _ in range(24))
 au = "".join(secrets.choice(a) for _ in range(32))
 p = "/opt/srvly/.env"
 if not os.path.exists(p):
-    with open(p, "w") as f:
-        f.write("DATABASE_URL=postgres://srvly:PASSWORD_PLACEHOLDER@postgres:5432/srvly\n")
-        f.write("POSTGRES_PASSWORD=" + pg + "\n")
-        f.write("AUTH_SECRET=" + au + "\n")
-        f.write("NEXT_PUBLIC_BASE_URL=https://srvly.vellis.cc\n")
-        f.write("NEXT_PUBLIC_APP_URL=https://srvly.vellis.cc\n")
-        f.write("NEXTAUTH_URL=https://srvly.vellis.cc\n")
-        f.write("SSH_KEY_PATH=/app/ssh_keys\n")
-        f.write("AUTH_TRUST_HOST=true\n")
-        f.write("AUTH_GITHUB_ID=\n")
-        f.write("AUTH_GITHUB_SECRET=\n")
-    print(".env created")
+     with open(p, "w") as f:
+          f.write("DATABASE_URL=postgres://srvly:" + pg + "@postgres:5432/srvly\n")
+          f.write("POSTGRES_PASSWORD=" + pg + "\n")
+          f.write("AUTH_SECRET=" + au + "\n")
+          f.write("NEXT_PUBLIC_BASE_URL=https://srvly.vellis.cc\n")
+          f.write("NEXT_PUBLIC_APP_URL=https://srvly.vellis.cc\n")
+          f.write("NEXTAUTH_URL=https://srvly.vellis.cc\n")
+          f.write("SSH_KEY_PATH=/app/ssh_keys\n")
+          f.write("AUTH_TRUST_HOST=true\n")
+          f.write("AUTH_GITHUB_ID=\n")
+          f.write("AUTH_GITHUB_SECRET=\n")
+     print(".env created")
 else:
-    print(".env exists")
+     print(".env exists")
 PYENV
 echo "OK"
 
