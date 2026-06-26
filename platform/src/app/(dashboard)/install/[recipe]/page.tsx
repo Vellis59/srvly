@@ -36,6 +36,7 @@ export default function InstallPage() {
     const finalPort = port || String(defaultPort);
     const hasDomain = domain.trim().length > 0;
     const hasCreds = useCredentials;
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://srvly.app";
 
     let parts: string[] = [];
     parts.push(`Sur srvly, installe **${appName}** sur le serveur **${serverName}** (${serverIp})`);
@@ -50,24 +51,17 @@ export default function InstallPage() {
       parts.push(`avec l'utilisateur **${username}** et le mot de passe **${password}**`);
     }
 
-    const githubUrl = recipeId;
-    const recipeData = (recipe as any).recipe || {};
-    const links = (recipe as any).recipe?.links || [];
-    const ghLink = links?.find?.((l: any) => l.label?.toLowerCase().includes("github"))?.url || "";
+    const ghLink = (recipe as any)?.recipe?.links?.find?.((l: any) => l.label?.toLowerCase().includes("github"))?.url || "";
+    const defaultImage = (recipe as any)?.recipe?.params?.image?.default || recipeId;
 
     let fullPrompt = parts.join(" ") + ".\n\n";
-
-    fullPrompt += "Informations complémentaires :\n";
-    fullPrompt += `- Image Docker recommandée : \`${(recipeData as any)?.params?.image?.default || recipeId}\`\n`;
-    fullPrompt += `- Port par défaut : ${defaultPort}\n`;
-    if (ghLink) fullPrompt += `- Documentation : ${ghLink}\n`;
-    fullPrompt += `- IP du serveur : ${serverIp}\n`;
-
-    if (hasDomain) {
-      fullPrompt += `\nConfigure le domaine ${domain.trim()} pointant vers le port ${finalPort}, avec SSL si possible.`;
-    }
-
-    fullPrompt += `\n\nTu trouveras les instructions d'installation sur le GitHub de l'application. Consulte la doc, vérifie les prérequis, installe via Docker, configure le domaine si nécessaire, et confirme une fois terminé.`;
+    fullPrompt += "Use the API :\n";
+    fullPrompt += `POST ${baseUrl}/api/agent/docker/deploy\n`;
+    fullPrompt += `Body: { "serverId": "${selectedServer}", "name": "${appName}", "image": "${defaultImage}", "port": ${finalPort}`;
+    if (hasDomain) fullPrompt += `, "domain": "${domain.trim()}"`;
+    fullPrompt += ` }\n\n`;
+    fullPrompt += `Le token s envoie dans le header: Authorization: Bearer ***\n\n`;
+    fullPrompt += `Consulte la doc GitHub : ${ghLink || "https://github.com"} pour les variables d environnement specifiques si besoin.`;
 
     return fullPrompt;
   }, [recipe, recipeId, selectedServer, selectedServerData, domain, port, defaultPort, username, password, useCredentials]);
@@ -78,8 +72,8 @@ export default function InstallPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (isLoading) return <div className="text-slate-400 py-8">Chargement...</div>;
-  if (!recipe) return <div className="text-slate-500 py-8">Application introuvable</div>;
+  if (isLoading) return <div className="text-slate-400 py-8">Loading...</div>;
+  if (!recipe) return <div className="text-slate-500 py-8">Application not found</div>;
 
   const recipeData = (recipe as any).recipe || {};
 
@@ -88,7 +82,7 @@ export default function InstallPage() {
       {/* Header */}
       <div className="mb-6">
         <button onClick={() => router.push("/catalog")} className="text-sm text-emerald-600 hover:text-emerald-700 mb-2 block">
-          ← Retour au catalogue
+          ← Back to catalog
         </button>
         <h1 className="text-2xl font-bold text-slate-900">{recipe.name}</h1>
         <p className="text-sm text-slate-500 mt-1">{recipe.description?.slice(0, 200)}</p>
@@ -96,14 +90,14 @@ export default function InstallPage() {
 
       {/* Form */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6 space-y-5">
-        <h2 className="font-semibold text-slate-900">Paramètres d'installation</h2>
+        <h2 className="font-semibold text-slate-900">Installation parameters</h2>
 
         {/* Server */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">🖥️ Serveur</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Server</label>
           {servers?.filter((s) => s.status === "connected").length === 0 ? (
             <div className="bg-amber-50 text-amber-700 text-sm p-3 rounded-xl border border-amber-200">
-              Aucun serveur connecté. <a href="/servers" className="underline">Ajoutez-en un d'abord.</a>
+              No connected servers. <a href="/servers" className="underline">Add one first.</a>
             </div>
           ) : (
             <select
@@ -111,7 +105,7 @@ export default function InstallPage() {
               onChange={(e) => setSelectedServer(e.target.value)}
               className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
             >
-              <option value="">Sélectionner un serveur...</option>
+              <option value="">Select a server...</option>
               {servers?.filter((s) => s.status === "connected").map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name} ({s.ip})
@@ -121,26 +115,22 @@ export default function InstallPage() {
           )}
         </div>
 
-        {/* Domain / NDD */}
+        {/* Domain */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            🌐 Domaine (optionnel)
-          </label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Domain (optional)</label>
           <input
             type="text"
             value={domain}
             onChange={(e) => setDomain(e.target.value)}
-            placeholder={`${selectedServerData?.ip || "ip"}:${port || defaultPort} (par défaut)`}
+            placeholder={`${selectedServerData?.ip || "ip"}:${port || defaultPort} (default)`}
             className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
-          <p className="text-xs text-slate-400 mt-1">
-            Laisse vide pour utiliser l'IP et le port directement.
-          </p>
+          <p className="text-xs text-slate-400 mt-1">Leave empty to use IP and port directly.</p>
         </div>
 
         {/* Port */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">🔌 Port</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Port</label>
           <input
             type="number"
             value={port}
@@ -148,9 +138,7 @@ export default function InstallPage() {
             placeholder={String(defaultPort)}
             className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
-          <p className="text-xs text-slate-400 mt-1">
-            Par défaut : {defaultPort}. Laisse vide pour utiliser le port par défaut.
-          </p>
+          <p className="text-xs text-slate-400 mt-1">Default: {defaultPort}. Leave empty to use the default port.</p>
         </div>
 
         {/* Credentials toggle */}
@@ -163,14 +151,14 @@ export default function InstallPage() {
             className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500"
           />
           <label htmlFor="useCreds" className="text-sm font-medium text-slate-700">
-            🔑 Définir un utilisateur / mot de passe (optionnel)
+            Set a username / password (optional)
           </label>
         </div>
 
         {useCredentials && (
           <div className="grid grid-cols-2 gap-4 pl-6">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Utilisateur</label>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Username</label>
               <input
                 type="text"
                 value={username}
@@ -179,7 +167,7 @@ export default function InstallPage() {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Mot de passe</label>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Password</label>
               <input
                 type="text"
                 value={password}
@@ -193,7 +181,7 @@ export default function InstallPage() {
         {/* Links */}
         {(recipeData as any)?.links?.length > 0 && (
           <div className="text-xs text-slate-400">
-            Liens utiles :{" "}
+            Useful links:{" "}
             {(recipeData as any).links.map((l: any, i: number) => (
               <a key={i} href={l.url} target="_blank" className="text-emerald-600 hover:underline ml-2">
                 {l.label || l.url}
@@ -207,12 +195,12 @@ export default function InstallPage() {
       {prompt && (
         <div className="bg-slate-900 rounded-2xl p-5 mb-6">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-slate-200">📋 Prompt à copier pour l'agent</h3>
+            <h3 className="text-sm font-semibold text-slate-200">Prompt to copy for your agent</h3>
             <button
               onClick={copyPrompt}
               className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-medium hover:bg-emerald-700 transition-colors"
             >
-              {copied ? "✓ Copié !" : "Copier"}
+              {copied ? "Copied!" : "Copy"}
             </button>
           </div>
           <pre className="text-sm font-mono text-slate-100 whitespace-pre-wrap break-words leading-relaxed">
@@ -226,7 +214,7 @@ export default function InstallPage() {
         <div className="bg-slate-50 rounded-2xl p-8 text-center border border-dashed border-slate-200">
           <p className="text-3xl mb-2">👆</p>
           <p className="text-sm text-slate-500">
-            Sélectionne un serveur pour générer le prompt d'installation.
+            Select a server to generate the installation prompt.
           </p>
         </div>
       )}

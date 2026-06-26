@@ -6,61 +6,61 @@ import { useSession } from "next-auth/react";
 import { useState, useMemo } from "react";
 
 const CATEGORY_MAP: Record<string, string> = {
-  "developer-tools": "Développement",
-  "project-management": "Gestion de projet",
-  "self-hosted": "Auto-hébergement",
-  privacy: "Confidentialité",
-  security: "Sécurité",
-  media: "Média",
-  "music-streaming": "Musique",
+  "developer-tools": "Development",
+  "project-management": "Project Management",
+  "self-hosted": "Self-Hosted",
+  privacy: "Privacy",
+  security: "Security",
+  media: "Media",
+  "music-streaming": "Music",
   finance: "Finance",
-  databases: "Bases de données",
+  databases: "Databases",
   monitoring: "Monitoring",
-  analytics: "Analytique",
-  automation: "Automatisation",
-  cms: "CMS / Sites",
-  messaging: "Messagerie",
+  analytics: "Analytics",
+  automation: "Automation",
+  cms: "CMS / Websites",
+  messaging: "Messaging",
   collaboration: "Collaboration",
-  "file-management": "Fichiers",
-  "file-sharing": "Partage",
+  "file-management": "Files",
+  "file-sharing": "Sharing",
   "photo-gallery": "Photos",
-  bookmark: "Liens",
+  bookmark: "Links",
   wiki: "Wiki",
   forum: "Forum",
   "ci/cd": "CI/CD",
   docker: "Docker",
   "no-code": "No-Code",
-  "large-language-models": "IA / LLM",
-  ai: "IA",
-  "ai-chat": "IA / Chat",
+  "large-language-models": "AI / LLM",
+  ai: "AI",
+  "ai-chat": "AI / Chat",
   iot: "IoT",
-  gaming: "Jeux",
-  backup: "Sauvegarde",
-  networking: "Réseau",
+  gaming: "Gaming",
+  backup: "Backup",
+  networking: "Networking",
   "reverse-proxy": "Reverse Proxy",
-  "url-shortener": "Raccourcisseur",
+  "url-shortener": "URL Shortener",
   pastebin: "Pastebin",
-  "search-engine": "Moteur de recherche",
-  "time-tracking": "Temps",
+  "search-engine": "Search Engine",
+  "time-tracking": "Time Tracking",
 };
 
 function getBroadCategory(cat: string | null): string {
-  if (!cat) return "Autre";
+  if (!cat) return "Other";
   const lower = cat.toLowerCase();
-  if (lower.includes("dev") || lower.includes("code") || lower.includes("tool")) return "Développement";
-  if (lower.includes("media") || lower.includes("music") || lower.includes("video") || lower.includes("photo") || lower.includes("image")) return "Média";
-  if (lower.includes("data") || lower.includes("sql") || lower.includes("db")) return "Bases de données";
+  if (lower.includes("dev") || lower.includes("code") || lower.includes("tool")) return "Development";
+  if (lower.includes("media") || lower.includes("music") || lower.includes("video") || lower.includes("photo") || lower.includes("image")) return "Media";
+  if (lower.includes("data") || lower.includes("sql") || lower.includes("db")) return "Databases";
   if (lower.includes("monitor") || lower.includes("analytics") || lower.includes("metric")) return "Monitoring";
-  if (lower.includes("security") || lower.includes("privacy") || lower.includes("auth") || lower.includes("vpn")) return "Sécurité";
+  if (lower.includes("security") || lower.includes("privacy") || lower.includes("auth") || lower.includes("vpn")) return "Security";
   if (lower.includes("finance") || lower.includes("account") || lower.includes("budget")) return "Finance";
   if (lower.includes("cms") || lower.includes("blog") || lower.includes("wiki") || lower.includes("forum")) return "CMS / Communication";
-  if (lower.includes("file") || lower.includes("storage") || lower.includes("backup") || lower.includes("sync")) return "Fichiers / Stockage";
-  if (lower.includes("automation") || lower.includes("workflow") || lower.includes("ci/")) return "Automatisation";
+  if (lower.includes("file") || lower.includes("storage") || lower.includes("backup") || lower.includes("sync")) return "Files / Storage";
+  if (lower.includes("automation") || lower.includes("workflow") || lower.includes("ci/")) return "Automation";
   if (lower.includes("docker") || lower.includes("container")) return "Docker / Infra";
-  if (lower.includes("ai") || lower.includes("llm") || lower.includes("chat")) return "IA / LLM";
-  if (lower.includes("mail") || lower.includes("email") || lower.includes("message")) return "Email / Messagerie";
-  if (lower.includes("note") || lower.includes("bookmark") || lower.includes("link")) return "Notes / Liens";
-  return CATEGORY_MAP[lower] || "Autre";
+  if (lower.includes("ai") || lower.includes("llm") || lower.includes("chat")) return "AI / LLM";
+  if (lower.includes("mail") || lower.includes("email") || lower.includes("message")) return "Email / Messaging";
+  if (lower.includes("note") || lower.includes("bookmark") || lower.includes("link")) return "Notes / Links";
+  return CATEGORY_MAP[lower] || "Other";
 }
 
 export default function CatalogPage() {
@@ -95,17 +95,17 @@ export default function CatalogPage() {
       {/* Header + Search */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-900 mb-1">
-          Catalogue d'applications
+          Application Catalog
         </h1>
         <p className="text-sm text-slate-500 mb-4">
-          {recipes?.length || 0} apps disponibles — Cherchez et installez en 1 clic
+          {recipes?.length || 0} apps available — Search and install
         </p>
         <div className="relative">
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher une app (Nextcloud, Nginx, Vaultwarden...)"
+            placeholder="Search for an app (Nextcloud, Nginx, Vaultwarden...)"
             className="w-full px-5 py-3.5 pl-12 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm"
           />
           <svg className="absolute left-4 top-4 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -115,15 +115,15 @@ export default function CatalogPage() {
       </div>
 
       {isLoading ? (
-        <div className="text-slate-400 py-8 text-center">Chargement...</div>
+        <div className="text-slate-400 py-8 text-center">Loading...</div>
       ) : filtered.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 text-center border border-slate-200">
           <p className="text-5xl mb-4">🔍</p>
           <h2 className="text-lg font-semibold text-slate-700 mb-2">
-            Aucun résultat
+            No results
           </h2>
           <p className="text-sm text-slate-500">
-            Essaie un autre mot-clé
+            Try a different keyword
           </p>
         </div>
       ) : (

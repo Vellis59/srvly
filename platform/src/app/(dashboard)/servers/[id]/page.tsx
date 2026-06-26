@@ -4,11 +4,10 @@ import { trpc } from "@/lib/trpc";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
-// Action recipes: commandes exécutées via SSH
 const ACTIONS: Record<string, { label: string; desc: string; icon: string; script: string; color: string }> = {
   security: {
-    label: "Sécuriser le serveur",
-    desc: "Firewall UFW, SSH hardening, fail2ban",
+    label: "Secure server",
+    desc: "UFW firewall, SSH hardening, fail2ban",
     icon: "🛡️",
     color: "bg-blue-500",
     script: `apt-get update -qq && apt-get install -y -qq ufw fail2ban 2>/dev/null
@@ -27,7 +26,7 @@ systemctl restart sshd
 echo "SECURITY DONE"`,
   },
   docker: {
-    label: "Installer Docker",
+    label: "Install Docker",
     desc: "Docker Engine + Docker Compose",
     icon: "🐳",
     color: "bg-sky-500",
@@ -39,8 +38,8 @@ docker compose version
 echo "DOCKER DONE"`,
   },
   nginx: {
-    label: "Installer Nginx",
-    desc: "Nginx + configuration de base",
+    label: "Install Nginx",
+    desc: "Nginx + basic configuration",
     icon: "🌐",
     color: "bg-emerald-500",
     script: `apt-get update -qq && apt-get install -y -qq nginx
@@ -58,13 +57,13 @@ nginx -t && systemctl reload nginx
 echo "NGINX DONE"`,
   },
   ssl: {
-    label: "Configurer SSL",
+    label: "Configure SSL",
     desc: "Certbot + Let's Encrypt",
     icon: "🔒",
     color: "bg-purple-500",
     script: `apt-get update -qq && apt-get install -y -qq certbot python3-certbot-nginx
 echo "SSL TOOLING INSTALLED"
-echo "Run: certbot --nginx -d votre-domaine.com"`,
+echo "Run: certbot --nginx -d your-domain.com"`,
   },
 };
 
@@ -99,7 +98,7 @@ function ActionCard({ action, onRun, loading }: {
 export default function ServerDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data: server, isLoading, refetch } = trpc.server.get.useQuery({ id });
-  const execute = trpc.server.execute.useMutation();
+  const executeMut = trpc.server.execute.useMutation();
   const testConnection = trpc.server.testConnection.useMutation();
   const [running, setRunning] = useState<string | null>(null);
   const [results, setResults] = useState<Record<string, string>>({});
@@ -108,30 +107,25 @@ export default function ServerDetailPage() {
 
   const runAction = async (action: keyof typeof ACTIONS) => {
     setRunning(action);
-    setResults((prev) => ({ ...prev, [action]: "Exécution en cours..." }));
+    setResults((prev) => ({ ...prev, [action]: "Running..." }));
 
     try {
-      const result = await execute.mutateAsync({
-        id,
-        script: ACTIONS[action].script,
-        timeout: 120,
-      });
+      const result = await executeMut.mutateAsync({ id, script: ACTIONS[action].script, timeout: 120 });
       if (result.success) {
-        setResults((prev) => ({ ...prev, [action]: result.output || "✅ Terminé" }));
+        setResults((prev) => ({ ...prev, [action]: result.output || "Done" }));
       } else {
-        setResults((prev) => ({ ...prev, [action]: `❌ Erreur: ${((result as any).error) || result.output || "inconnue"}` }));
+        setResults((prev) => ({ ...prev, [action]: `Error: ${((result as any).error) || result.output || "unknown"}` }));
       }
     } catch (err: any) {
-      setResults((prev) => ({ ...prev, [action]: `❌ Erreur de connexion: ${err.message}` }));
+      setResults((prev) => ({ ...prev, [action]: `Connection error: ${err.message}` }));
     }
-
     setRunning(null);
   };
 
   const router = useRouter();
   const deleteServer = trpc.server.delete.useMutation({
     onSuccess: () => router.push("/servers"),
-    onError: (err) => alert("Erreur: " + err.message),
+    onError: (err) => alert("Error: " + err.message),
   });
 
   const detectServer = async () => {
@@ -143,8 +137,8 @@ export default function ServerDetailPage() {
     setScanning(false);
   };
 
-  if (isLoading) return <div className="text-slate-400">Chargement...</div>;
-  if (!server) return <div className="text-slate-500">Serveur introuvable</div>;
+  if (isLoading) return <div className="text-slate-400">Loading...</div>;
+  if (!server) return <div className="text-slate-500">Server not found</div>;
 
   const sysInfo = (server.systemInfo || {}) as Record<string, any>;
 
@@ -155,10 +149,10 @@ export default function ServerDetailPage() {
     error: "bg-red-500",
   };
   const statusLabels: Record<string, string> = {
-    pending: "En attente",
-    connected: "Connecté",
-    disconnected: "Déconnecté",
-    error: "Erreur",
+    pending: "Pending",
+    connected: "Connected",
+    disconnected: "Disconnected",
+    error: "Error",
   };
 
   return (
@@ -176,15 +170,13 @@ export default function ServerDetailPage() {
         </div>
         <p className="text-sm text-slate-500 font-mono">{server.ip}</p>
         {deleteServer.isPending ? (
-          <p className="text-sm text-red-500 mt-2">Suppression en cours...</p>
+          <p className="text-sm text-red-500 mt-2">Deleting...</p>
         ) : (
           <button
-            onClick={() => {
-              if (confirm("Supprimer ce serveur ?")) deleteServer.mutate({ id: server.id });
-            }}
+            onClick={() => { if (confirm("Delete this server?")) deleteServer.mutate({ id: server.id }); }}
             className="text-sm text-red-500 hover:text-red-700 mt-2 transition-colors"
           >
-            Supprimer ce serveur
+            Delete this server
           </button>
         )}
       </div>
@@ -193,11 +185,11 @@ export default function ServerDetailPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-white rounded-xl border border-slate-200 p-4 relative">
           <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">OS</p>
-          <p className="text-sm font-medium">{server.os || "Non détecté"}</p>
+          <p className="text-sm font-medium">{server.os || "Not detected"}</p>
           {!server.os && (
             <button onClick={detectServer} disabled={scanning}
               className="absolute top-2 right-2 text-xs text-emerald-600 hover:text-emerald-800">
-              {scanning ? "..." : "🔄 Détecter"}
+              {scanning ? "..." : "Detect"}
             </button>
           )}
         </div>
@@ -205,56 +197,56 @@ export default function ServerDetailPage() {
           <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">RAM</p>
           <p className="text-sm font-medium">
             {sysInfo.ramUsed
-              ? `${(sysInfo.ramUsed / 1024).toFixed(1)} / ${(sysInfo.ramTotal / 1024).toFixed(1)} Go`
+              ? `${(sysInfo.ramUsed / 1024).toFixed(1)} / ${(sysInfo.ramTotal / 1024).toFixed(1)} GB`
               : server.ram
-                ? `${(server.ram / 1024).toFixed(1)} Go`
-                : "Non détecté"}
+                ? `${(server.ram / 1024).toFixed(1)} GB`
+                : "Not detected"}
           </p>
           {sysInfo.ramUsed && (
             <p className="text-xs text-slate-400 mt-0.5">
-              Libre: {(sysInfo.ramAvailable / 1024).toFixed(1)} Go
+              Free: {(sysInfo.ramAvailable / 1024).toFixed(1)} GB
             </p>
           )}
           {!server.ram && (
             <button onClick={detectServer} disabled={scanning}
               className="absolute top-2 right-2 text-xs text-emerald-600 hover:text-emerald-800">
-              {scanning ? "..." : "🔄 Détecter"}
+              {scanning ? "..." : "Detect"}
             </button>
           )}
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-4 relative">
-          <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Disque</p>
+          <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Disk</p>
           <p className="text-sm font-medium">
             {sysInfo.diskTotal
-              ? `${sysInfo.diskUsed} / ${sysInfo.diskTotal} Go`
-              : "Non détecté"}
+              ? `${sysInfo.diskUsed} / ${sysInfo.diskTotal} GB`
+              : "Not detected"}
           </p>
           {sysInfo.diskTotal && (
             <p className="text-xs text-slate-400 mt-0.5">
-              Libre: {sysInfo.diskAvailable} Go
+              Free: {sysInfo.diskAvailable} GB
             </p>
           )}
           {!sysInfo.diskTotal && (
             <button onClick={detectServer} disabled={scanning}
               className="absolute top-2 right-2 text-xs text-emerald-600 hover:text-emerald-800">
-              {scanning ? "..." : "🔄 Détecter"}
+              {scanning ? "..." : "Detect"}
             </button>
           )}
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-4">
           <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Uptime</p>
-          <p className="text-sm font-medium">{sysInfo.uptime || "\u2014"}</p>
+          <p className="text-sm font-medium">{sysInfo.uptime || "—"}</p>
         </div>
       </div>
 
-      {/* Actions grid */}
+      {/* Actions */}
       {server.status === "connected" && (
         <>
           <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-2xl p-6 mb-6 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-bold mb-1">⚡ Configurer automatiquement</h2>
-                <p className="text-sm text-emerald-100">Sécurité → Docker → Nginx → SSL en une seule commande</p>
+                <h2 className="text-lg font-bold mb-1">Configure automatically</h2>
+                <p className="text-sm text-emerald-100">Security → Docker → Nginx → SSL in one command</p>
               </div>
               <button onClick={() => {
                 const steps = ["security", "docker", "nginx", "ssl"];
@@ -264,12 +256,12 @@ export default function ServerDetailPage() {
                 }, Promise.resolve());
               }}
                 className="px-6 py-3 bg-white text-emerald-700 rounded-xl font-semibold hover:bg-emerald-50 transition-colors">
-                {running ? "En cours..." : "Configurer"}
+                {running ? "Running..." : "Configure"}
               </button>
             </div>
           </div>
 
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">Actions disponibles</h2>
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">Available actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
             {(Object.keys(ACTIONS) as Array<keyof typeof ACTIONS>).map((action) => (
               <ActionCard
@@ -281,10 +273,9 @@ export default function ServerDetailPage() {
             ))}
           </div>
 
-          {/* Results */}
           {Object.entries(results).length > 0 && (
             <div className="space-y-4 mb-8">
-              <h2 className="text-lg font-semibold text-slate-900">Résultats</h2>
+              <h2 className="text-lg font-semibold text-slate-900">Results</h2>
               {Object.entries(results).map(([action, output]) => (
                 <div key={action} className="bg-slate-900 rounded-2xl p-4">
                   <div className="flex items-center gap-2 mb-2">
@@ -300,10 +291,7 @@ export default function ServerDetailPage() {
             </div>
           )}
 
-          {/* Installed apps */}
           <InstalledApps serverId={server.id} />
-
-          {/* Domain section */}
           <DomainSection serverId={server.id} />
         </>
       )}
@@ -312,14 +300,14 @@ export default function ServerDetailPage() {
       {server.status !== "connected" && (
         <div className="bg-amber-50 rounded-2xl p-8 text-center border border-amber-200">
           <p className="text-4xl mb-3">🔑</p>
-          <h2 className="text-lg font-semibold text-amber-800 mb-1">Serveur en attente</h2>
+          <h2 className="text-lg font-semibold text-amber-800 mb-1">Server pending</h2>
           <p className="text-sm text-amber-600 mb-4">
-            Ajoute la clé publique SSH à ton serveur pour activer les actions.
+            Add the SSH public key to your server to enable actions.
           </p>
 
           <div className="max-w-xl mx-auto text-left bg-white rounded-xl p-4 border border-amber-200 mb-4">
             <p className="text-xs font-medium text-slate-500 mb-2 uppercase tracking-wide">
-              Commande à exécuter sur ton serveur
+              Command to run on your server
             </p>
             <pre className="text-xs font-mono bg-slate-900 text-slate-100 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap break-all">
 {`echo '${server.sshPublicKey || "..."}' >> /root/.ssh/authorized_keys
@@ -335,17 +323,17 @@ chmod 600 /root/.ssh/authorized_keys`}
                 if (result.success) {
                   refetch();
                 } else {
-                  alert("❌ " + ((result as any).error || "Connexion échouée"));
+                  alert("Failed: " + ((result as any).error || "Connection failed"));
                 }
               } catch (err: any) {
-                alert("❌ " + err.message);
+                alert("Error: " + err.message);
               }
               setTesting(false);
             }}
             disabled={testing}
             className="px-6 py-3 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 transition-colors"
           >
-            {testing ? "🔌 Test en cours..." : "🔌 Tester la connexion"}
+            {testing ? "Testing..." : "Test connection"}
           </button>
         </div>
       )}
@@ -368,60 +356,54 @@ function DomainSection({ serverId }: { serverId: string }) {
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-6">
-      <h2 className="font-semibold text-slate-900 mb-2">🌐 Domaines</h2>
+      <h2 className="font-semibold text-slate-900 mb-2">Domains</h2>
       <p className="text-sm text-slate-500 mb-4">
-        Ajoutez un domaine personnalisé pointant vers une app installée (Nginx reverse proxy automatique).
+        Add a custom domain pointing to an installed app (automatic Nginx reverse proxy).
       </p>
 
-      {/* List */}
       {domains && domains.length > 0 && (
         <div className="space-y-2 mb-4">
           {domains.map((d) => (
             <DomainItem
               key={d.id}
               domain={d}
-              onDelete={() => { if (confirm("Supprimer " + d.name + " ?")) deleteDomain.mutate({ id: d.id }); }}
+              onDelete={() => { if (confirm("Delete " + d.name + " ?")) deleteDomain.mutate({ id: d.id }); }}
             />
           ))}
         </div>
       )}
 
-      {/* Add form */}
       <div className="flex flex-col md:flex-row gap-3">
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="app.mondomaine.com"
+          placeholder="app.yourdomain.com"
           className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
         />
         <input
           type="number"
           value={port}
           onChange={(e) => setPort(e.target.value)}
-          placeholder="port cible (80, 3000...)"
+          placeholder="target port (80, 3000...)"
           className="w-full md:w-48 px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
         />
         <button
           onClick={() => {
             if (!name) return;
-            addDomain.mutate({
-              serverId,
-              name,
-              targetPort: port ? parseInt(port) : undefined,
-            });
+            addDomain.mutate({ serverId, name, targetPort: port ? parseInt(port) : undefined });
             setName("");
             setPort("");
           }}
           disabled={addDomain.isPending}
           className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 transition-colors"
         >
-          {addDomain.isPending ? "Ajout..." : "Ajouter"}
+          {addDomain.isPending ? "Adding..." : "Add"}
         </button>
       </div>
 
       <p className="text-xs text-slate-400 mt-3">
-        Configurez votre DNS (A record) pour pointer vers l'IP du serveur avant que le SSL puisse être activé.
+        Configure your DNS (A record) to point to the server IP before SSL can be enabled.
       </p>
     </div>
   );
@@ -432,9 +414,9 @@ function DomainItem({ domain, onDelete }: { domain: any; onDelete: () => void })
   const [loading, setLoading] = useState(false);
 
   const enableSsl = async () => {
-    if (!confirm("Activer SSL sur " + domain.name + " ? (Votre DNS doit pointer vers le serveur)")) return;
+    if (!confirm("Enable SSL on " + domain.name + "? (Your DNS must point to the server)")) return;
     setLoading(true);
-    setStatus("Vérification DNS + génération du certificat...");
+    setStatus("DNS check + certificate generation...");
 
     try {
       const res = await fetch("/api/domains/enable-ssl", {
@@ -444,14 +426,13 @@ function DomainItem({ domain, onDelete }: { domain: any; onDelete: () => void })
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        setStatus("✅ " + data.message + " → " + data.url);
+        setStatus("SSL active → " + data.url);
         setTimeout(() => window.location.reload(), 1500);
       } else {
-        const detail = data.detail || data.error || "inconnue";
-        setStatus("❌ " + (data.error || "Erreur") + " : " + detail);
+        setStatus("Error: " + (data.detail || data.error || "unknown"));
       }
     } catch (err: any) {
-      setStatus("❌ " + err.message);
+      setStatus("Error: " + err.message);
     }
     setLoading(false);
   };
@@ -473,19 +454,14 @@ function DomainItem({ domain, onDelete }: { domain: any; onDelete: () => void })
             disabled={loading}
             className="text-sm bg-emerald-50 text-emerald-700 px-3 py-1 rounded-lg hover:bg-emerald-100 disabled:opacity-50"
           >
-            {loading ? "..." : "🔒 Activer SSL"}
+            {loading ? "..." : "Enable SSL"}
           </button>
         )}
-        <button
-          onClick={onDelete}
-          className="text-sm text-red-500 hover:text-red-700"
-        >
-          Supprimer
+        <button onClick={onDelete} className="text-sm text-red-500 hover:text-red-700">
+          Delete
         </button>
       </div>
-      {status && (
-        <p className="text-xs mt-2 text-slate-600 break-words">{status}</p>
-      )}
+      {status && <p className="text-xs mt-2 text-slate-600 break-words">{status}</p>}
     </div>
   );
 }
@@ -513,9 +489,9 @@ function InstalledApps({ serverId }: { serverId: string }) {
     setActionOutput((prev) => ({ ...prev, [`${id}-${action}`]: "..." }));
     try {
       const result = await fn.mutateAsync({ id });
-      setActionOutput((prev) => ({ ...prev, [`${id}-${action}`]: result.output || result.message || "✅" }));
+      setActionOutput((prev) => ({ ...prev, [`${id}-${action}`]: result.output || result.message || "Done" }));
     } catch (err: any) {
-      setActionOutput((prev) => ({ ...prev, [`${id}-${action}`]: `❌ ${err.message}` }));
+      setActionOutput((prev) => ({ ...prev, [`${id}-${action}`]: `Error: ${err.message}` }));
     }
   };
 
@@ -523,10 +499,10 @@ function InstalledApps({ serverId }: { serverId: string }) {
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
-      <h2 className="font-semibold text-slate-900 mb-4">📦 Apps installées</h2>
+      <h2 className="font-semibold text-slate-900 mb-4">Installed apps</h2>
       {apps.length === 0 ? (
         <div className="text-sm text-slate-500 text-center py-6 border-2 border-dashed border-slate-200 rounded-xl">
-          Aucune installation. Lancez une app depuis l'assistant IA.
+          No installations. Launch an app via the AI assistant.
         </div>
       ) : (
         <div className="space-y-3">
@@ -549,15 +525,15 @@ function InstalledApps({ serverId }: { serverId: string }) {
                     <p className="text-xs text-slate-500">
                       {params.port && `Port ${params.port}`}
                       {params.domain && ` • ${params.domain}`}
-                      {!params.port && !params.domain && `Statut: ${status}`}
+                      {!params.port && !params.domain && `Status: ${status}`}
                     </p>
                   </div>
                   <div className="flex gap-1">
                     <button onClick={() => runAction(item.id, "logs", getLogs)}
-                      className="text-xs bg-slate-200 hover:bg-slate-300 px-2 py-1 rounded-lg">📋 Logs</button>
+                      className="text-xs bg-slate-200 hover:bg-slate-300 px-2 py-1 rounded-lg">Logs</button>
                     <button onClick={() => runAction(item.id, "restart", restartApp)}
                       disabled={restartApp.isPending}
-                      className="text-xs bg-amber-100 hover:bg-amber-200 text-amber-700 px-2 py-1 rounded-lg">🔄</button>
+                      className="text-xs bg-amber-100 hover:bg-amber-200 text-amber-700 px-2 py-1 rounded-lg">↻</button>
                     {status !== "stopped" ? (
                       <button onClick={() => runAction(item.id, "stop", stopApp)}
                         disabled={stopApp.isPending}
@@ -568,8 +544,8 @@ function InstalledApps({ serverId }: { serverId: string }) {
                         className="text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-700 px-2 py-1 rounded-lg">▶</button>
                     )}
                     <button onClick={() => runAction(item.id, "env", getEnv)}
-                      className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded-lg">🔑 .env</button>
-                    <button onClick={() => { if (confirm("Désinstaller ?")) deleteApp.mutate({ id: item.id }); }}
+                      className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded-lg">.env</button>
+                    <button onClick={() => { if (confirm("Uninstall?")) deleteApp.mutate({ id: item.id }); }}
                       disabled={deleteApp.isPending}
                       className="text-xs text-red-500 hover:text-red-700 px-2 py-1">✕</button>
                   </div>
