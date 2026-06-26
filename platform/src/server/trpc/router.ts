@@ -2064,11 +2064,15 @@ export const backupRouter = router({
       const params = (row.installation.params as any) || {};
       const appName = params.name || row.installation.recipeId || "app";
       const containerName = params.containerName || params.name || row.installation.recipeId;
+      const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+      const safeApp = appName.replace(/[^a-zA-Z0-9_.-]/g, "-");
 
       // Inspect container to find its volumes
+      // Returns entries like "type|name|source|dest" for each mount
+      // type: 'volume' (named Docker volume) or 'bind' (host directory mount)
       const inspectResult = await executeOnServer(
         row.server.id,
-        `docker inspect ${containerName} --format '{{range .Mounts}}{{.Name}}|{{end}}' 2>&1 || echo INSPECT_FAILED`,
+        `docker inspect ${containerName} --format '{{range .Mounts}}{{.Type}}|{{.Name}}|{{.Source}}|{{end}}' 2>&1 || echo INSPECT_FAILED`,
         30,
       );
 
@@ -2076,32 +2080,69 @@ export const backupRouter = router({
         return { success: false, error: `Cannot inspect container "${containerName}" — make sure SSH and Docker are working.` };
       }
 
-      const volumeList = (inspectResult.output || "")
+      const mounts = (inspectResult.output || "")
         .replace("INSPECT_FAILED", "")
         .trim()
-        .split("|")
-        .filter((v: string) => v && v.length > 0);
+        .split("\n")
+        .filter((m: string) => m && m.length > 0);
 
-      if (volumeList.length === 0) {
-        return { success: false, error: `Container "${containerName}" has no named volumes to backup.` };
+      if (mounts.length === 0) {
+        return { success: false, error: `Container "${containerName}" has no mount points to backup.` };
       }
 
-      // Create backup record per volume with app name
-      const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-      const safeApp = appName.replace(/[^a-zA-Z0-9_.-]/g, "-");
+      // Build the list of backups: each named volume OR each bind mount source
+      const backupTargets: { filename: string; script: string; type: string }[] = [];
+      for (const line of mounts) {
+        const [type, name, source] = line.split("|");
+        if (!source) continue;
+
+        if (type === "volume" && name) {
+          // Named volume — use docker run helper
+          const safe = (name.length > 40 ? name.slice(0, 40) : name);
+          const filename = `${safeApp}-vol-${safe}-${ts}.tar.gz`;
+          backupTargets.push({
+            filename,
+            type: "volume",
+            script: [
+              `mkdir -p ${BACKUP_DIR}`,
+              `docker run --rm -v ${name}:/volume -v ${BACKUP_DIR}:/backup alpine sh -c "tar czf /backup/${filename} -C /volume ."`,
+              `ls -lh ${BACKUP_DIR}/${filename}`,
+              `stat -c '%s' ${BACKUP_DIR}/${filename}`,
+            ].join("\n"),
+          });
+        } else if (type === "bind") {
+          // Bind mount — tar the host directory directly
+          const safe = (source.replace(/\//g, "_").slice(0, 40).replace(/^_+|_+$/g, "")) || "data";
+          const filename = `${safeApp}-bind-${safe}-${ts}.tar.gz`;
+          backupTargets.push({
+            filename,
+            type: "bind",
+            script: [
+              `mkdir -p ${BACKUP_DIR}`,
+              `test -e "${source}" && tar czf ${BACKUP_DIR}/${filename} -C "${source}" . || echo "MISSING"`,
+              `ls -lh ${BACKUP_DIR}/${filename} 2>/dev/null`,
+              `stat -c '%s' ${BACKUP_DIR}/${filename} 2>/dev/null`,
+            ].join("\n"),
+          });
+        }
+      }
+
+      if (backupTargets.length === 0) {
+        return { success: false, error: `Container "${containerName}" has no backupable mounts (named volume or bind mount).` };
+      }
+
+      // Create backup record per mount
       const createdBackups: any[] = [];
 
-      for (const volume of volumeList) {
-        const filename = `${safeApp}-${volume.slice(0, 40)}-${ts}.tar.gz`;
-
+      for (const target of backupTargets) {
         const [backupRow] = await ctx.db
           .insert(backups)
           .values({
             serverId: row.server.id,
             userId: ctx.user.id!,
             type: "volume",
-            targetName: volume,
-            filename,
+            targetName: target.filename.replace(/-\d{4}-\d{2}-\d{2}T.*\.tar\.gz$/, ""), // strip timestamp
+            filename: target.filename,
             status: "running",
           })
           .returning();
@@ -2109,7 +2150,7 @@ export const backupRouter = router({
         try {
           const result = await executeOnServer(
             row.server.id,
-            buildVolumeBackupScript(volume, filename),
+            target.script,
             300,
           );
 
@@ -2125,13 +2166,13 @@ export const backupRouter = router({
             })
             .where(eq(backups.id, backupRow!.id));
 
-          createdBackups.push({ volume, filename, success: result.success });
+          createdBackups.push({ filename: target.filename, success: result.success, type: target.type });
         } catch (err: any) {
           await ctx.db
             .update(backups)
             .set({ status: "failed", errorMessage: err.message })
             .where(eq(backups.id, backupRow!.id));
-          createdBackups.push({ volume, filename, success: false, error: err.message });
+          createdBackups.push({ filename: target.filename, success: false, error: err.message, type: target.type });
         }
       }
 
