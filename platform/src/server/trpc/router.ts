@@ -2140,6 +2140,7 @@ export const backupRouter = router({
           .values({
             serverId: row.server.id,
             userId: ctx.user.id!,
+            installationId: row.installation.id,
             type: "volume",
             targetName: target.filename.replace(/-\d{4}-\d{2}-\d{2}T.*\.tar\.gz$/, ""), // strip timestamp
             filename: target.filename,
@@ -2182,6 +2183,90 @@ export const backupRouter = router({
         filename: createdBackups.map((b) => b.filename).join(", "),
         volumes: createdBackups,
         appName,
+      };
+    }),
+
+  restoreApp: agentProcedure
+    .input(z.object({
+      installationId: z.string(),
+      backupId: z.string(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Look up the backup + verify ownership + ensure it belongs to this installation
+      const [bk] = await ctx.db
+        .select()
+        .from(backups)
+        .innerJoin(servers, eq(backups.serverId, servers.id))
+        .where(and(
+          eq(backups.id, input.backupId),
+          eq(backups.installationId, input.installationId),
+          eq(servers.userId, ctx.user.id!),
+        ));
+      if (!bk) throw new TRPCError({ code: "NOT_FOUND" });
+      if (bk.backups.status !== "success") {
+        return { success: false, error: "Backup is not in success state" };
+      }
+
+      const [inst] = await ctx.db
+        .select()
+        .from(installations)
+        .where(eq(installations.id, input.installationId));
+      if (!inst) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const params = (inst.params as any) || {};
+      const containerName = params.containerName || params.name || inst.recipeId;
+      const serverId = bk.backups.serverId;
+
+      // Determine what to restore from the backup filename pattern
+      // Filenames are: {appName}-vol-{name}-{ts}.tar.gz or {appName}-bind-{path}-{ts}.tar.gz
+      const filename = bk.backups.filename;
+      let script = "";
+      const isVolume = filename.includes("-vol-");
+      const isBind = filename.includes("-bind-");
+
+      if (isVolume) {
+        // Find the volume name by re-running inspect on the container
+        const inspectResult = await executeOnServer(
+          serverId,
+          `docker inspect ${containerName} --format '{{range .Mounts}}{{if eq .Type "volume"}}{{.Name}}|{{end}}{{end}}' 2>&1 || echo INSPECT_FAILED`,
+          15,
+        );
+        const volOutput = (inspectResult.output || "").replace("INSPECT_FAILED", "").trim();
+        const volumeName = volOutput.split("|").filter((v) => v)[0];
+        if (!volumeName) {
+          return { success: false, error: "No named volume found on container." };
+        }
+        script = [
+          `ls -lh ${BACKUP_DIR}/${filename}`,
+          `docker run --rm -v ${volumeName}:/volume -v ${BACKUP_DIR}:/backup alpine sh -c "cd /volume && tar xzf /backup/${filename}"`,
+          `echo "RESTORED_VOLUME"`,
+        ].join("\n");
+      } else if (isBind) {
+        // Find the bind source from the inspect
+        const inspectResult = await executeOnServer(
+          serverId,
+          `docker inspect ${containerName} --format '{{range .Mounts}}{{if eq .Type "bind"}}{{.Source}}|{{end}}{{end}}' 2>&1 || echo INSPECT_FAILED`,
+          15,
+        );
+        const bindOutput = (inspectResult.output || "").replace("INSPECT_FAILED", "").trim();
+        const bindSource = bindOutput.split("|").filter((v) => v)[0];
+        if (!bindSource) {
+          return { success: false, error: "No bind mount found on container." };
+        }
+        script = [
+          `ls -lh ${BACKUP_DIR}/${filename}`,
+          `tar xzf ${BACKUP_DIR}/${filename} -C "${bindSource}"`,
+          `echo "RESTORED_BIND"`,
+        ].join("\n");
+      } else {
+        return { success: false, error: "Backup type unrecognized (not volume or bind)." };
+      }
+
+      const result = await executeOnServer(serverId, script, 300);
+      return {
+        success: result.success,
+        output: result.output,
+        error: result.success ? undefined : ((result as any).error || result.output || "unknown"),
       };
     }),
 

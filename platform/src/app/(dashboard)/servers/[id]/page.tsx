@@ -1020,9 +1020,14 @@ function DomainItem({ domain, onDelete }: { domain: any; onDelete: () => void })
 function InstalledApps({ serverId }: { serverId: string }) {
   const utils = trpc.useUtils();
   const { data: installations } = trpc.install.listForServer.useQuery({ serverId });
+  const { data: backups } = trpc.backup.list.useQuery({ serverId, limit: 50 });
   const backupAppMutation = trpc.backup.appBackup.useMutation();
   const [backupBusy, setBackupBusy] = useState<Record<string, boolean>>({});
   const [backupMsg, setBackupMsg] = useState<Record<string, string>>({});
+  const restoreMutation = trpc.backup.restoreApp.useMutation();
+  const [restoreOpen, setRestoreOpen] = useState<string | null>(null);
+  const [restoreBusy, setRestoreBusy] = useState<Record<string, boolean>>({});
+  const [restoreMsg, setRestoreMsg] = useState<Record<string, string>>({});
   const deleteApp = trpc.install.delete.useMutation({ onSuccess: () => utils.install.listForServer.invalidate({ serverId }) });
   const restartApp = trpc.install.restart.useMutation();
   const stopApp = trpc.install.stop.useMutation({ onSuccess: () => utils.install.listForServer.invalidate({ serverId }) });
@@ -1083,6 +1088,29 @@ function InstalledApps({ serverId }: { serverId: string }) {
       setBackupMsg((prev) => ({ ...prev, [item.id]: `✗ ${err.message}` }));
     }
     setBackupBusy((prev) => ({ ...prev, [item.id]: false }));
+  };
+
+  const toggleRestorePanel = (installationId: string) => {
+    setRestoreOpen((prev) => (prev === installationId ? null : installationId));
+    setRestoreMsg((prev) => ({ ...prev, [installationId]: "" }));
+    utils.backup.list.invalidate({ serverId });
+  };
+
+  const restoreAppBackup = async (installationId: string, backupId: string, backupFilename: string) => {
+    if (!confirm(`Restore ${backupFilename}?\n\nThis will overwrite the current container data.`)) return;
+    setRestoreBusy((prev) => ({ ...prev, [backupId]: true }));
+    setRestoreMsg((prev) => ({ ...prev, [installationId]: "..." }));
+    try {
+      const result = (await restoreMutation.mutateAsync({ installationId, backupId })) as any;
+      if (result.success) {
+        setRestoreMsg((prev) => ({ ...prev, [installationId]: `✓ Restored successfully` }));
+      } else {
+        setRestoreMsg((prev) => ({ ...prev, [installationId]: `✗ ${result.error || "restore failed"}` }));
+      }
+    } catch (err: any) {
+      setRestoreMsg((prev) => ({ ...prev, [installationId]: `✗ ${err.message}` }));
+    }
+    setRestoreBusy((prev) => ({ ...prev, [backupId]: false }));
   };
 
   const fetchLogs = async (id: string, lines?: number) => {
@@ -1338,6 +1366,15 @@ function InstalledApps({ serverId }: { serverId: string }) {
                       className="text-xs bg-purple-50 hover:bg-purple-100 text-purple-700 px-2.5 py-1.5 rounded-lg font-medium transition-colors">
                       {backupBusy[item.id] ? "..." : "💾 Backup"}
                     </button>
+                    {/* Restore */}
+                    <button onClick={() => toggleRestorePanel(item.id)}
+                      className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors ${
+                        restoreOpen === item.id
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                      }`}>
+                      ↻ Restore
+                    </button>
                     {/* Delete */}
                     <button onClick={() => { if (confirm("Uninstall this app?")) deleteApp.mutate({ id: item.id }); }}
                       disabled={deleteApp.isPending}
@@ -1359,6 +1396,61 @@ function InstalledApps({ serverId }: { serverId: string }) {
                     {backupMsg[item.id]}
                   </div>
                 )}
+
+                {/* ── Restore panel ── */}
+                {restoreOpen === item.id && (() => {
+                  const appBackups = (backups || []).filter((b: any) =>
+                    b.installationId === item.id && b.status === "success"
+                  );
+                  return (
+                    <div className="border-t border-slate-200 bg-emerald-50/30">
+                      <div className="px-3 py-2 flex items-center justify-between border-b border-emerald-100">
+                        <span className="text-[11px] text-slate-700 font-medium">
+                          📂 Available backups for this app
+                        </span>
+                        <button onClick={() => setRestoreOpen(null)}
+                          className="text-[11px] text-slate-400 hover:text-slate-600">
+                          ✕ Close
+                        </button>
+                      </div>
+                      {restoreMsg[item.id] && (
+                        <div className={`px-3 py-1.5 text-[11px] font-mono ${
+                          restoreMsg[item.id].startsWith("✓")
+                            ? "bg-emerald-50 text-emerald-700"
+                            : restoreMsg[item.id].startsWith("✗")
+                            ? "bg-red-50 text-red-700"
+                            : "bg-blue-50 text-blue-700"
+                        }`}>
+                          {restoreMsg[item.id]}
+                        </div>
+                      )}
+                      {appBackups.length === 0 ? (
+                        <div className="px-3 py-3 text-[11px] text-slate-400 text-center">
+                          No backups yet. Click 💾 Backup first.
+                        </div>
+                      ) : (
+                        <div className="max-h-48 overflow-y-auto">
+                          {appBackups.map((b: any) => (
+                            <div key={b.id} className="flex items-center gap-2 px-3 py-2 border-b border-slate-100 last:border-b-0">
+                              <span className="text-[11px] font-mono text-slate-600 truncate flex-1">
+                                {b.filename}
+                              </span>
+                              <span className="text-[10px] text-slate-400 shrink-0">
+                                {new Date(b.createdAt).toLocaleDateString()}
+                              </span>
+                              <button
+                                onClick={() => restoreAppBackup(item.id, b.id, b.filename)}
+                                disabled={restoreBusy[b.id]}
+                                className="text-[11px] bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white px-2 py-1 rounded font-medium shrink-0">
+                                {restoreBusy[b.id] ? "..." : "Restore"}
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {/* ── Details panel (status, health, uptime, image, ports, volumes) ── */}
                 {insp.status && !openPanels[`${item.id}-logs`] && !openPanels[`${item.id}-env`] && (
