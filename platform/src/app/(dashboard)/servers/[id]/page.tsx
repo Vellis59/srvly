@@ -687,23 +687,33 @@ function DomainItem({ domain, onDelete }: { domain: any; onDelete: () => void })
   );
 }
 
-// ─── InstalledApps (improved) ───
+// ─── InstalledApps (Phase 3) ───
 
 function InstalledApps({ serverId }: { serverId: string }) {
   const utils = trpc.useUtils();
   const { data: installations } = trpc.install.listForServer.useQuery({ serverId });
   const deleteApp = trpc.install.delete.useMutation({ onSuccess: () => utils.install.listForServer.invalidate({ serverId }) });
-  const restartApp = trpc.install.restart.useMutation({ onSuccess: () => utils.install.listForServer.invalidate({ serverId }) });
+  const restartApp = trpc.install.restart.useMutation();
   const stopApp = trpc.install.stop.useMutation({ onSuccess: () => utils.install.listForServer.invalidate({ serverId }) });
   const startApp = trpc.install.start.useMutation({ onSuccess: () => utils.install.listForServer.invalidate({ serverId }) });
   const getLogs = trpc.install.logs.useMutation();
   const getEnv = trpc.install.getEnv.useMutation();
   const getStats = trpc.install.containerStats.useMutation();
+  const inspectApp = trpc.install.inspect.useMutation();
+  const updateEnv = trpc.install.updateEnv.useMutation();
+
   const [actionOutput, setActionOutput] = useState<Record<string, string>>({});
-  const [openPanels, setOpenPanels] = useState<Record<string, boolean>>({});
+  const [openPanels, setOpenPanels] = useState<Record<string, string>>({}); // id-panel → "open" | "loading" | "loaded"
   const [containerStats, setContainerStats] = useState<Record<string, any> | null>(null);
   const [containerSizes, setContainerSizes] = useState<Record<string, string> | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
+  const [logLines, setLogLines] = useState<number>(100);
+  const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
+  const [editingEnv, setEditingEnv] = useState<Record<string, string> | null>(null);
+  const [editValues, setEditValues] = useState<Record<string, string>>({});
+  const [savingEnv, setSavingEnv] = useState(false);
+  const [inspectData, setInspectData] = useState<Record<string, any>>({});
+  const [inspectLoading, setInspectLoading] = useState<Record<string, boolean>>({});
 
   const runAction = async (id: string, action: string, fn: any) => {
     setActionOutput((prev) => ({ ...prev, [`${id}-${action}`]: "..." }));
@@ -727,14 +737,92 @@ function InstalledApps({ serverId }: { serverId: string }) {
     setStatsLoading(false);
   };
 
-  const togglePanel = (id: string, panel: string, fn: any) => {
-    const key = `${id}-${panel}`;
-    if (openPanels[key]) {
-      setOpenPanels((prev) => ({ ...prev, [key]: false }));
-      return;
+  const fetchLogs = async (id: string, lines?: number) => {
+    const key = `${id}-logs`;
+    setOpenPanels((prev) => ({ ...prev, [key]: "loading" }));
+    try {
+      const result = await getLogs.mutateAsync({ id, lines: lines || logLines });
+      setActionOutput((prev) => ({ ...prev, [key]: result.output || "No output" }));
+      setOpenPanels((prev) => ({ ...prev, [key]: "loaded" }));
+    } catch (err: any) {
+      setActionOutput((prev) => ({ ...prev, [key]: `Error: ${err.message}` }));
+      setOpenPanels((prev) => ({ ...prev, [key]: "loaded" }));
     }
-    setOpenPanels((prev) => ({ ...prev, [key]: true }));
-    runAction(id, panel, fn);
+  };
+
+  const fetchInspect = async (item: any) => {
+    const id = item.id;
+    if (inspectData[id]) return; // already loaded
+    setInspectLoading((prev) => ({ ...prev, [id]: true }));
+    try {
+      const result = await inspectApp.mutateAsync({ id });
+      if (result.success) setInspectData((prev) => ({ ...prev, [id]: result }));
+    } catch {}
+    setInspectLoading((prev) => ({ ...prev, [id]: false }));
+  };
+
+  const fetchEnv = async (id: string) => {
+    const key = `${id}-env`;
+    setOpenPanels((prev) => ({ ...prev, [key]: "loading" }));
+    try {
+      const result = await getEnv.mutateAsync({ id });
+      setActionOutput((prev) => ({ ...prev, [key]: result.output || "No output" }));
+      setOpenPanels((prev) => ({ ...prev, [key]: "loaded" }));
+    } catch (err: any) {
+      setActionOutput((prev) => ({ ...prev, [key]: `Error: ${err.message}` }));
+      setOpenPanels((prev) => ({ ...prev, [key]: "loaded" }));
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text);
+    } else {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
+  };
+
+  const startEditEnv = (item: any) => {
+    // Parse the env output into a record
+    const raw = actionOutput[`${item.id}-env`] || "";
+    const env: Record<string, string> = {};
+    for (const line of raw.split("\n")) {
+      const eqIdx = line.indexOf("=");
+      if (eqIdx > 0) {
+        env[line.substring(0, eqIdx)] = line.substring(eqIdx + 1);
+      }
+    }
+    setEditingEnv(item.id);
+    setEditValues(env);
+  };
+
+  const saveEnvChanges = async (itemId: string) => {
+    setSavingEnv(true);
+    try {
+      const result = await updateEnv.mutateAsync({ id: itemId, env: editValues });
+      setActionOutput((prev) => ({ ...prev, [`${itemId}-env-save`]: (result as any).message || (result as any).error || "Done" }));
+      setEditingEnv(null);
+    } catch (err: any) {
+      setActionOutput((prev) => ({ ...prev, [`${itemId}-env-save`]: `Error: ${err.message}` }));
+    }
+    setSavingEnv(false);
+  };
+
+  const isSecret = (key: string): boolean => {
+    const lower = key.toLowerCase();
+    return /pass|secret|token|key|auth|credential|private|salt/i.test(lower);
+  };
+
+  const maskValue = (val: string): string => {
+    if (val.length <= 4) return "****";
+    return val.slice(0, 2) + "****" + val.slice(-2);
   };
 
   const apps = installations || [];
@@ -767,13 +855,15 @@ function InstalledApps({ serverId }: { serverId: string }) {
       ) : (
         <div className="space-y-3">
           {apps.map((item: any) => {
-            const params = item.params || {};
+            const params = (item.params || {}) as any;
             const status = item.status || "unknown";
+            const insp = inspectData[item.id] || {};
+            const isOpen = openPanels[`${item.id}-logs`] === "loaded" || openPanels[`${item.id}-env`] === "loaded";
+            const ip = actionOutput[`${item.id}-logs`] && openPanels[`${item.id}-logs`] === "loaded";
+
             const statusColors: Record<string, string> = {
-              success: "bg-emerald-500",
-              running: "bg-amber-400",
-              failed: "bg-red-500",
-              stopped: "bg-slate-400",
+              success: "bg-emerald-500", running: "bg-amber-400",
+              failed: "bg-red-500", stopped: "bg-slate-400",
             };
             const statusBgs: Record<string, string> = {
               success: "bg-emerald-50 border-emerald-200",
@@ -782,22 +872,39 @@ function InstalledApps({ serverId }: { serverId: string }) {
               stopped: "bg-slate-50 border-slate-200",
             };
 
+            // Derive app URL
+            let appUrl = "";
+            if (params.domain) appUrl = `https://${params.domain}`;
+            else if (params.port) appUrl = `http://${inspectData[item.id]?.ports?.split(":")[0] || "server-ip"}:${params.port}`;
+
             return (
               <div key={item.id} className={`border rounded-xl overflow-hidden transition-all ${statusBgs[status] || "border-slate-200"}`}>
-                {/* Header */}
+                {/* ── Header bar ── */}
                 <div className="flex items-center gap-3 p-3">
-                  <span className={`w-2.5 h-2.5 rounded-full ${statusColors[status] || "bg-slate-400"}`} />
+                  <span className={`w-2.5 h-2.5 rounded-full ${statusColors[status] || "bg-slate-400"} shrink-0`} />
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm text-slate-900">
-                      {params.name || item.recipeId || "App"}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-sm text-slate-900">
+                        {params.name || item.recipeId || "App"}
+                      </p>
+                      {/* Container status badge */}
+                      {insp.status && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                          insp.status === "running" ? "bg-emerald-100 text-emerald-700" :
+                          insp.status === "exited" ? "bg-slate-100 text-slate-600" :
+                          "bg-amber-100 text-amber-700"
+                        }`}>
+                          {insp.status}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-slate-500">
                       {params.port && `Port ${params.port}`}
                       {params.domain && ` • ${params.domain}`}
                       {params.image && ` • ${params.image.split("/").pop()}`}
-                      {!params.port && !params.domain && `Status: ${status}`}
+                      {!params.port && !params.domain && !params.image && `Status: ${status}`}
                     </p>
-                    {/* Live stats */}
+                    {/* Live stats row */}
                     {containerStats && containerSizes && (() => {
                       const cname = params.containerName || params.name || item.recipeId;
                       const s = containerStats[cname];
@@ -805,39 +912,52 @@ function InstalledApps({ serverId }: { serverId: string }) {
                       if (!s && !size) return null;
                       return (
                         <div className="flex items-center gap-3 mt-1.5">
-                          {s && (
-                            <span className="text-[11px] font-mono text-slate-500">
-                              🧠 {s.mem}
-                            </span>
-                          )}
-                          {s && (
-                            <span className="text-[11px] font-mono text-slate-400">
-                              CPU {s.cpu}
-                            </span>
-                          )}
-                          {size && (
-                            <span className="text-[11px] font-mono text-slate-500">
-                              💾 {size}
-                            </span>
-                          )}
+                          {s && <span className="text-[11px] font-mono text-slate-500">🧠 {s.mem}</span>}
+                          {s && <span className="text-[11px] font-mono text-slate-400">CPU {s.cpu}</span>}
+                          {size && <span className="text-[11px] font-mono text-slate-500">💾 {size}</span>}
                         </div>
                       );
                     })()}
+                    {/* Container uptime */}
+                    {insp.uptime && insp.uptime !== "unknown" && (
+                      <p className="text-[11px] text-slate-400 mt-0.5">⏱ Uptime: {insp.uptime}</p>
+                    )}
                   </div>
-                  <div className="flex gap-1">
-                    <button onClick={() => togglePanel(item.id, "logs", getLogs)}
+
+                  <div className="flex gap-1 shrink-0">
+                    {/* Open URL */}
+                    {appUrl && (
+                      <a href={appUrl} target="_blank" rel="noopener noreferrer"
+                        className="text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-700 px-2.5 py-1.5 rounded-lg font-medium transition-colors inline-flex items-center gap-1">
+                        ↗ Open
+                      </a>
+                    )}
+                    {/* Details / Inspect */}
+                    <button onClick={() => fetchInspect(item)}
+                      disabled={inspectLoading[item.id]}
+                      className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 py-1.5 rounded-lg font-medium transition-colors">
+                      {inspectLoading[item.id] ? "..." : insp.status ? "🔄 Refresh" : "🔍 Details"}
+                    </button>
+                    {/* Logs toggle */}
+                    <button onClick={() => {
+                      if (openPanels[`${item.id}-logs`]) {
+                        setOpenPanels((prev) => ({ ...prev, [`${item.id}-logs`]: "" }));
+                      } else {
+                        fetchLogs(item.id);
+                      }
+                    }}
                       className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors ${
-                        openPanels[`${item.id}-logs`]
-                          ? "bg-emerald-100 text-emerald-700"
-                          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        openPanels[`${item.id}-logs`] ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                       }`}>
                       📋 Logs
                     </button>
+                    {/* Restart */}
                     <button onClick={() => runAction(item.id, "restart", restartApp)}
                       disabled={restartApp.isPending}
                       className="text-xs bg-amber-100 hover:bg-amber-200 text-amber-700 px-2.5 py-1.5 rounded-lg font-medium transition-colors">
                       ⟳ Restart
                     </button>
+                    {/* Stop/Start */}
                     {status !== "stopped" ? (
                       <button onClick={() => runAction(item.id, "stop", stopApp)}
                         disabled={stopApp.isPending}
@@ -851,15 +971,21 @@ function InstalledApps({ serverId }: { serverId: string }) {
                         ▶ Start
                       </button>
                     )}
-                    <button onClick={() => togglePanel(item.id, "env", getEnv)}
+                    {/* Env toggle */}
+                    <button onClick={() => {
+                      if (openPanels[`${item.id}-env`]) {
+                        setOpenPanels((prev) => ({ ...prev, [`${item.id}-env`]: "" }));
+                      } else {
+                        fetchEnv(item.id);
+                      }
+                    }}
                       className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors ${
-                        openPanels[`${item.id}-env`]
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-blue-50 text-blue-600 hover:bg-blue-100"
+                        openPanels[`${item.id}-env`] ? "bg-blue-100 text-blue-700" : "bg-blue-50 text-blue-600 hover:bg-blue-100"
                       }`}>
                       🔑 .env
                     </button>
-                    <button onClick={() => { if (confirm("Uninstall?")) deleteApp.mutate({ id: item.id }); }}
+                    {/* Delete */}
+                    <button onClick={() => { if (confirm("Uninstall this app?")) deleteApp.mutate({ id: item.id }); }}
                       disabled={deleteApp.isPending}
                       className="text-xs text-red-500 hover:text-red-700 px-2 py-1.5 font-medium">
                       ✕
@@ -867,31 +993,127 @@ function InstalledApps({ serverId }: { serverId: string }) {
                   </div>
                 </div>
 
-                {/* Logs panel */}
-                {openPanels[`${item.id}-logs`] && (
-                  <div className="border-t border-slate-200">
-                    <div className="flex items-center justify-between px-3 py-1.5 bg-slate-100">
-                      <span className="text-[11px] text-slate-500 font-medium uppercase">Container logs</span>
-                      <button onClick={() => runAction(item.id, "logs", getLogs)}
-                        className="text-[11px] text-emerald-600 hover:underline">↻ Refresh</button>
+                {/* ── Details panel (status, health, uptime, image, ports, volumes) ── */}
+                {insp.status && !openPanels[`${item.id}-logs`] && !openPanels[`${item.id}-env`] && (
+                  <div className="border-t border-slate-200 px-3 py-2 bg-slate-50/50">
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-500">
+                      {insp.health && insp.health !== "none" && (
+                        <span>Health: <span className={insp.health === "healthy" ? "text-emerald-600 font-medium" : "text-amber-600"}>{insp.health}</span></span>
+                      )}
+                      {insp.image && <span>Image: <span className="font-mono">{insp.image.split("/").pop()}</span></span>}
+                      {insp.restartPolicy && <span>Restart: {insp.restartPolicy}</span>}
+                      {insp.ports && <span>Ports: <span className="font-mono">{insp.ports}</span></span>}
+                      {insp.volumes && <span>Volumes: {insp.volumes.split("|").length}</span>}
                     </div>
-                    <pre className="text-xs font-mono bg-slate-900 text-slate-100 p-3 max-h-48 overflow-y-auto whitespace-pre-wrap">
-                      {actionOutput[`${item.id}-logs`] || "Loading..."}
-                    </pre>
                   </div>
                 )}
 
-                {/* Env panel */}
+                {/* ── Logs panel ── */}
+                {openPanels[`${item.id}-logs`] && (
+                  <div className="border-t border-slate-200">
+                    <div className="flex items-center justify-between px-3 py-1.5 bg-slate-100">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] text-slate-500 font-medium uppercase">Container logs</span>
+                        <select value={logLines} onChange={(e) => setLogLines(Number(e.target.value))}
+                          className="text-[11px] bg-white border border-slate-200 rounded px-1 py-0.5">
+                          <option value={50}>50 lines</option>
+                          <option value={100}>100 lines</option>
+                          <option value={500}>500 lines</option>
+                        </select>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => fetchLogs(item.id, logLines)}
+                          className="text-[11px] text-emerald-600 hover:underline">↻ Refresh</button>
+                        <button onClick={() => copyToClipboard(actionOutput[`${item.id}-logs`] || "")}
+                          className="text-[11px] text-blue-600 hover:underline">📋 Copy</button>
+                      </div>
+                    </div>
+                    {openPanels[`${item.id}-logs`] === "loading" ? (
+                      <div className="text-xs text-slate-400 text-center py-4">Loading logs...</div>
+                    ) : (
+                      <pre className="text-xs font-mono bg-slate-900 text-slate-100 p-3 max-h-64 overflow-y-auto whitespace-pre-wrap">
+                        {actionOutput[`${item.id}-logs`] || "No output"}
+                      </pre>
+                    )}
+                  </div>
+                )}
+
+                {/* ── Environment panel ── */}
                 {openPanels[`${item.id}-env`] && (
                   <div className="border-t border-slate-200">
                     <div className="flex items-center justify-between px-3 py-1.5 bg-slate-100">
                       <span className="text-[11px] text-slate-500 font-medium uppercase">Environment variables</span>
-                      <button onClick={() => runAction(item.id, "env", getEnv)}
-                        className="text-[11px] text-emerald-600 hover:underline">↻ Refresh</button>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => setShowSecrets((prev) => ({ ...prev, [item.id]: !prev[item.id] }))}
+                          className="text-[11px] text-amber-600 hover:underline">
+                          {showSecrets[item.id] ? "🔒 Hide secrets" : "👁 Show secrets"}
+                        </button>
+                        <button onClick={() => fetchEnv(item.id)}
+                          className="text-[11px] text-emerald-600 hover:underline">↻ Refresh</button>
+                      </div>
                     </div>
-                    <pre className="text-xs font-mono bg-slate-900 text-emerald-300 p-3 max-h-48 overflow-y-auto whitespace-pre-wrap">
-                      {actionOutput[`${item.id}-env`] || "Loading..."}
-                    </pre>
+
+                    {openPanels[`${item.id}-env`] === "loading" ? (
+                      <div className="text-xs text-slate-400 text-center py-4">Loading env...</div>
+                    ) : editingEnv === item.id ? (
+                      /* ── Edit mode ── */
+                      <div className="p-3 space-y-2">
+                        {Object.entries(editValues).map(([k, v]) => (
+                          <div key={k} className="flex items-center gap-2">
+                            <span className="text-xs font-mono text-slate-600 min-w-[120px] truncate">{k}=</span>
+                            <input type={isSecret(k) && !showSecrets[item.id] ? "password" : "text"}
+                              value={v}
+                              onChange={(e) => setEditValues((prev) => ({ ...prev, [k]: e.target.value }))}
+                              className="flex-1 text-xs font-mono px-2 py-1 border border-slate-200 rounded bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                            />
+                          </div>
+                        ))}
+                        <div className="flex gap-2 pt-2">
+                          <button onClick={() => saveEnvChanges(item.id)} disabled={savingEnv}
+                            className="text-xs px-3 py-1.5 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 disabled:opacity-50">
+                            {savingEnv ? "Saving..." : "💾 Save & restart"}
+                          </button>
+                          <button onClick={() => setEditingEnv(null)}
+                            className="text-xs px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg font-medium hover:bg-slate-300">
+                            Cancel
+                          </button>
+                        </div>
+                        {actionOutput[`${item.id}-env-save`] && (
+                          <p className="text-xs text-slate-600">{actionOutput[`${item.id}-env-save`]}</p>
+                        )}
+                      </div>
+                    ) : (
+                      /* ── Display mode ── */
+                      <div>
+                        <div className="max-h-64 overflow-y-auto">
+                          {(actionOutput[`${item.id}-env`] || "").split("\n").map((line, i) => {
+                            const eqIdx = line.indexOf("=");
+                            if (eqIdx < 1) return null;
+                            const key = line.substring(0, eqIdx);
+                            const val = line.substring(eqIdx + 1);
+                            const secret = isSecret(key);
+                            return (
+                              <div key={i} className="flex items-center gap-2 px-3 py-1 hover:bg-slate-50 text-xs font-mono border-b border-slate-100 last:border-0">
+                                <span className="text-slate-600 min-w-[140px] truncate">{key}</span>
+                                <span className="text-slate-400">=</span>
+                                <span className={`flex-1 truncate ${secret ? "text-slate-400" : "text-slate-800"}`}>
+                                  {secret && !showSecrets[item.id] ? maskValue(val) : val}
+                                </span>
+                                {secret && !showSecrets[item.id] && (
+                                  <span className="text-[10px] text-amber-500 shrink-0">🔒</span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <div className="px-3 py-1.5 bg-slate-50 border-t border-slate-200">
+                          <button onClick={() => startEditEnv(item)}
+                            className="text-[11px] text-blue-600 hover:underline">
+                            ✏️ Edit environment variables
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 

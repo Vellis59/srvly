@@ -941,6 +941,209 @@ export const installRouter = router({
 
       return { success: true, stats, sizes };
     }),
+
+  inspect: agentProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .select({ installation: installations, server: servers })
+        .from(installations)
+        .innerJoin(servers, eq(installations.serverId, servers.id))
+        .where(and(eq(installations.id, input.id), eq(servers.userId, ctx.user.id!)));
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const params = (row.installation.params as any) || {};
+      const container = params.containerName || params.name || row.installation.recipeId;
+
+      const result = await executeOnServer(
+        row.server.id,
+        [
+          `echo '---CONFIG---'`,
+          `docker inspect ${container} 2>/dev/null | python3 -c "
+import sys, json
+try:
+    d = json.load(sys.stdin)[0]
+    c = d['Config']
+    h = d['HostConfig']
+    n = d['NetworkSettings']
+    ns = n['Networks']
+    net = list(ns.keys())[0] if ns else 'bridge'
+    ports = []
+    if h.get('PortBindings'):
+        for k,v in h['PortBindings'].items():
+            cport = k.split('/')[0]
+            hport = v[0]['HostPort'] if v else cport
+            ports.append(f'{hport}:{cport}')
+    vols = h.get('Binds') or []
+    print('IMAGE=' + (c.get('Image') or ''))
+    print('STATUS=' + (d['State']['Status'] or 'unknown'))
+    print('HEALTH=' + (d['State'].get('Health',{}).get('Status', 'none') or 'none'))
+    print('STARTED=' + (d['State'].get('StartedAt','') or ''))
+    print('RESTART=' + (h.get('RestartPolicy',{}).get('Name', 'no') or 'no'))
+    print('NETWORK=' + net)
+    print('PORTS=' + '|'.join(ports))
+    print('VOLUMES=' + '|'.join(vols))
+    for e in (c.get('Env') or []):
+        print('ENV:' + e)
+except Exception as ex:
+    print('ERROR=' + str(ex))
+" 2>&1 || echo 'CONTAINER_NOT_FOUND'`,
+          `echo '---UPTIME---'`,
+          `docker inspect ${container} --format='{{.State.StartedAt}}' 2>/dev/null | xargs -I{} sh -c 'echo "{}" && python3 -c "
+import datetime, sys
+start = sys.argv[1].split('.')[0].replace('T',' ').replace('Z','')
+try:
+    s = datetime.datetime.strptime(start, '%Y-%m-%d %H:%M:%S')
+    now = datetime.datetime.utcnow()
+    d = now - s
+    days = d.days
+    hours = d.seconds // 3600
+    mins = (d.seconds % 3600) // 60
+    print(f'UPTIME={days}d {hours}h {mins}m')
+except:
+    print('UPTIME=unknown')
+" "{}"' || echo 'UPTIME=unknown'`,
+        ].join("\n"),
+        15,
+      );
+
+      if (!result.success) return { success: false, error: result.error };
+
+      const output = result.output || "";
+      const configPart = (output.split("---CONFIG---")[1]?.split("---UPTIME---")[0] || "").trim();
+      const uptimePart = (output.split("---UPTIME---")[1] || "").trim();
+      if (configPart.includes("CONTAINER_NOT_FOUND")) return { success: false, error: "Container not found" };
+
+      // Parse config
+      const config: Record<string, string> = {};
+      const env: Record<string, string> = {};
+      for (const line of configPart.split("\n")) {
+        if (line.startsWith("ENV:")) {
+          const eqIdx = line.indexOf("=", 4);
+          if (eqIdx > 4) {
+            env[line.substring(4, eqIdx)] = line.substring(eqIdx + 1);
+          }
+        } else if (line.includes("=")) {
+          const [k, ...v] = line.split("=");
+          config[k] = v.join("=");
+        }
+      }
+
+      // Parse uptime
+      const uptimeLine = uptimePart.includes("UPTIME=") ? uptimePart.split("\n").filter(l => l.startsWith("UPTIME="))[0] : "";
+      const uptime = uptimeLine ? uptimeLine.replace("UPTIME=", "") : "";
+
+      return {
+        success: true,
+        status: config.STATUS || "unknown",
+        health: config.HEALTH || "none",
+        uptime: uptime || config.STARTED || "unknown",
+        image: config.IMAGE || "",
+        restartPolicy: config.RESTART || "",
+        network: config.NETWORK || "",
+        ports: config.PORTS || "",
+        volumes: config.VOLUMES || "",
+        env,
+      };
+    }),
+
+  updateEnv: agentProcedure
+    .input(z.object({
+      id: z.string(),
+      env: z.record(z.string(), z.string()),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .select({ installation: installations, server: servers })
+        .from(installations)
+        .innerJoin(servers, eq(installations.serverId, servers.id))
+        .where(and(eq(installations.id, input.id), eq(servers.userId, ctx.user.id!)));
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const params = (row.installation.params as any) || {};
+      const container = params.containerName || params.name || row.installation.recipeId;
+
+      // Get current container config via docker inspect
+      const result = await executeOnServer(
+        row.server.id,
+        `docker inspect ${container} 2>/dev/null | python3 -c "
+import sys, json
+d = json.load(sys.stdin)[0]
+c = d['Config']
+h = d['HostConfig']
+n = d['NetworkSettings']
+ns = n['Networks']
+net = list(ns.keys())[0] if ns else 'bridge'
+ports = []
+if h.get('PortBindings'):
+    for k,v in h['PortBindings'].items():
+        cport = k.split('/')[0]
+        hport = v[0]['HostPort'] if v else cport
+        ports.append(f'{hport}:{cport}')
+vols = h.get('Binds') or []
+print('IMAGE=' + (c.get('Image') or ''))
+print('RESTART=' + (h.get('RestartPolicy',{}).get('Name', 'no') or 'no'))
+print('NETWORK=' + net)
+print('PORTS=' + '|'.join(ports))
+print('VOLUMES=' + '|'.join(vols))
+for e in (c.get('Env') or []):
+    print('ENV:' + e)
+" 2>&1 || echo 'CONTAINER_NOT_FOUND'`,
+        15,
+      );
+
+      if (!result.success || (result.output || "").includes("CONTAINER_NOT_FOUND")) {
+        return { success: false, error: "Container not found" };
+      }
+
+      const output = result.output || "";
+      let image = "", restart = "unless-stopped", network = "", ports = "", volumes: string[] = [];
+      for (const line of output.split("\n")) {
+        if (line.startsWith("IMAGE=")) image = line.substring(6);
+        if (line.startsWith("RESTART=")) restart = line.substring(8);
+        if (line.startsWith("NETWORK=")) network = line.substring(8);
+        if (line.startsWith("PORTS=")) ports = line.substring(6);
+        if (line.startsWith("VOLUMES=")) volumes = line.substring(8).split("|").filter(Boolean);
+      }
+
+      // Build new env args
+      const envArgs = Object.entries(input.env).map(([k, v]) => `-e ${k}=${v}`).join(" ");
+
+      // Build volume args
+      const volArgs = volumes.map(v => `-v ${v}`).join(" ");
+
+      // Build port args
+      const portArgs = ports ? ports.split("|").map(p => `-p ${p}`).join(" ") : "";
+
+      // Recreate container
+      const script = [
+        `echo "Stopping ${container}..."`,
+        `docker stop ${container} 2>/dev/null || true`,
+        `echo "Removing ${container}..."`,
+        `docker rm ${container} 2>/dev/null || true`,
+        `echo "Starting with new env..."`,
+        `docker run -d --name ${container} --restart ${restart} ${portArgs} ${volArgs} ${envArgs} ${image} 2>&1`,
+        `echo "RESTARTED"`,
+      ].join("\n");
+
+      const runResult = await executeOnServer(row.server.id, script, 30);
+
+      if (runResult.success) {
+        // Update stored params with new env
+        const currentParams = (row.installation.params as any) || {};
+        await ctx.db
+          .update(installations)
+          .set({
+            params: { ...currentParams, env: input.env },
+            updatedAt: new Date(),
+          })
+          .where(eq(installations.id, input.id));
+
+        return { success: true, message: "Container recreated with new environment" };
+      }
+
+      return runResult;
+    }),
 });
 
 // ─── Domain routes ───
