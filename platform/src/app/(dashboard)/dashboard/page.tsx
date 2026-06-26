@@ -6,8 +6,8 @@ import Link from "next/link";
 import { useT } from "@/lib/i18n";
 
 function formatBytes(mb: number): string {
-  if (mb >= 1024) return (mb / 1024).toFixed(1) + " Go";
-  return mb + " Mo";
+  if (mb >= 1024) return (mb / 1024).toFixed(1) + " GB";
+  return mb + " MB";
 }
 
 function timeAgo(date: Date | string | null | undefined): string {
@@ -16,12 +16,13 @@ function timeAgo(date: Date | string | null | undefined): string {
   const now = new Date();
   const diffMs = now.getTime() - d.getTime();
   const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 1) return "À l'instant";
-  if (diffMin < 60) return `Il y a ${diffMin} min`;
+  if (diffMin < 1) return "Just now";
+  if (diffMin < 60) return `${diffMin}m ago`;
   const diffH = Math.floor(diffMin / 60);
-  if (diffH < 24) return `Il y a ${diffH}h`;
+  if (diffH < 24) return `${diffH}h ago`;
   const diffD = Math.floor(diffH / 24);
-  return `Il y a ${diffD}j`;
+  if (diffD < 30) return `${diffD}d ago`;
+  return `${Math.floor(diffD / 30)}mo ago`;
 }
 
 function statusIcon(status: string): string {
@@ -36,10 +37,10 @@ function statusIcon(status: string): string {
 
 function statusLabel(status: string): string {
   switch (status) {
-    case "success": return "Actif";
-    case "running": return "En cours";
-    case "failed": return "Erreur";
-    case "stopped": return "Arrêté";
+    case "success": return "Active";
+    case "running": return "Deploying";
+    case "failed": return "Error";
+    case "stopped": return "Stopped";
     default: return status;
   }
 }
@@ -64,7 +65,6 @@ function StatCard({
   value,
   label,
   sub,
-  trend,
 }: {
   href: string;
   icon: string;
@@ -73,22 +73,14 @@ function StatCard({
   value: string | number;
   label: string;
   sub?: string;
-  trend?: { up?: boolean; value: string };
 }) {
   return (
     <Link
       href={href}
       className="bg-white rounded-2xl border border-slate-200 p-5 hover:shadow-md hover:border-emerald-300 transition-all group"
     >
-      <div className="flex items-start justify-between mb-3">
-        <div className={`w-10 h-10 ${iconBg} rounded-xl flex items-center justify-center ${iconColor} text-lg`}>
-          {icon}
-        </div>
-        {trend && (
-          <span className={`text-xs font-medium ${trend.up ? "text-emerald-600" : "text-amber-600"}`}>
-            {trend.up ? "↑" : "↓"} {trend.value}
-          </span>
-        )}
+      <div className={`w-10 h-10 ${iconBg} rounded-xl flex items-center justify-center ${iconColor} text-lg mb-3`}>
+        {icon}
       </div>
       <p className="text-2xl font-bold text-slate-900">{value}</p>
       <p className="text-xs text-slate-500 mt-0.5">{label}</p>
@@ -106,7 +98,6 @@ export default function DashboardPage() {
   const { data: activity } = trpc.dashboard.recentActivity.useQuery();
   const _ = useT();
 
-  // Servers in error (? no recent connection)
   const errorServers = servers?.filter((s) => s.status !== "connected") || [];
   const healthyServers = servers?.filter((s) => s.status === "connected") || [];
 
@@ -128,8 +119,8 @@ export default function DashboardPage() {
           iconBg="bg-blue-100"
           iconColor="text-blue-600"
           value={statsLoading ? "…" : `${stats?.connectedServers || 0}/${stats?.totalServers || 0}`}
-          label="Serveurs connectés"
-          sub={stats?.totalServers ? `Total: ${stats.totalServers} serveur${stats.totalServers > 1 ? "s" : ""}` : "Aucun serveur"}
+          label={_("dashboard.servers.online")}
+          sub={stats?.totalServers ? `${stats.totalServers} server${stats.totalServers > 1 ? "s" : ""} total` : "No servers yet"}
         />
         <StatCard
           href="/dashboard"
@@ -137,11 +128,11 @@ export default function DashboardPage() {
           iconBg="bg-emerald-100"
           iconColor="text-emerald-600"
           value={statsLoading ? "…" : (stats?.totalApps || 0)}
-          label="Apps installées"
+          label={_("dashboard.apps.installed")}
           sub={
             stats && stats.totalApps > 0
-              ? `${stats.installSuccess} active${stats.installSuccess > 1 ? "s" : ""} · ${stats.installFailed} en erreur`
-              : "Aucune app installée"
+              ? `${stats.installSuccess} active · ${stats.installFailed} error${stats.installFailed > 1 ? "s" : ""}`
+              : "No apps installed yet"
           }
         />
         <StatCard
@@ -156,11 +147,11 @@ export default function DashboardPage() {
               ? `${Math.round((stats.totalDiskUsed / stats.totalDiskTotal) * 100)}%`
               : "—"
           }
-          label="Disque utilisé"
+          label="Disk usage"
           sub={
             stats?.totalDiskTotal
-              ? `${stats.totalDiskUsed} / ${stats.totalDiskTotal} Go`
-              : "Détection en attente"
+              ? `${stats.totalDiskUsed} / ${stats.totalDiskTotal} GB used`
+              : "Detection pending"
           }
         />
         <StatCard
@@ -169,32 +160,33 @@ export default function DashboardPage() {
           iconBg="bg-purple-100"
           iconColor="text-purple-600"
           value={statsLoading ? "…" : (stats?.totalCatalog || "—")}
-          label="Catalogue disponible"
-          sub={stats?.totalDomains ? `${stats.totalDomains} domaine${stats.totalDomains > 1 ? "s" : ""} configuré${stats.totalDomains > 1 ? "s" : ""}` : ""}
+          label="Catalog available"
+          sub={stats?.totalDomains ? `${stats.totalDomains} domain${stats.totalDomains > 1 ? "s" : ""} configured` : ""}
         />
       </div>
 
       {/* ── Row: Servers + Activity ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
 
-        {/* ── Serveurs ── */}
+        {/* ── Servers ── */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-slate-900">♝ Serveurs</h2>
+            <h2 className="font-semibold text-slate-900">♝ Servers</h2>
             <Link href="/servers" className="text-sm text-emerald-600 hover:underline">
-              Voir tout →
+              {_("dashboard.view.servers")} →
             </Link>
           </div>
 
           {!servers || servers.length === 0 ? (
             <div className="text-center py-6 text-slate-400">
               <p className="mb-2 text-lg">♜</p>
-              <p className="text-sm mb-3">Aucun serveur connecté</p>
+              <p className="text-sm mb-1">{_("server.list.empty.title")}</p>
+              <p className="text-xs text-slate-300 mb-4">{_("server.list.empty.desc")}</p>
               <Link
                 href="/servers"
                 className="inline-block px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 transition-colors"
               >
-                + Ajouter un serveur
+                {_("server.list.empty.cta")}
               </Link>
             </div>
           ) : (
@@ -202,11 +194,11 @@ export default function DashboardPage() {
               {/* Summary bar */}
               <div className="flex items-center gap-4 text-xs text-slate-500 mb-3 pb-3 border-b border-slate-100">
                 <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" /> {healthyServers.length} actif{healthyServers.length > 1 ? "s" : ""}
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" /> {healthyServers.length} live
                 </span>
                 {errorServers.length > 0 && (
                   <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-amber-400" /> {errorServers.length} en attente
+                    <span className="w-2 h-2 rounded-full bg-amber-400" /> {errorServers.length} pending
                   </span>
                 )}
                 <span className="ml-auto">{stats?.totalApps || 0} app{(stats?.totalApps || 0) > 1 ? "s" : ""}</span>
@@ -214,6 +206,8 @@ export default function DashboardPage() {
 
               {servers.slice(0, 5).map((server) => {
                 const info = (server.systemInfo || {}) as Record<string, any>;
+                const diskPct = info.ramTotal && info.ramUsed
+                  ? Math.round((info.ramUsed / info.ramTotal) * 100) : null;
                 return (
                   <Link
                     key={server.id}
@@ -239,19 +233,16 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="flex items-center gap-3 shrink-0">
-                      {/* OS badge */}
                       {server.os && (
                         <span className="text-[11px] text-slate-400 hidden md:inline max-w-[100px] truncate">
                           {server.os.slice(0, 20)}
                         </span>
                       )}
-                      {/* RAM / Disk mini */}
-                      {info.ramTotal && info.ramUsed && (
+                      {diskPct !== null && (
                         <span className="text-[11px] text-slate-400 hidden lg:inline">
-                          💾 {Math.round((info.ramUsed / info.ramTotal) * 100)}%
+                          💾 {diskPct}%
                         </span>
                       )}
-                      {/* Uptime */}
                       {info.uptime && (
                         <span className="text-[11px] text-slate-400 hidden sm:inline">
                           ⏱ {info.uptime.slice(0, 15)}
@@ -281,18 +272,18 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* ── Activité récente ── */}
+        {/* ── Recent activity ── */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-slate-900">📋 Activité récente</h2>
+            <h2 className="font-semibold text-slate-900">📋 Recent activity</h2>
           </div>
 
           {!activity || activity.length === 0 ? (
             <div className="text-center py-6 text-slate-400">
               <p className="mb-2 text-lg">📭</p>
-              <p className="text-sm">Aucune activité récente</p>
+              <p className="text-sm">No recent activity</p>
               <p className="text-xs text-slate-300 mt-1">
-                Installez une app depuis le catalogue pour voir l'activité
+                Install an app from the catalog to see activity here
               </p>
             </div>
           ) : (
@@ -325,13 +316,13 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── Apps en erreur / Quick actions ── */}
+      {/* ── Errors / Quick actions / Health ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* Erreurs */}
+        {/* Errors */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6">
           <div className="flex items-center gap-2 mb-4">
-            <h2 className="font-semibold text-slate-900">⚠️ Apps en erreur</h2>
+            <h2 className="font-semibold text-slate-900">⚠️ Apps in error</h2>
             {(stats?.installFailed || 0) > 0 && (
               <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">
                 {stats?.installFailed}
@@ -342,20 +333,28 @@ export default function DashboardPage() {
           {(stats?.installFailed || 0) === 0 ? (
             <div className="text-center py-6 text-slate-400">
               <p className="text-lg mb-1">✅</p>
-              <p className="text-sm">Aucune app en erreur</p>
-              <p className="text-xs text-slate-300 mt-1">Tout va bien</p>
+              <p className="text-sm">All apps running smoothly</p>
+              <p className="text-xs text-slate-300 mt-1">No errors detected</p>
             </div>
           ) : (
-            <p className="text-sm text-slate-500">
-              {stats?.installFailed} app{(stats?.installFailed || 0) > 1 ? "s" : ""} en échec — voir les logs
-            </p>
+            <div>
+              <p className="text-sm text-slate-500 mb-3">
+                {stats?.installFailed} app{(stats?.installFailed || 0) > 1 ? "s" : ""} in error — check logs
+              </p>
+              <Link
+                href="/servers"
+                className="inline-block text-sm text-red-600 hover:text-red-700 font-medium"
+              >
+                View servers →
+              </Link>
+            </div>
           )}
 
           {servers && servers.length === 0 && (
             <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4">
-              <p className="text-sm font-medium text-blue-800 mb-1">🚀 Bienvenue sur srvly</p>
+              <p className="text-sm font-medium text-blue-800 mb-1">🚀 Welcome to srvly</p>
               <p className="text-xs text-blue-600">
-                Ajoutez votre premier serveur pour commencer
+                Add your first server to get started
               </p>
             </div>
           )}
@@ -363,7 +362,7 @@ export default function DashboardPage() {
 
         {/* Quick actions */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6">
-          <h2 className="font-semibold text-slate-900 mb-4">🚀 Actions rapides</h2>
+          <h2 className="font-semibold text-slate-900 mb-4">🚀 Quick actions</h2>
           <div className="space-y-3">
             <Link
               href="/servers"
@@ -373,8 +372,8 @@ export default function DashboardPage() {
                 ➕
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-900">Ajouter un serveur</p>
-                <p className="text-xs text-slate-400">Connecter un VPS</p>
+                <p className="text-sm font-medium text-slate-900">Add a server</p>
+                <p className="text-xs text-slate-400">Connect a VPS</p>
               </div>
             </Link>
             <Link
@@ -385,8 +384,8 @@ export default function DashboardPage() {
                 📦
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-900">Installer une app</p>
-                <p className="text-xs text-slate-400">Depuis le catalogue</p>
+                <p className="text-sm font-medium text-slate-900">Install an app</p>
+                <p className="text-xs text-slate-400">From the catalog</p>
               </div>
             </Link>
             <Link
@@ -397,23 +396,23 @@ export default function DashboardPage() {
                 ⚙️
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-900">Configuration agent</p>
-                <p className="text-xs text-slate-400">Token API et prompt</p>
+                <p className="text-sm font-medium text-slate-900">Agent settings</p>
+                <p className="text-xs text-slate-400">API token & prompt</p>
               </div>
             </Link>
           </div>
         </div>
 
-        {/* Infra santé */}
+        {/* Infrastructure health */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6">
-          <h2 className="font-semibold text-slate-900 mb-4">📊 Santé de l'infra</h2>
+          <h2 className="font-semibold text-slate-900 mb-4">📊 Infrastructure health</h2>
           {stats && stats.totalServers > 0 ? (
             <div className="space-y-4">
-              {/* RAM aggregate */}
+              {/* RAM bar */}
               {stats.totalRamTotal > 0 && (
                 <div>
                   <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="text-slate-600">RAM totale</span>
+                    <span className="text-slate-600">RAM</span>
                     <span className="text-slate-900 font-medium">
                       {formatBytes(stats.totalRamUsed)} / {formatBytes(stats.totalRamTotal)}
                     </span>
@@ -427,13 +426,13 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              {/* Disk aggregate */}
+              {/* Disk bar */}
               {stats.totalDiskTotal > 0 && (
                 <div>
                   <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="text-slate-600">Disque total</span>
+                    <span className="text-slate-600">Disk</span>
                     <span className="text-slate-900 font-medium">
-                      {stats.totalDiskUsed} Go / {stats.totalDiskTotal} Go
+                      {stats.totalDiskUsed} GB / {stats.totalDiskTotal} GB
                     </span>
                   </div>
                   <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -455,32 +454,32 @@ export default function DashboardPage() {
               <div className="flex flex-wrap gap-2 pt-2">
                 <span className="flex items-center gap-1 text-xs bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                  {healthyServers.length}/{stats.totalServers} serveurs actifs
+                  {healthyServers.length}/{stats.totalServers} servers live
                 </span>
                 {stats.installFailed > 0 && (
                   <span className="flex items-center gap-1 text-xs bg-red-50 text-red-700 px-2.5 py-1 rounded-lg">
                     <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                    {stats.installFailed} app(s) en erreur
+                    {stats.installFailed} app(s) in error
                   </span>
                 )}
                 {stats.installRunning > 0 && (
                   <span className="flex items-center gap-1 text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-lg">
                     <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                    {stats.installRunning} en cours
+                    {stats.installRunning} deploying
                   </span>
                 )}
               </div>
 
               {!stats.totalRamTotal && !stats.totalDiskTotal && (
                 <p className="text-sm text-slate-400 text-center py-4">
-                  Lancez la détection sur vos serveurs pour voir les métriques
+                  Run detection on your servers to see metrics here
                 </p>
               )}
             </div>
           ) : (
             <div className="text-center py-6 text-slate-400">
               <p className="text-lg mb-1">📊</p>
-              <p className="text-sm">Ajoutez d'abord un serveur</p>
+              <p className="text-sm">No servers yet</p>
             </div>
           )}
         </div>
