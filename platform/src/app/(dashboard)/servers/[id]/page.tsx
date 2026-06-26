@@ -1213,382 +1213,66 @@ function InstalledApps({ serverId }: { serverId: string }) {
     <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-semibold text-slate-900">📦 Installed apps</h2>
-        <div className="flex items-center gap-2">
-          {apps.length > 0 && (
-            <button onClick={refreshStats} disabled={statsLoading}
-              className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1">
-              <span className={`${statsLoading ? "animate-pulse" : ""}`}>📊</span>
-              {statsLoading ? "Loading..." : "Live stats"}
-            </button>
-          )}
-          {apps.length > 0 && (
-            <span className="text-xs text-slate-500">{apps.length} app{apps.length > 1 ? "s" : ""}</span>
-          )}
-        </div>
+        {apps.length > 0 && <span className="text-xs text-slate-500">{apps.length} app{apps.length > 1 ? "s" : ""}</span>}
       </div>
 
       {apps.length === 0 ? (
         <div className="text-sm text-slate-500 text-center py-8 border-2 border-dashed border-slate-200 rounded-xl">
           <p className="text-2xl mb-2">📭</p>
-          No installations yet.
-          <br />
+          No installations yet.<br />
           <span className="text-xs text-slate-400">Install an app via the catalog or ask your AI agent.</span>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {apps.map((item: any) => {
             const params = (item.params || {}) as any;
             const status = item.status || "unknown";
-            const insp = inspectData[item.id] || {};
-            const isOpen = openPanels[`${item.id}-logs`] === "loaded" || openPanels[`${item.id}-env`] === "loaded";
-            const ip = actionOutput[`${item.id}-logs`] && openPanels[`${item.id}-logs`] === "loaded";
+            const name = params.name || item.recipeId || "App";
+            const container = params.containerName || params.name || item.recipeId;
 
             const statusColors: Record<string, string> = {
               success: "bg-emerald-500", running: "bg-amber-400",
               failed: "bg-red-500", stopped: "bg-slate-400",
             };
-            const statusBgs: Record<string, string> = {
-              success: "bg-emerald-50 border-emerald-200",
-              running: "bg-amber-50 border-amber-200",
-              failed: "bg-red-50 border-red-200",
-              stopped: "bg-slate-50 border-slate-200",
-            };
 
-            // Derive app URL
             let appUrl = "";
-            if (params.domain) appUrl = `https://${params.domain}`;
-            else if (params.port) appUrl = `http://${inspectData[item.id]?.ports?.split(":")[0] || "server-ip"}:${params.port}`;
+            if (params.domain) appUrl = "https://" + params.domain;
+            else if (params.port) appUrl = "http://server-ip:" + params.port;
 
             return (
-              <div key={item.id} className={`border rounded-xl overflow-hidden transition-all ${statusBgs[status] || "border-slate-200"}`}>
-                {/* ── Header bar ── */}
-                <div className="flex items-center gap-3 p-3">
-                  <span className={`w-2.5 h-2.5 rounded-full ${statusColors[status] || "bg-slate-400"} shrink-0`} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-sm text-slate-900">
-                        {params.name || item.recipeId || "App"}
-                      </p>
-                      {/* Container status badge */}
-                      {insp.status && (
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
-                          insp.status === "running" ? "bg-emerald-100 text-emerald-700" :
-                          insp.status === "exited" ? "bg-slate-100 text-slate-600" :
-                          "bg-amber-100 text-amber-700"
-                        }`}>
-                          {insp.status}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-500">
-                      {params.port && `Port ${params.port}`}
-                      {params.domain && ` • ${params.domain}`}
-                      {params.image && ` • ${params.image.split("/").pop()}`}
-                      {!params.port && !params.domain && !params.image && `Status: ${status}`}
-                    </p>
-                    {/* Live stats row */}
-                    {containerStats && containerSizes && (() => {
-                      const cname = params.containerName || params.name || item.recipeId;
-                      const s = containerStats[cname];
-                      const size = containerSizes[cname];
-                      if (!s && !size) return null;
-                      return (
-                        <div className="flex items-center gap-3 mt-1.5">
-                          {s && <span className="text-[11px] font-mono text-slate-500">🧠 {s.mem}</span>}
-                          {s && <span className="text-[11px] font-mono text-slate-400">CPU {s.cpu}</span>}
-                          {size && <span className="text-[11px] font-mono text-slate-500">💾 {size}</span>}
-                        </div>
-                      );
-                    })()}
-                    {/* Container uptime */}
-                    {insp.uptime && insp.uptime !== "unknown" && (
-                      <p className="text-[11px] text-slate-400 mt-0.5">⏱ Uptime: {insp.uptime}</p>
-                    )}
+              <Link key={item.id} href={"/servers/" + serverId + "/apps/" + item.id}
+                className={"flex items-center gap-3 p-3 border rounded-xl transition-all hover:shadow-sm group " + (
+                  status === "success" ? "bg-white border-slate-200" :
+                  status === "failed" ? "bg-red-50 border-red-200" :
+                  status === "running" ? "bg-amber-50 border-amber-200" :
+                  "bg-slate-50 border-slate-200")}>
+                <span className={"w-2.5 h-2.5 rounded-full " + (statusColors[status] || "bg-slate-400") + " shrink-0"} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-sm text-slate-900 group-hover:text-emerald-700 transition-colors truncate">{name}</p>
+                    <span className={"text-[10px] font-medium px-1.5 py-0.5 rounded " + (
+                      status === "success" ? "bg-emerald-100 text-emerald-700" :
+                      status === "failed" ? "bg-red-100 text-red-700" :
+                      status === "running" ? "bg-amber-100 text-amber-700" :
+                      "bg-slate-100 text-slate-500")}>
+                      {status === "success" ? "Active" : status === "running" ? "Busy" : status}
+                    </span>
                   </div>
-
-                  <div className="flex gap-1 shrink-0">
-                    {/* Open URL */}
-                    {appUrl && (
-                      <a href={appUrl} target="_blank" rel="noopener noreferrer"
-                        className="text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-700 px-2.5 py-1.5 rounded-lg font-medium transition-colors inline-flex items-center gap-1">
-                        ↗ Open
-                      </a>
-                    )}
-                    {/* Details / Inspect */}
-                    <button onClick={() => fetchInspect(item)}
-                      disabled={inspectLoading[item.id]}
-                      className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 py-1.5 rounded-lg font-medium transition-colors">
-                      {inspectLoading[item.id] ? "..." : insp.status ? "🔄 Refresh" : "🔍 Details"}
-                    </button>
-                    {/* Logs toggle */}
-                    <button onClick={() => {
-                      if (openPanels[`${item.id}-logs`]) {
-                        setOpenPanels((prev) => ({ ...prev, [`${item.id}-logs`]: "" }));
-                      } else {
-                        fetchLogs(item.id);
-                      }
-                    }}
-                      className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors ${
-                        openPanels[`${item.id}-logs`] ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                      }`}>
-                      📋 Logs
-                    </button>
-                    {/* Restart */}
-                    <button onClick={() => runAction(item.id, "restart", restartApp)}
-                      disabled={restartApp.isPending}
-                      className="text-xs bg-amber-100 hover:bg-amber-200 text-amber-700 px-2.5 py-1.5 rounded-lg font-medium transition-colors">
-                      ⟳ Restart
-                    </button>
-                    {/* Stop/Start */}
-                    {status !== "stopped" ? (
-                      <button onClick={() => runAction(item.id, "stop", stopApp)}
-                        disabled={stopApp.isPending}
-                        className="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-2.5 py-1.5 rounded-lg font-medium transition-colors">
-                        ⏹ Stop
-                      </button>
-                    ) : (
-                      <button onClick={() => runAction(item.id, "start", startApp)}
-                        disabled={startApp.isPending}
-                        className="text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-700 px-2.5 py-1.5 rounded-lg font-medium transition-colors">
-                        ▶ Start
-                      </button>
-                    )}
-                    {/* Env toggle */}
-                    <button onClick={() => {
-                      if (openPanels[`${item.id}-env`]) {
-                        setOpenPanels((prev) => ({ ...prev, [`${item.id}-env`]: "" }));
-                      } else {
-                        fetchEnv(item.id);
-                      }
-                    }}
-                      className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors ${
-                        openPanels[`${item.id}-env`] ? "bg-blue-100 text-blue-700" : "bg-blue-50 text-blue-600 hover:bg-blue-100"
-                      }`}>
-                      🔑 .env
-                    </button>
-                    {/* Backup */}
-                    <button onClick={() => backupApp(item)}
-                      disabled={backupBusy[item.id]}
-                      className="text-xs bg-purple-50 hover:bg-purple-100 text-purple-700 px-2.5 py-1.5 rounded-lg font-medium transition-colors">
-                      {backupBusy[item.id] ? "..." : "💾 Backup"}
-                    </button>
-                    {/* Restore */}
-                    <button onClick={() => toggleRestorePanel(item.id)}
-                      className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors ${
-                        restoreOpen === item.id
-                          ? "bg-emerald-100 text-emerald-700"
-                          : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
-                      }`}>
-                      ↻ Restore
-                    </button>
-                    {/* Delete */}
-                    <button onClick={() => { if (confirm("Uninstall this app?")) deleteApp.mutate({ id: item.id }); }}
-                      disabled={deleteApp.isPending}
-                      className="text-xs text-red-500 hover:text-red-700 px-2 py-1.5 font-medium">
-                      ✕
-                    </button>
-                  </div>
-                </div>
-
-                {/* ── Backup result message ── */}
-                {backupMsg[item.id] && (
-                  <div className={`border-t border-slate-200 px-3 py-1.5 text-[11px] font-mono ${
-                    backupMsg[item.id].startsWith("✓")
-                      ? "bg-emerald-50 text-emerald-700"
-                      : backupMsg[item.id].startsWith("✗")
-                      ? "bg-red-50 text-red-700"
-                      : "bg-blue-50 text-blue-700"
-                  }`}>
-                    {backupMsg[item.id]}
-                  </div>
-                )}
-
-                {/* ── Restore panel ── */}
-                {restoreOpen === item.id && (() => {
-                  const appBackups = (backups || []).filter((b: any) =>
-                    b.installationId === item.id && b.status === "success"
-                  );
-                  return (
-                    <div className="border-t border-slate-200 bg-emerald-50/30">
-                      <div className="px-3 py-2 flex items-center justify-between border-b border-emerald-100">
-                        <span className="text-[11px] text-slate-700 font-medium">
-                          📂 Available backups for this app
-                        </span>
-                        <button onClick={() => setRestoreOpen(null)}
-                          className="text-[11px] text-slate-400 hover:text-slate-600">
-                          ✕ Close
-                        </button>
-                      </div>
-                      {restoreMsg[item.id] && (
-                        <div className={`px-3 py-1.5 text-[11px] font-mono ${
-                          restoreMsg[item.id].startsWith("✓")
-                            ? "bg-emerald-50 text-emerald-700"
-                            : restoreMsg[item.id].startsWith("✗")
-                            ? "bg-red-50 text-red-700"
-                            : "bg-blue-50 text-blue-700"
-                        }`}>
-                          {restoreMsg[item.id]}
-                        </div>
-                      )}
-                      {appBackups.length === 0 ? (
-                        <div className="px-3 py-3 text-[11px] text-slate-400 text-center">
-                          No backups yet. Click 💾 Backup first.
-                        </div>
-                      ) : (
-                        <div className="max-h-48 overflow-y-auto">
-                          {appBackups.map((b: any) => (
-                            <div key={b.id} className="flex items-center gap-2 px-3 py-2 border-b border-slate-100 last:border-b-0">
-                              <span className="text-[11px] font-mono text-slate-600 truncate flex-1">
-                                {b.filename}
-                              </span>
-                              <span className="text-[10px] text-slate-400 shrink-0">
-                                {new Date(b.createdAt).toLocaleDateString()}
-                              </span>
-                              <button
-                                onClick={() => restoreAppBackup(item.id, b.id, b.filename)}
-                                disabled={restoreBusy[b.id]}
-                                className="text-[11px] bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white px-2 py-1 rounded font-medium shrink-0">
-                                {restoreBusy[b.id] ? "..." : "Restore"}
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()}
-
-                {/* ── Details panel (status, health, uptime, image, ports, volumes) ── */}
-                {insp.status && !openPanels[`${item.id}-logs`] && !openPanels[`${item.id}-env`] && (
-                  <div className="border-t border-slate-200 px-3 py-2 bg-slate-50/50">
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-500">
-                      {insp.health && insp.health !== "none" && (
-                        <span>Health: <span className={insp.health === "healthy" ? "text-emerald-600 font-medium" : "text-amber-600"}>{insp.health}</span></span>
-                      )}
-                      {insp.image && <span>Image: <span className="font-mono">{insp.image.split("/").pop()}</span></span>}
-                      {insp.restartPolicy && <span>Restart: {insp.restartPolicy}</span>}
-                      {insp.ports && <span>Ports: <span className="font-mono">{insp.ports}</span></span>}
-                      {insp.volumes && <span>Volumes: {insp.volumes.split("|").length}</span>}
-                    </div>
-                  </div>
-                )}
-
-                {/* ── Logs panel ── */}
-                {openPanels[`${item.id}-logs`] && (
-                  <div className="border-t border-slate-200">
-                    <div className="flex items-center justify-between px-3 py-1.5 bg-slate-100">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] text-slate-500 font-medium uppercase">Container logs</span>
-                        <select value={logLines} onChange={(e) => setLogLines(Number(e.target.value))}
-                          className="text-[11px] bg-white border border-slate-200 rounded px-1 py-0.5">
-                          <option value={50}>50 lines</option>
-                          <option value={100}>100 lines</option>
-                          <option value={500}>500 lines</option>
-                        </select>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button onClick={() => fetchLogs(item.id, logLines)}
-                          className="text-[11px] text-emerald-600 hover:underline">↻ Refresh</button>
-                        <button onClick={() => copyToClipboard(actionOutput[`${item.id}-logs`] || "")}
-                          className="text-[11px] text-blue-600 hover:underline">📋 Copy</button>
-                      </div>
-                    </div>
-                    {openPanels[`${item.id}-logs`] === "loading" ? (
-                      <div className="text-xs text-slate-400 text-center py-4">Loading logs...</div>
-                    ) : (
-                      <pre className="text-xs font-mono bg-slate-900 text-slate-100 p-3 max-h-64 overflow-y-auto whitespace-pre-wrap">
-                        {actionOutput[`${item.id}-logs`] || "No output"}
-                      </pre>
-                    )}
-                  </div>
-                )}
-
-                {/* ── Environment panel ── */}
-                {openPanels[`${item.id}-env`] && (
-                  <div className="border-t border-slate-200">
-                    <div className="flex items-center justify-between px-3 py-1.5 bg-slate-100">
-                      <span className="text-[11px] text-slate-500 font-medium uppercase">Environment variables</span>
-                      <div className="flex items-center gap-2">
-                        <button onClick={() => setShowSecrets((prev) => ({ ...prev, [item.id]: !prev[item.id] }))}
-                          className="text-[11px] text-amber-600 hover:underline">
-                          {showSecrets[item.id] ? "🔒 Hide secrets" : "👁 Show secrets"}
-                        </button>
-                        <button onClick={() => fetchEnv(item.id)}
-                          className="text-[11px] text-emerald-600 hover:underline">↻ Refresh</button>
-                      </div>
-                    </div>
-
-                    {openPanels[`${item.id}-env`] === "loading" ? (
-                      <div className="text-xs text-slate-400 text-center py-4">Loading env...</div>
-                    ) : editingEnv === item.id ? (
-                      /* ── Edit mode ── */
-                      <div className="p-3 space-y-2">
-                        {Object.entries(editValues).map(([k, v]) => (
-                          <div key={k} className="flex items-center gap-2">
-                            <span className="text-xs font-mono text-slate-600 min-w-[120px] truncate">{k}=</span>
-                            <input type={isSecret(k) && !showSecrets[item.id] ? "password" : "text"}
-                              value={v}
-                              onChange={(e) => setEditValues((prev) => ({ ...prev, [k]: e.target.value }))}
-                              className="flex-1 text-xs font-mono px-2 py-1 border border-slate-200 rounded bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                            />
-                          </div>
-                        ))}
-                        <div className="flex gap-2 pt-2">
-                          <button onClick={() => saveEnvChanges(item.id)} disabled={savingEnv}
-                            className="text-xs px-3 py-1.5 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 disabled:opacity-50">
-                            {savingEnv ? "Saving..." : "💾 Save & restart"}
-                          </button>
-                          <button onClick={() => setEditingEnv(null)}
-                            className="text-xs px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg font-medium hover:bg-slate-300">
-                            Cancel
-                          </button>
-                        </div>
-                        {actionOutput[`${item.id}-env-save`] && (
-                          <p className="text-xs text-slate-600">{actionOutput[`${item.id}-env-save`]}</p>
-                        )}
-                      </div>
-                    ) : (
-                      /* ── Display mode ── */
-                      <div>
-                        <div className="max-h-64 overflow-y-auto">
-                          {(actionOutput[`${item.id}-env`] || "").split("\n").map((line, i) => {
-                            const eqIdx = line.indexOf("=");
-                            if (eqIdx < 1) return null;
-                            const key = line.substring(0, eqIdx);
-                            const val = line.substring(eqIdx + 1);
-                            const secret = isSecret(key);
-                            return (
-                              <div key={i} className="flex items-center gap-2 px-3 py-1 hover:bg-slate-50 text-xs font-mono border-b border-slate-100 last:border-0">
-                                <span className="text-slate-600 min-w-[140px] truncate">{key}</span>
-                                <span className="text-slate-400">=</span>
-                                <span className={`flex-1 truncate ${secret ? "text-slate-400" : "text-slate-800"}`}>
-                                  {secret && !showSecrets[item.id] ? maskValue(val) : val}
-                                </span>
-                                {secret && !showSecrets[item.id] && (
-                                  <span className="text-[10px] text-amber-500 shrink-0">🔒</span>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                        <div className="px-3 py-1.5 bg-slate-50 border-t border-slate-200">
-                          <button onClick={() => startEditEnv(item)}
-                            className="text-[11px] text-blue-600 hover:underline">
-                            ✏️ Edit environment variables
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Restart/stop/start result */}
-                {(actionOutput[`${item.id}-restart`] || actionOutput[`${item.id}-stop`] || actionOutput[`${item.id}-start`]) && (
-                  <p className="text-xs text-slate-500 px-3 py-1.5 border-t border-slate-100">
-                    {actionOutput[`${item.id}-restart`] || actionOutput[`${item.id}-stop`] || actionOutput[`${item.id}-start`]}
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {params.port && <>Port {params.port}</>}
+                    {params.domain && <> &bull; {params.domain}</>}
+                    {!params.port && !params.domain && container && <span className="font-mono">{container}</span>}
                   </p>
+                </div>
+                {appUrl && (
+                  <a href={appUrl} target="_blank" rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 py-1.5 rounded-lg font-medium transition-colors shrink-0 z-10">
+                    ↗ Open
+                  </a>
                 )}
-              </div>
+                <span className="text-slate-300 group-hover:text-slate-500 transition-colors text-sm">→</span>
+              </Link>
             );
           })}
         </div>
@@ -1597,6 +1281,7 @@ function InstalledApps({ serverId }: { serverId: string }) {
   );
 }
 
+// ─── BackupSection (Phase 6) ───
 // ─── BackupSection (Phase 6) ───
 
 function BackupSection({ serverId }: { serverId: string }) {

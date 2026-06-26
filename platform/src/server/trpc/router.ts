@@ -1028,6 +1028,37 @@ export const installRouter = router({
         .orderBy(installations.createdAt);
     }),
 
+  get: agentProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .select({
+          installation: installations,
+          server: servers,
+        })
+        .from(installations)
+        .innerJoin(servers, eq(installations.serverId, servers.id))
+        .where(and(eq(installations.id, input.id), eq(servers.userId, ctx.user.id!)));
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+
+      // Also fetch recipe info if available
+      let recipe = null;
+      if (row.installation.recipeId && row.installation.recipeId !== "app") {
+        const [r] = await ctx.db
+        .select()
+        .from(recipes)
+        .where(eq(recipes.id, row.installation.recipeId))
+        .limit(1);
+        recipe = r || null;
+      }
+
+      return {
+        ...row.installation,
+        server: row.server,
+        recipe,
+      };
+    }),
+
   containerStats: agentProcedure
     .input(z.object({ serverId: z.string() }))
     .mutation(async ({ ctx, input }) => {
