@@ -67,24 +67,41 @@ echo "Run: certbot --nginx -d your-domain.com"`,
   },
 };
 
-function ActionCard({ action, onRun, loading }: {
+function ActionCard({ action, onRun, loading, done }: {
   action: keyof typeof ACTIONS;
   onRun: (action: keyof typeof ACTIONS) => void;
   loading: boolean;
+  done?: boolean;
 }) {
   const a = ACTIONS[action];
   return (
     <button
       onClick={() => onRun(action)}
       disabled={loading}
-      className="bg-white rounded-2xl border border-slate-200 p-5 hover:shadow-md hover:border-emerald-300 transition-all text-left disabled:opacity-50 w-full"
+      className={`bg-white rounded-2xl border p-5 transition-all text-left w-full ${
+        done
+          ? "border-emerald-200 opacity-80"
+          : "border-slate-200 hover:shadow-md hover:border-emerald-300"
+      } disabled:opacity-50`}
     >
       <div className="flex items-start gap-4">
-        <div className={`w-12 h-12 ${a.color} rounded-xl flex items-center justify-center text-2xl flex-shrink-0`}>
+        <div className={`w-12 h-12 ${a.color} rounded-xl flex items-center justify-center text-2xl flex-shrink-0 relative`}>
           {a.icon}
+          {done && (
+            <span className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm">
+              ✓
+            </span>
+          )}
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-slate-900">{a.label}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-slate-900">{a.label}</h3>
+            {done && (
+              <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
+                Done
+              </span>
+            )}
+          </div>
           <p className="text-sm text-slate-500 mt-0.5">{a.desc}</p>
         </div>
         {loading && (
@@ -141,6 +158,8 @@ export default function ServerDetailPage() {
   if (!server) return <div className="text-slate-500">Server not found</div>;
 
   const sysInfo = (server.systemInfo || {}) as Record<string, any>;
+  const setupSteps = (sysInfo.setupSteps || {}) as Record<string, boolean>;
+  const allSetupDone = setupSteps.security && setupSteps.docker && setupSteps.nginx && setupSteps.ssl;
 
   const statusColors: Record<string, string> = {
     pending: "bg-yellow-400",
@@ -242,36 +261,58 @@ export default function ServerDetailPage() {
       {/* Actions */}
       {server.status === "connected" && (
         <>
-          <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-2xl p-6 mb-6 text-white">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-bold mb-1">Configure automatically</h2>
-                <p className="text-sm text-emerald-100">Security → Docker → Nginx → SSL in one command</p>
+          {allSetupDone ? (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 mb-6 flex items-center gap-4">
+              <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-xl">
+                ✅
               </div>
-              <button onClick={() => {
-                const steps = ["security", "docker", "nginx", "ssl"];
-                steps.reduce(async (prev, step) => {
-                  await prev;
-                  await runAction(step as keyof typeof ACTIONS);
-                }, Promise.resolve());
-              }}
-                className="px-6 py-3 bg-white text-emerald-700 rounded-xl font-semibold hover:bg-emerald-50 transition-colors">
-                {running ? "Running..." : "Configure"}
-              </button>
+              <div className="flex-1">
+                <h3 className="font-semibold text-emerald-800">Server fully configured</h3>
+                <p className="text-sm text-emerald-600">Security, Docker, Nginx, and SSL tooling are all installed.</p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-2xl p-6 mb-6 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-bold mb-1">Configure automatically</h2>
+                  <p className="text-sm text-emerald-100">Security → Docker → Nginx → SSL in one command</p>
+                </div>
+                <button onClick={() => {
+                  const steps = ["security", "docker", "nginx", "ssl"];
+                  steps.reduce(async (prev, step) => {
+                    await prev;
+                    await runAction(step as keyof typeof ACTIONS);
+                  }, Promise.resolve());
+                }}
+                  className="px-6 py-3 bg-white text-emerald-700 rounded-xl font-semibold hover:bg-emerald-50 transition-colors">
+                  {running ? "Running..." : "Configure"}
+                </button>
+              </div>
+            </div>
+          )}
 
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">Available actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">
+            {allSetupDone ? "Setup steps" : "Available actions"}
+          </h2>
+          <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 ${
+            allSetupDone ? "opacity-60" : ""
+          }`}>
             {(Object.keys(ACTIONS) as Array<keyof typeof ACTIONS>).map((action) => (
               <ActionCard
                 key={action}
                 action={action}
                 onRun={runAction}
                 loading={running === action}
+                done={!!setupSteps[action]}
               />
             ))}
           </div>
+          {allSetupDone && (
+            <p className="text-xs text-slate-400 text-center -mt-4 mb-8">
+              All setup steps completed. Click a card to re-run if needed.
+            </p>
+          )}
 
           {Object.entries(results).length > 0 && (
             <div className="space-y-4 mb-8">

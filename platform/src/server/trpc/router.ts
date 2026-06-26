@@ -108,16 +108,36 @@ export const serverRouter = router({
 
       const result = await executeOnServer(input.id, input.script, input.timeout);
 
-      // Update status to connected on first successful command
+      // Detect which setup step was completed from output markers
+      const output = result.output || "";
+      const currentInfo = (server.systemInfo || {}) as Record<string, any>;
+      const setupSteps = { ...((currentInfo.setupSteps || {}) as Record<string, boolean>) };
+
+      if (output.includes("SECURITY DONE")) setupSteps.security = true;
+      if (output.includes("DOCKER DONE")) setupSteps.docker = true;
+      if (output.includes("NGINX DONE")) setupSteps.nginx = true;
+      if (output.includes("SSL TOOLING INSTALLED")) setupSteps.ssl = true;
+
+      const hasStepUpdates = Object.values(setupSteps).some(Boolean);
+
+      // Build update payload
+      const updateData: Record<string, any> = {};
+
       if (result.success && server.status === "pending") {
+        updateData.status = "connected";
+        updateData.lastSeen = new Date();
+      } else if (result.success) {
+        updateData.lastSeen = new Date();
+      }
+
+      if (hasStepUpdates) {
+        updateData.systemInfo = { ...currentInfo, setupSteps };
+      }
+
+      if (Object.keys(updateData).length > 0) {
         await ctx.db
           .update(servers)
-          .set({ status: "connected", lastSeen: new Date() })
-          .where(eq(servers.id, input.id));
-      } else if (result.success && server.status === "connected") {
-        await ctx.db
-          .update(servers)
-          .set({ lastSeen: new Date() })
+          .set(updateData)
           .where(eq(servers.id, input.id));
       }
 
