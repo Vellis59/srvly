@@ -1369,7 +1369,7 @@ export const domainRouter = router({
         .where(and(eq(servers.id, input.serverId), eq(servers.userId, ctx.user.id!)));
       if (!server) throw new TRPCError({ code: "NOT_FOUND" });
 
-      const domainRegex = /^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,}$/i;
+      const domainRegex = /^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i;
       if (!domainRegex.test(input.name)) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid domain format" });
       }
