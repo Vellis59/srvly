@@ -39,16 +39,16 @@ export default function InstallPage() {
     const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://srvly.app";
 
     let parts: string[] = [];
-    parts.push(`Sur srvly, installe **${appName}** sur le serveur **${serverName}** (${serverIp})`);
+    parts.push(`On srvly, install **${appName}** on server **${serverName}** (${serverIp})`);
 
     if (hasDomain) {
-      parts.push(`avec le domaine **${domain.trim()}**`);
+      parts.push(`with domain **${domain.trim()}**`);
     } else {
-      parts.push(`sur le port **${finalPort}** (http://${serverIp}:${finalPort})`);
+      parts.push(`on port **${finalPort}** (http://${serverIp}:${finalPort})`);
     }
 
     if (hasCreds) {
-      parts.push(`avec l'utilisateur **${username}** et le mot de passe **${password}**`);
+      parts.push(`with username **${username}** and password **${password}**`);
     }
 
     const ghLink = (recipe as any)?.recipe?.links?.find?.((l: any) => l.label?.toLowerCase().includes("github"))?.url || "";
@@ -60,8 +60,9 @@ export default function InstallPage() {
     fullPrompt += `Body: { "serverId": "${selectedServer}", "name": "${appName}", "image": "${defaultImage}", "port": ${finalPort}`;
     if (hasDomain) fullPrompt += `, "domain": "${domain.trim()}"`;
     fullPrompt += ` }\n\n`;
-    fullPrompt += `Le token s envoie dans le header: Authorization: Bearer ***\n\n`;
-    fullPrompt += `Consulte la doc GitHub : ${ghLink || "https://github.com"} pour les variables d environnement specifiques si besoin.`;
+    fullPrompt += `The token is sent in the header: Authorization: Bearer ***`;
+    fullPrompt += `\n\n`;
+    fullPrompt += `Consult the GitHub docs: ${ghLink || "https://github.com"} for environment-specific variables if needed.`;
 
     return fullPrompt;
   }, [recipe, recipeId, selectedServer, selectedServerData, domain, port, defaultPort, username, password, useCredentials]);
