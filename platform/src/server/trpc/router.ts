@@ -1323,18 +1323,36 @@ export const domainRouter = router({
   list: agentProcedure
     .input(z.object({ serverId: z.string() }))
     .query(async ({ ctx, input }) => {
-      // Verify server ownership
       const [server] = await ctx.db
         .select()
         .from(servers)
         .where(and(eq(servers.id, input.serverId), eq(servers.userId, ctx.user.id!)));
       if (!server) return [];
 
-      return await ctx.db
+      const rows = await ctx.db
         .select()
         .from(domains)
         .where(eq(domains.serverId, input.serverId))
         .orderBy(domains.createdAt);
+
+      // Enrich with installation names
+      const enriched = [];
+      for (const d of rows) {
+        let appName = d.targetApp || null;
+        if (d.targetApp) {
+          const [inst] = await ctx.db
+            .select({ name: installations.params })
+            .from(installations)
+            .where(eq(installations.id, d.targetApp))
+            .limit(1);
+          if (inst) {
+            const p = inst.name as any;
+            appName = (p?.name) || d.targetApp;
+          }
+        }
+        enriched.push({ ...d, appName });
+      }
+      return enriched;
     }),
 
   add: agentProcedure
@@ -1345,17 +1363,15 @@ export const domainRouter = router({
       targetApp: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      // Verify server ownership
       const [server] = await ctx.db
         .select()
         .from(servers)
         .where(and(eq(servers.id, input.serverId), eq(servers.userId, ctx.user.id!)));
       if (!server) throw new TRPCError({ code: "NOT_FOUND" });
 
-      // Basic domain validation
-      const domainRegex = /^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i;
+      const domainRegex = /^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,}$/i;
       if (!domainRegex.test(input.name)) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Domaine invalide" });
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid domain format" });
       }
 
       const [domain] = await ctx.db
@@ -1369,32 +1385,29 @@ export const domainRouter = router({
         })
         .returning();
 
-      // Auto-configure Nginx on the server (if app+port specified)
+      // Auto-configure Nginx if port is specified
       if (domain && input.targetPort) {
-        const nginxScript = `
-mkdir -p /var/www/certbot
-cat > /etc/nginx/sites-enabled/${input.name}.conf << NGINX
-server {
-    listen 80;
-    server_name ${input.name};
-
-    location /.well-known/acme-challenge/ {
-        root /var/www/certbot;
-    }
-
-    location / {
-        proxy_pass http://127.0.0.1:${input.targetPort};
-        proxy_set_header Host \\$host;
-        proxy_set_header X-Real-IP \\$remote_addr;
-        proxy_set_header X-Forwarded-For \\$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \\$scheme;
-    }
-}
-NGINX
-nginx -t && systemctl reload nginx
-echo "NGINX_CONFIGURED"
-`;
-
+        const safeName = input.name.replace(/[^a-zA-Z0-9.-]/g, "-");
+        const nginxScript = [
+          `mkdir -p /var/www/certbot`,
+          `cat > /etc/nginx/sites-enabled/${safeName}.conf << 'NGINX'`,
+          `server {`,
+          `    listen 80;`,
+          `    server_name ${input.name};`,
+          `    location /.well-known/acme-challenge/ {`,
+          `        root /var/www/certbot;`,
+          `    }`,
+          `    location / {`,
+          `        proxy_pass http://127.0.0.1:${input.targetPort};`,
+          `        proxy_set_header Host $host;`,
+          `        proxy_set_header X-Real-IP $remote_addr;`,
+          `        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`,
+          `        proxy_set_header X-Forwarded-Proto $scheme;`,
+          `    }`,
+          `}`,
+          `'NGINX'`,
+          `nginx -t && systemctl reload nginx && echo "NGINX_CONFIGURED"`,
+        ].join("\n");
         executeOnServer(input.serverId, nginxScript, 30).catch(() => {});
       }
 
@@ -1404,7 +1417,6 @@ echo "NGINX_CONFIGURED"
   delete: agentProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      // Find domain + verify ownership
       const [domain] = await ctx.db
         .select({ domain: domains, server: servers })
         .from(domains)
@@ -1412,11 +1424,200 @@ echo "NGINX_CONFIGURED"
         .where(and(eq(domains.id, input.id), eq(servers.userId, ctx.user.id!)));
       if (!domain) throw new TRPCError({ code: "NOT_FOUND" });
 
-      // Remove Nginx config via SSH
-      executeOnServer(domain.server.id, `rm -f /etc/nginx/sites-enabled/${domain.domain.name}.conf && nginx -t && systemctl reload nginx && echo "REMOVED"`, 15).catch(() => {});
+      const safeName = domain.domain.name.replace(/[^a-zA-Z0-9.-]/g, "-");
+      executeOnServer(
+        domain.server.id,
+        `rm -f /etc/nginx/sites-enabled/${safeName}.conf && nginx -t && systemctl reload nginx && echo "REMOVED"`,
+        15
+      ).catch(() => {});
 
       await ctx.db.delete(domains).where(eq(domains.id, input.id));
       return { success: true };
+    }),
+
+  checkDns: agentProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [domain] = await ctx.db
+        .select({ domain: domains, server: servers })
+        .from(domains)
+        .innerJoin(servers, eq(domains.serverId, servers.id))
+        .where(and(eq(domains.id, input.id), eq(servers.userId, ctx.user.id!)));
+      if (!domain) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const name = domain.domain.name;
+      const serverIp = domain.server.ip;
+
+      // Try to resolve DNS
+      const dnsResult = await executeOnServer(
+        domain.server.id,
+        `nslookup ${name} 2>/dev/null | awk '/^Address: /{print $2}' | head -1 || ` +
+        `dig +short ${name} 2>/dev/null | head -1 || ` +
+        `host ${name} 2>/dev/null | awk '/has address/{print $4}' | head -1 || echo "UNRESOLVABLE"`,
+        10
+      );
+
+      const resolved = (dnsResult.output || "").trim();
+      const matches = resolved === serverIp;
+      const matchesAny = resolved && (resolved.includes(serverIp) || serverIp.includes(resolved));
+
+      return {
+        success: true,
+        domain: name,
+        serverIp,
+        resolved: resolved || "Unresolvable",
+        match: matches || matchesAny,
+        status: matches || matchesAny ? "ok" : resolved === "UNRESOLVABLE" ? "no_dns" : "wrong_ip",
+      };
+    }),
+
+  checkHttp: agentProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [domain] = await ctx.db
+        .select({ domain: domains, server: servers })
+        .from(domains)
+        .innerJoin(servers, eq(domains.serverId, servers.id))
+        .where(and(eq(domains.id, input.id), eq(servers.userId, ctx.user.id!)));
+      if (!domain) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const name = domain.domain.name;
+      const result = await executeOnServer(
+        domain.server.id,
+        `curl -sS -o /dev/null -w "%{http_code}" --max-time 10 http://${name} 2>/dev/null || echo "TIMEOUT"`,
+        15
+      );
+      const httpsResult = await executeOnServer(
+        domain.server.id,
+        `curl -sS -o /dev/null -w "%{http_code}" --max-time 10 https://${name} 2>/dev/null || echo "TIMEOUT"`,
+        15
+      );
+
+      const httpCode = (result.output || "").trim();
+      const httpsCode = (httpsResult.output || "").trim();
+
+      return {
+        success: true,
+        http: httpCode === "TIMEOUT" ? null : httpCode,
+        https: httpsCode === "TIMEOUT" ? null : httpsCode,
+      };
+    }),
+
+  checkSsl: agentProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [domain] = await ctx.db
+        .select({ domain: domains, server: servers })
+        .from(domains)
+        .innerJoin(servers, eq(domains.serverId, servers.id))
+        .where(and(eq(domains.id, input.id), eq(servers.userId, ctx.user.id!)));
+      if (!domain) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const name = domain.domain.name;
+      const result = await executeOnServer(
+        domain.server.id,
+        `echo | openssl s_client -servername ${name} -connect ${name}:443 2>/dev/null | openssl x509 -noout -dates -subject 2>/dev/null || echo "NO_SSL"`,
+        15
+      );
+
+      const output = (result.output || "").trim();
+      if (output === "NO_SSL" || !output) {
+        return { success: true, ssl: false };
+      }
+
+      // Parse dates
+      const notBefore = output.match(/notBefore=(.+)/)?.[1]?.trim() || "";
+      const notAfter = output.match(/notAfter=(.+)/)?.[1]?.trim() || "";
+      const subject = output.match(/subject= ?(.+)/)?.[1]?.trim() || "";
+
+      // Calculate days until expiry
+      let daysLeft = null;
+      if (notAfter) {
+        const expiry = new Date(notAfter);
+        const now = new Date();
+        daysLeft = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      }
+
+      return {
+        success: true,
+        ssl: true,
+        subject,
+        issuedAt: notBefore,
+        expiresAt: notAfter,
+        daysLeft,
+        expired: daysLeft !== null && daysLeft <= 0,
+        expiresSoon: daysLeft !== null && daysLeft > 0 && daysLeft <= 30,
+      };
+    }),
+
+  generateProxy: agentProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [domain] = await ctx.db
+        .select({ domain: domains, server: servers })
+        .from(domains)
+        .innerJoin(servers, eq(domains.serverId, servers.id))
+        .where(and(eq(domains.id, input.id), eq(servers.userId, ctx.user.id!)));
+      if (!domain) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const d = domain.domain;
+      const port = d.targetPort || 80;
+      const safeName = d.name.replace(/[^a-zA-Z0-9.-]/g, "-");
+
+      // Detect which proxy is installed
+      const detectResult = await executeOnServer(
+        domain.server.id,
+        "which nginx 2>/dev/null && echo 'nginx' || which caddy 2>/dev/null && echo 'caddy' || echo 'none'",
+        10
+      );
+      const proxyType = (detectResult.output || "").trim();
+
+      let script = "";
+      if (proxyType === "nginx") {
+        script = [
+          `mkdir -p /var/www/certbot`,
+          `cat > /etc/nginx/sites-enabled/${safeName}.conf << 'NGINX'`,
+          `server {`,
+          `    listen 80;`,
+          `    server_name ${d.name};`,
+          `    `,
+          `    location /.well-known/acme-challenge/ {`,
+          `        root /var/www/certbot;`,
+          `    }`,
+          `    `,
+          `    location / {`,
+          `        proxy_pass http://127.0.0.1:${port};`,
+          `        proxy_set_header Host $host;`,
+          `        proxy_set_header X-Real-IP $remote_addr;`,
+          `        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`,
+          `        proxy_set_header X-Forwarded-Proto $scheme;`,
+          `    }`,
+          `}`,
+          `'NGINX'`,
+          `echo "Nginx config generated for ${d.name}"`,
+          `nginx -t 2>&1 && systemctl reload nginx 2>&1 && echo "Nginx reloaded" || echo "Nginx config error"`,
+        ].join("\n");
+      } else if (proxyType === "caddy") {
+        script = [
+          `cat >> /etc/caddy/Caddyfile << 'CADDY'`,
+          ``,
+          `${d.name} {`,
+          `    reverse_proxy 127.0.0.1:${port}`,
+          `}`,
+          `'CADDY'`,
+          `caddy reload --config /etc/caddy/Caddyfile 2>&1 && echo "Caddy reloaded" || echo "Caddy error"`,
+        ].join("\n");
+      } else {
+        script = `echo "No reverse proxy found. Install nginx or caddy first."`;
+      }
+
+      const result = await executeOnServer(domain.server.id, script, 15);
+      return {
+        success: result.success,
+        proxyType,
+        output: result.output,
+        error: result.error,
+      };
     }),
 });
 

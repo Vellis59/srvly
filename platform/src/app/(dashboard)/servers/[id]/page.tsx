@@ -733,27 +733,34 @@ function MonitoringSection({ serverId }: { serverId: string }) {
   );
 }
 
-// ─── DomainSection ───
+// ─── DomainSection (Phase 5) ───
 
 function DomainSection({ serverId }: { serverId: string }) {
   const utils = trpc.useUtils();
   const { data: domains } = trpc.domain.list.useQuery({ serverId });
+  const { data: installations } = trpc.install.listForServer.useQuery({ serverId });
   const addDomain = trpc.domain.add.useMutation({ onSuccess: () => utils.domain.list.invalidate({ serverId }) });
   const deleteDomain = trpc.domain.delete.useMutation({ onSuccess: () => utils.domain.list.invalidate({ serverId }) });
 
   const [name, setName] = useState("");
   const [port, setPort] = useState("");
+  const [selectedApp, setSelectedApp] = useState("");
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
-      <h2 className="font-semibold text-slate-900 mb-2">🌍 Domains</h2>
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="font-semibold text-slate-900">🌍 Domains</h2>
+        {domains && domains.length > 0 && (
+          <span className="text-xs text-slate-500">{domains.length} domain{domains.length > 1 ? "s" : ""}</span>
+        )}
+      </div>
       <p className="text-sm text-slate-500 mb-4">
         Add a custom domain pointing to an installed app (automatic Nginx reverse proxy).
       </p>
 
       {domains && domains.length > 0 && (
-        <div className="space-y-2 mb-4">
-          {domains.map((d) => (
+        <div className="space-y-3 mb-4">
+          {domains.map((d: any) => (
             <DomainItem key={d.id} domain={d} onDelete={() => { if (confirm("Delete " + d.name + " ?")) deleteDomain.mutate({ id: d.id }); }} />
           ))}
         </div>
@@ -764,12 +771,29 @@ function DomainSection({ serverId }: { serverId: string }) {
           placeholder="app.yourdomain.com"
           className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
         <input type="number" value={port} onChange={(e) => setPort(e.target.value)}
-          placeholder="target port (80, 3000...)"
-          className="w-full md:w-48 px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+          placeholder="port"
+          className="w-full md:w-24 px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        <select value={selectedApp} onChange={(e) => setSelectedApp(e.target.value)}
+          className="w-full md:w-44 px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+          <option value="">No app linked</option>
+          {(installations || []).map((inst: any) => {
+            const params = (inst.params || {}) as any;
+            return (
+              <option key={inst.id} value={inst.id}>
+                {params.name || inst.recipeId || "App"}
+              </option>
+            );
+          })}
+        </select>
         <button onClick={() => {
           if (!name) return;
-          addDomain.mutate({ serverId, name, targetPort: port ? parseInt(port) : undefined });
-          setName(""); setPort("");
+          addDomain.mutate({
+            serverId,
+            name,
+            targetPort: port ? parseInt(port) : undefined,
+            targetApp: selectedApp || undefined,
+          });
+          setName(""); setPort(""); setSelectedApp("");
         }} disabled={addDomain.isPending}
           className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 transition-colors">
           {addDomain.isPending ? "Adding..." : "Add"}
@@ -785,11 +809,57 @@ function DomainSection({ serverId }: { serverId: string }) {
 
 function DomainItem({ domain, onDelete }: { domain: any; onDelete: () => void }) {
   const [status, setStatus] = useState<string>("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<string | null>(null);
+  const [dnsStatus, setDnsStatus] = useState<any>(null);
+  const [httpStatus, setHttpStatus] = useState<any>(null);
+  const [sslStatus, setSslStatus] = useState<any>(null);
+  const [proxyResult, setProxyResult] = useState<string>("");
+
+  const checkDns = trpc.domain.checkDns.useMutation();
+  const checkHttp = trpc.domain.checkHttp.useMutation();
+  const checkSsl = trpc.domain.checkSsl.useMutation();
+  const generateProxy = trpc.domain.generateProxy.useMutation();
+
+  const runDnsCheck = async () => {
+    setLoading("dns");
+    try {
+      const r = await checkDns.mutateAsync({ id: domain.id });
+      setDnsStatus(r);
+    } catch (err: any) { setDnsStatus({ status: "error", resolved: err.message }); }
+    setLoading(null);
+  };
+
+  const runHttpCheck = async () => {
+    setLoading("http");
+    try {
+      const r = await checkHttp.mutateAsync({ id: domain.id });
+      setHttpStatus(r);
+    } catch (err: any) { setHttpStatus({ http: null, https: null }); }
+    setLoading(null);
+  };
+
+  const runSslCheck = async () => {
+    setLoading("ssl");
+    try {
+      const r = await checkSsl.mutateAsync({ id: domain.id });
+      setSslStatus(r);
+    } catch (err: any) { setSslStatus({ ssl: false }); }
+    setLoading(null);
+  };
+
+  const runGenerateProxy = async () => {
+    setLoading("proxy");
+    setProxyResult("Generating...");
+    try {
+      const r = await generateProxy.mutateAsync({ id: domain.id });
+      setProxyResult(r.proxyType + ": " + ((r as any).output || "done"));
+    } catch (err: any) { setProxyResult("Error: " + err.message); }
+    setLoading(null);
+  };
 
   const enableSsl = async () => {
     if (!confirm("Enable SSL on " + domain.name + "? (Your DNS must point to the server)")) return;
-    setLoading(true);
+    setLoading("ssl-enable");
     setStatus("DNS check + certificate generation...");
     try {
       const res = await fetch("/api/domains/enable-ssl", {
@@ -805,31 +875,101 @@ function DomainItem({ domain, onDelete }: { domain: any; onDelete: () => void })
         setStatus("Error: " + (data.detail || data.error || "unknown"));
       }
     } catch (err: any) { setStatus("Error: " + err.message); }
-    setLoading(false);
+    setLoading(null);
   };
+
+  const hasChecks = dnsStatus || httpStatus || sslStatus || proxyResult;
 
   return (
     <div className="p-3 bg-slate-50 rounded-xl">
-      <div className="flex items-center gap-3">
-        <span className="text-lg">🌍</span>
+      <div className="flex items-start gap-3">
+        <span className="text-lg mt-0.5">🌍</span>
         <div className="flex-1 min-w-0">
           <p className="font-mono text-sm text-slate-900 truncate">{domain.name}</p>
           <p className="text-xs text-slate-500">
-            {domain.targetApp && <span>{domain.targetApp} → </span>}
+            {domain.appName && <span>{domain.appName} → </span>}
             port {domain.targetPort || "—"} • SSL: {domain.sslStatus}
           </p>
+          {/* Status badges */}
+          {dnsStatus && (
+            <span className={`inline-block text-[10px] px-1.5 py-0.5 rounded font-medium mt-1 mr-1 ${
+              dnsStatus.status === "ok" ? "bg-emerald-100 text-emerald-700" :
+              dnsStatus.status === "no_dns" ? "bg-red-100 text-red-700" :
+              "bg-amber-100 text-amber-700"
+            }`}>
+              DNS: {dnsStatus.status === "ok" ? "✓" : dnsStatus.status === "no_dns" ? "✗" : "⚠"}
+            </span>
+          )}
+          {httpStatus && httpStatus.https && (
+            <span className="inline-block text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-medium mt-1 mr-1">
+              HTTPS {httpStatus.https}
+            </span>
+          )}
+          {httpStatus && httpStatus.http && !httpStatus.https && (
+            <span className="inline-block text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-medium mt-1 mr-1">
+              HTTP {httpStatus.http}
+            </span>
+          )}
+          {sslStatus && sslStatus.ssl && (
+            <span className={`inline-block text-[10px] px-1.5 py-0.5 rounded font-medium mt-1 mr-1 ${
+              sslStatus.expired ? "bg-red-100 text-red-700" :
+              sslStatus.expiresSoon ? "bg-amber-100 text-amber-700" :
+              "bg-emerald-100 text-emerald-700"
+            }`}>
+              SSL: {sslStatus.daysLeft !== null ? `${sslStatus.daysLeft}d` : "✓"}
+            </span>
+          )}
         </div>
-        {domain.sslStatus !== "active" && (
-          <button onClick={enableSsl} disabled={loading}
-            className="text-sm bg-emerald-50 text-emerald-700 px-3 py-1 rounded-lg hover:bg-emerald-100 disabled:opacity-50">
-            {loading ? "..." : "Enable SSL"}
+
+        <div className="flex flex-wrap gap-1 shrink-0">
+          <button onClick={runDnsCheck} disabled={loading === "dns"}
+            className="text-[11px] bg-blue-50 hover:bg-blue-100 text-blue-600 px-2 py-1 rounded-lg font-medium transition-colors">
+            {loading === "dns" ? "..." : "DNS"}
           </button>
-        )}
-        <button onClick={onDelete} className="text-sm text-red-500 hover:text-red-700">
-          Delete
-        </button>
+          <button onClick={runHttpCheck} disabled={loading === "http"}
+            className="text-[11px] bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-2 py-1 rounded-lg font-medium transition-colors">
+            {loading === "http" ? "..." : "HTTP"}
+          </button>
+          <button onClick={runSslCheck} disabled={loading === "ssl"}
+            className="text-[11px] bg-purple-50 hover:bg-purple-100 text-purple-600 px-2 py-1 rounded-lg font-medium transition-colors">
+            {loading === "ssl" ? "..." : "SSL"}
+          </button>
+          <button onClick={runGenerateProxy} disabled={loading === "proxy"}
+            className="text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded-lg font-medium transition-colors">
+            {loading === "proxy" ? "..." : "🔄 Proxy"}
+          </button>
+          {domain.sslStatus !== "active" && (
+            <button onClick={enableSsl} disabled={loading === "ssl-enable"}
+              className="text-[11px] bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2 py-1 rounded-lg font-medium transition-colors">
+              {loading === "ssl-enable" ? "..." : "🔒 SSL"}
+            </button>
+          )}
+          <button onClick={onDelete} className="text-[11px] text-red-500 hover:text-red-700 px-2 py-1">
+            ✕
+          </button>
+        </div>
       </div>
-      {status && <p className="text-xs mt-2 text-slate-600 break-words">{status}</p>}
+
+      {/* Results */}
+      {dnsStatus && (
+        <p className={`text-[11px] mt-1.5 ${dnsStatus.match ? "text-emerald-600" : "text-amber-600"}`}>
+          DNS: {dnsStatus.resolved} {dnsStatus.match ? "✓ matches server" : `✗ (server: ${dnsStatus.serverIp})`}
+        </p>
+      )}
+      {httpStatus && (
+        <p className="text-[11px] text-slate-500 mt-0.5">
+          HTTP: {httpStatus.http || "—"} · HTTPS: {httpStatus.https || "—"}
+        </p>
+      )}
+      {sslStatus && sslStatus.ssl && (
+        <p className={`text-[11px] mt-0.5 ${sslStatus.expired ? "text-red-600" : sslStatus.expiresSoon ? "text-amber-600" : "text-emerald-600"}`}>
+          SSL: {sslStatus.subject?.slice(0, 40)} · expires {sslStatus.daysLeft !== null ? `in ${sslStatus.daysLeft}d` : "?"}
+        </p>
+      )}
+      {proxyResult && (
+        <p className="text-[11px] text-slate-500 mt-0.5">{proxyResult}</p>
+      )}
+      {status && <p className="text-[11px] mt-0.5 text-slate-500">{status}</p>}
     </div>
   );
 }
