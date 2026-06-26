@@ -4,6 +4,27 @@ import { trpc } from "@/lib/trpc";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
 
+function copyToClipboard(text: string): boolean {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {}
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    return true;
+  } catch {}
+  return false;
+}
+
 export default function InstallPage() {
   const { recipe: recipeId } = useParams<{ recipe: string }>();
   const router = useRouter();
@@ -39,7 +60,7 @@ export default function InstallPage() {
     const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://srvly.app";
 
     let parts: string[] = [];
-    parts.push(`On srvly, install **${appName}** on server **${serverName}** (${serverIp})`);
+    parts.push(`Use srvly skill and install **${appName}** on server **${serverName}** (${serverIp})`);
 
     if (hasDomain) {
       parts.push(`with domain **${domain.trim()}**`);
@@ -68,9 +89,10 @@ export default function InstallPage() {
   }, [recipe, recipeId, selectedServer, selectedServerData, domain, port, defaultPort, username, password, useCredentials]);
 
   const copyPrompt = () => {
-    navigator.clipboard.writeText(prompt);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (copyToClipboard(prompt)) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   if (isLoading) return <div className="text-slate-400 py-8">Loading...</div>;

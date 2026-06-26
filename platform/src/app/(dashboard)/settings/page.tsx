@@ -4,11 +4,35 @@ import { trpc } from "@/lib/trpc";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
+function copyToClipboard(text: string): boolean {
+  // Fallback for HTTP (navigator.clipboard requires HTTPS)
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {}
+  // Fallback: create a hidden textarea
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    return true;
+  } catch {}
+  return false;
+}
+
 export default function SettingsPage() {
   const { data: session } = useSession();
   const { data: tokenData, isLoading, refetch } = trpc.user.getToken.useQuery();
   const regenerate = trpc.user.regenerateToken.useMutation();
-  const [copied, setCopied] = useState(false);
+  const [copiedToken, setCopiedToken] = useState(false);
+  const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
 
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://srvly.app";
@@ -25,10 +49,18 @@ export default function SettingsPage() {
     setRegenerating(false);
   };
 
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopyToken = () => {
+    if (copyToClipboard(tokenData?.token || "")) {
+      setCopiedToken(true);
+      setTimeout(() => setCopiedToken(false), 2000);
+    }
+  };
+
+  const handleCopyPrompt = () => {
+    if (copyToClipboard(promptText)) {
+      setCopiedPrompt(true);
+      setTimeout(() => setCopiedPrompt(false), 2000);
+    }
   };
 
   const promptText = [
@@ -85,10 +117,10 @@ export default function SettingsPage() {
                   {tokenData?.token || "---"}
                 </code>
                 <button
-                  onClick={() => handleCopy(tokenData?.token || "")}
+                  onClick={handleCopyToken}
                   className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-medium hover:bg-emerald-700 shrink-0"
                 >
-                  {copied ? "Copied" : "Copy"}
+                  {copiedToken ? "Copied" : "Copy"}
                 </button>
               </div>
             </div>
@@ -114,10 +146,10 @@ export default function SettingsPage() {
           <h2 className="text-sm font-semibold text-slate-200 mb-3">Prompt for your agent</h2>
           <pre className="text-sm font-mono text-slate-100 whitespace-pre-wrap break-words leading-relaxed mb-4">{promptText}</pre>
           <button
-            onClick={() => handleCopy(promptText)}
+            onClick={handleCopyPrompt}
             className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 transition-colors"
           >
-            {copied ? "Copied!" : "Copy prompt"}
+            {copiedPrompt ? "Copied!" : "Copy prompt"}
           </button>
         </div>
       )}
