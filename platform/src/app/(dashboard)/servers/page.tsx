@@ -73,11 +73,15 @@ function AddServerModal({ onClose }: { onClose: () => void }) {
 
           <div className="bg-amber-50 rounded-xl p-4 mb-6 border border-amber-200">
             <p className="text-xs text-amber-700 font-medium mb-2 uppercase tracking-wide">
-              Command to run on your server
+              Run this on your server
             </p>
-            <pre className="text-xs font-mono bg-slate-900 text-slate-100 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap">
-{createdServer.connectCommand ? `# One-line command (copy-paste in your server terminal):\n\n${createdServer.connectCommand}` : `# Run these commands on your server (via SSH or console):\n\necho '${createdServer.sshPublicKey}' >> /root/.ssh/authorized_keys\nchmod 600 /root/.ssh/authorized_keys\nmkdir -p /root/.ssh && chmod 700 /root/.ssh`}
+            <pre className="text-xs font-mono bg-slate-900 text-slate-100 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap break-all">
+{`# One-command setup (run on your server as root):\n\ncurl -sL https://srvly.vellis.cc/connect.sh | bash -s -- '${createdServer.sshPublicKey}'`}
             </pre>
+            <p className="text-xs text-amber-600 mt-2">
+              This will install the SSH key, set up Docker, UFW, and Fail2Ban.
+              The connection is guarded by a cron job that runs hourly.
+            </p>
           </div>
 
           <div className="flex flex-col gap-3">
