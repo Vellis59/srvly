@@ -737,14 +737,43 @@ function MonitoringSection({ serverId }: { serverId: string }) {
 
 function DomainSection({ serverId }: { serverId: string }) {
   const utils = trpc.useUtils();
-  const { data: domains } = trpc.domain.list.useQuery({ serverId });
+  const { data: domains, isLoading: domainsLoading, error: domainsError } = trpc.domain.list.useQuery({ serverId });
   const { data: installations } = trpc.install.listForServer.useQuery({ serverId });
-  const addDomain = trpc.domain.add.useMutation({ onSuccess: () => utils.domain.list.invalidate({ serverId }) });
+  const addDomain = trpc.domain.add.useMutation({
+    onSuccess: () => {
+      utils.domain.list.invalidate({ serverId });
+    },
+    onError: (err: any) => {
+      setAddError(err.message || "Failed to add domain");
+    },
+  });
   const deleteDomain = trpc.domain.delete.useMutation({ onSuccess: () => utils.domain.list.invalidate({ serverId }) });
 
   const [name, setName] = useState("");
   const [port, setPort] = useState("");
   const [selectedApp, setSelectedApp] = useState("");
+  const [addError, setAddError] = useState("");
+
+  const handleAdd = async () => {
+    if (!name) {
+      setAddError("Please enter a domain name");
+      return;
+    }
+    setAddError("");
+    try {
+      await addDomain.mutateAsync({
+        serverId,
+        name,
+        targetPort: port ? parseInt(port) : undefined,
+        targetApp: selectedApp || undefined,
+      });
+      setName("");
+      setPort("");
+      setSelectedApp("");
+    } catch (err: any) {
+      setAddError(err.message || "Failed to add domain");
+    }
+  };
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
@@ -758,6 +787,14 @@ function DomainSection({ serverId }: { serverId: string }) {
         Add a custom domain pointing to an installed app (automatic Nginx reverse proxy).
       </p>
 
+      {domainsLoading && (
+        <div className="text-sm text-slate-400 mb-4">Loading domains...</div>
+      )}
+
+      {domainsError && (
+        <div className="text-sm text-red-500 mb-4">Error loading domains: {domainsError.message}</div>
+      )}
+
       {domains && domains.length > 0 && (
         <div className="space-y-3 mb-4">
           {domains.map((d: any) => (
@@ -766,13 +803,21 @@ function DomainSection({ serverId }: { serverId: string }) {
         </div>
       )}
 
+      {domains && domains.length === 0 && !domainsLoading && (
+        <div className="text-sm text-slate-400 text-center py-4 mb-4 border-2 border-dashed border-slate-200 rounded-xl">
+          No domains configured yet
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row gap-3">
         <input type="text" value={name} onChange={(e) => setName(e.target.value)}
           placeholder="app.yourdomain.com"
-          className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+          className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }} />
         <input type="number" value={port} onChange={(e) => setPort(e.target.value)}
           placeholder="port"
-          className="w-full md:w-24 px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+          className="w-full md:w-24 px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }} />
         <select value={selectedApp} onChange={(e) => setSelectedApp(e.target.value)}
           className="w-full md:w-44 px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
           <option value="">No app linked</option>
@@ -785,21 +830,16 @@ function DomainSection({ serverId }: { serverId: string }) {
             );
           })}
         </select>
-        <button onClick={() => {
-          if (!name) return;
-          addDomain.mutate({
-            serverId,
-            name,
-            targetPort: port ? parseInt(port) : undefined,
-            targetApp: selectedApp || undefined,
-          });
-          setName(""); setPort(""); setSelectedApp("");
-        }} disabled={addDomain.isPending}
+        <button onClick={handleAdd}
+          disabled={addDomain.isPending}
           className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 transition-colors">
           {addDomain.isPending ? "Adding..." : "Add"}
         </button>
       </div>
 
+      {addError && (
+        <p className="text-xs text-red-500 mt-2">{addError}</p>
+      )}
       <p className="text-xs text-slate-400 mt-3">
         Configure your DNS (A record) to point to the server IP before SSL can be enabled.
       </p>
