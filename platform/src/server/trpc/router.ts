@@ -897,6 +897,50 @@ export const installRouter = router({
         .where(eq(installations.serverId, input.serverId))
         .orderBy(installations.createdAt);
     }),
+
+  containerStats: agentProcedure
+    .input(z.object({ serverId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [server] = await ctx.db
+        .select()
+        .from(servers)
+        .where(and(eq(servers.id, input.serverId), eq(servers.userId, ctx.user.id!)));
+      if (!server) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const result = await executeOnServer(
+        input.serverId,
+        [
+          "echo '---STATS---'",
+          "docker stats --no-stream --format '{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}|{{.MemPerc}}' 2>&1",
+          "echo '---SIZE---'",
+          "docker ps --size --format '{{.Names}}|{{.Size}}' 2>&1",
+        ].join("\n"),
+        15,
+      );
+
+      if (!result.success) return { success: false, output: result.output, error: result.error };
+
+      const output = result.output || "";
+      const statsPart = output.split("---STATS---")[1]?.split("---SIZE---")[0]?.trim() || "";
+      const sizePart = output.split("---SIZE---")[1]?.trim() || "";
+
+      const stats: Record<string, any> = {};
+      for (const line of statsPart.split("\n")) {
+        const parts = line.split("|");
+        if (parts.length >= 4) {
+          const name = parts[0].replace(/^\//, "");
+          stats[name] = { cpu: parts[1]?.trim() || "—", mem: parts[2]?.trim() || "—", memPct: parts[3]?.trim() || "—" };
+        }
+      }
+
+      const sizes: Record<string, string> = {};
+      for (const line of sizePart.split("\n")) {
+        const parts = line.split("|");
+        if (parts.length >= 2) sizes[parts[0]] = parts[1]?.trim() || "—";
+      }
+
+      return { success: true, stats, sizes };
+    }),
 });
 
 // ─── Domain routes ───

@@ -698,8 +698,12 @@ function InstalledApps({ serverId }: { serverId: string }) {
   const startApp = trpc.install.start.useMutation({ onSuccess: () => utils.install.listForServer.invalidate({ serverId }) });
   const getLogs = trpc.install.logs.useMutation();
   const getEnv = trpc.install.getEnv.useMutation();
+  const getStats = trpc.install.containerStats.useMutation();
   const [actionOutput, setActionOutput] = useState<Record<string, string>>({});
   const [openPanels, setOpenPanels] = useState<Record<string, boolean>>({});
+  const [containerStats, setContainerStats] = useState<Record<string, any> | null>(null);
+  const [containerSizes, setContainerSizes] = useState<Record<string, string> | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
 
   const runAction = async (id: string, action: string, fn: any) => {
     setActionOutput((prev) => ({ ...prev, [`${id}-${action}`]: "..." }));
@@ -709,6 +713,18 @@ function InstalledApps({ serverId }: { serverId: string }) {
     } catch (err: any) {
       setActionOutput((prev) => ({ ...prev, [`${id}-${action}`]: `Error: ${err.message}` }));
     }
+  };
+
+  const refreshStats = async () => {
+    setStatsLoading(true);
+    try {
+      const result = await getStats.mutateAsync({ serverId });
+      if (result.success) {
+        setContainerStats((result as any).stats || {});
+        setContainerSizes((result as any).sizes || {});
+      }
+    } catch {}
+    setStatsLoading(false);
   };
 
   const togglePanel = (id: string, panel: string, fn: any) => {
@@ -727,9 +743,18 @@ function InstalledApps({ serverId }: { serverId: string }) {
     <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-semibold text-slate-900">📦 Installed apps</h2>
-        {apps.length > 0 && (
-          <span className="text-xs text-slate-500">{apps.length} app{apps.length > 1 ? "s" : ""}</span>
-        )}
+        <div className="flex items-center gap-2">
+          {apps.length > 0 && (
+            <button onClick={refreshStats} disabled={statsLoading}
+              className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1">
+              <span className={`${statsLoading ? "animate-pulse" : ""}`}>📊</span>
+              {statsLoading ? "Loading..." : "Live stats"}
+            </button>
+          )}
+          {apps.length > 0 && (
+            <span className="text-xs text-slate-500">{apps.length} app{apps.length > 1 ? "s" : ""}</span>
+          )}
+        </div>
       </div>
 
       {apps.length === 0 ? (
@@ -772,6 +797,32 @@ function InstalledApps({ serverId }: { serverId: string }) {
                       {params.image && ` • ${params.image.split("/").pop()}`}
                       {!params.port && !params.domain && `Status: ${status}`}
                     </p>
+                    {/* Live stats */}
+                    {containerStats && containerSizes && (() => {
+                      const cname = params.containerName || params.name || item.recipeId;
+                      const s = containerStats[cname];
+                      const size = containerSizes[cname];
+                      if (!s && !size) return null;
+                      return (
+                        <div className="flex items-center gap-3 mt-1.5">
+                          {s && (
+                            <span className="text-[11px] font-mono text-slate-500">
+                              🧠 {s.mem}
+                            </span>
+                          )}
+                          {s && (
+                            <span className="text-[11px] font-mono text-slate-400">
+                              CPU {s.cpu}
+                            </span>
+                          )}
+                          {size && (
+                            <span className="text-[11px] font-mono text-slate-500">
+                              💾 {size}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                   <div className="flex gap-1">
                     <button onClick={() => togglePanel(item.id, "logs", getLogs)}
