@@ -22,7 +22,7 @@ function ok(data: any) {
 }
 
 // ─── POST /api/agent/docker/deploy ────────────────────────────
-// One-shot Docker deploy: pull + run + nginx + register in one SSH call
+// One-shot Docker deploy: pull + run + reverse proxy + register via SSH
 export async function POST(req: NextRequest) {
   try {
     const user = await authUser(req);
@@ -56,19 +56,17 @@ export async function POST(req: NextRequest) {
       'echo ">>> RUN"',
     ];
 
-    // Build docker run command as one continuous line (multi-line breaks the shell)
+    // Build docker run command
     let runCmd = "docker run -d --name " + containerName;
     runCmd += " --restart unless-stopped";
     runCmd += " -p " + appPort + ":" + appPort;
 
-    // Add env vars to run command
     if (env && typeof env === "object") {
       for (const [k, v] of Object.entries(env)) {
         runCmd += " -e " + k + "='" + String(v) + "'";
       }
     }
 
-    // Add volumes to run command
     if (volumes && Array.isArray(volumes)) {
       for (const vol of volumes) {
         const parts = vol.split(":");
@@ -84,43 +82,65 @@ export async function POST(req: NextRequest) {
     scriptLines.push("sleep 3");
     scriptLines.push("");
     scriptLines.push('echo ">>> CHECK"');
-    scriptLines.push(
-      "for i in 1 2 3 4 5; do",
-    );
+    scriptLines.push("for i in 1 2 3 4 5; do");
     scriptLines.push(
       '  CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:' +
         appPort +
-        " 2>/dev/null || echo '000')",
+        " 2>/dev/null || echo '000')"
     );
     scriptLines.push('  echo "  Attempt $i: HTTP $CODE"');
     scriptLines.push('  [ "$CODE" != "000" ] && echo "READY" && break');
     scriptLines.push("  sleep 3");
     scriptLines.push("done");
 
-    // Domain + nginx
+    // Domain + reverse proxy (auto-detect: Caddy or nginx)
     if (domain) {
       scriptLines.push("");
-      scriptLines.push('echo ">>> NGINX"');
-      scriptLines.push('cat > /etc/nginx/sites-enabled/' + domain + '.conf << NGINX');
+      scriptLines.push('echo ">>> REVERSE PROXY"');
+      scriptLines.push('echo "Detecting installed reverse proxy..."');
+      scriptLines.push("");
+      // Branch on Caddy vs nginx
+      scriptLines.push('if command -v caddy &>/dev/null; then');
+      scriptLines.push('  echo "Using Caddy"');
+      scriptLines.push('  CFG=/opt/srvly/infra/Caddyfile');
+      scriptLines.push('  [ ! -f "$CFG" ] && CFG=/etc/caddy/Caddyfile');
+      scriptLines.push("  echo 'Adding domain to Caddyfile: " + domain + " → :" + appPort + "'");
+      scriptLines.push("  echo '" + domain + " {' >> $CFG");
+      scriptLines.push("  echo '    reverse_proxy 127.0.0.1:" + appPort + "' >> $CFG");
+      scriptLines.push("  echo '}' >> $CFG");
+      scriptLines.push('  # Reload Caddy (Docker or native)');
+      scriptLines.push('  if docker ps -q --filter name=caddy 2>/dev/null | grep -q .; then');
+      scriptLines.push('    docker compose -f /opt/srvly/infra/docker-compose.yml restart caddy 2>&1 || docker exec $(docker ps -q --filter name=caddy) caddy reload --config /etc/caddy/Caddyfile 2>&1');
+      scriptLines.push('  else');
+      scriptLines.push('    caddy reload --config "$CFG" 2>&1 || systemctl reload caddy 2>&1 || service caddy reload 2>&1 || true');
+      scriptLines.push('  fi');
+      scriptLines.push('  echo "CADDY_OK"');
+      scriptLines.push('elif command -v nginx &>/dev/null; then');
+      scriptLines.push('  echo "Using nginx"');
+      scriptLines.push("  cat > /etc/nginx/sites-enabled/" + domain + ".conf << 'NGINX'");
       scriptLines.push("server {");
       scriptLines.push("    listen 80;");
       scriptLines.push("    server_name " + domain + ";");
       scriptLines.push("    location / {");
       scriptLines.push("        proxy_pass http://127.0.0.1:" + appPort + ";");
-      scriptLines.push('        proxy_set_header Host $host;');
-      scriptLines.push('        proxy_set_header X-Real-IP $remote_addr;');
-      scriptLines.push('        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;');
-      scriptLines.push('        proxy_set_header X-Forwarded-Proto $scheme;');
+      scriptLines.push("        proxy_set_header Host $host;");
+      scriptLines.push("        proxy_set_header X-Real-IP $remote_addr;");
+      scriptLines.push("        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;");
+      scriptLines.push("        proxy_set_header X-Forwarded-Proto $scheme;");
       scriptLines.push("    }");
       scriptLines.push("}");
       scriptLines.push("NGINX");
-      scriptLines.push("nginx -t && systemctl reload nginx");
-      scriptLines.push('echo "NGINX_OK"');
+      scriptLines.push("  nginx -t && systemctl reload nginx");
+      scriptLines.push('  echo "NGINX_OK"');
+      scriptLines.push('else');
+      scriptLines.push('  echo "WARNING: No reverse proxy detected. Domain ' + domain + ' will not be reachable."');
+      scriptLines.push('  echo "Install Caddy (recommended) or nginx and reconfigure."');
+      scriptLines.push('fi');
     }
 
     const script = scriptLines.join("\n");
 
-    // Execute via SSH (single call, timeout 180s for docker pull)
+    // Execute via SSH (timeout 180s for docker pull)
     const result = await executeOnServer(serverId, script, 180);
     const success = result.success && (result.output || "").includes("READY");
 
