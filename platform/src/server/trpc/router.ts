@@ -9,6 +9,7 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import { execSync } from "child_process";
+import { encryptKey } from "@/lib/crypto";
 
 // ─── SSH key conversion (uses system ssh-keygen) ───
 
@@ -126,7 +127,7 @@ export const serverRouter = router({
           userId: ctx.user.id!,
           name: input.name,
           ip: input.ip,
-          sshPrivateKey,
+          sshPrivateKey: encryptKey(sshPrivateKey),
           sshPublicKey,
           userSshKey: input.sshKey || null,
           status: "pending",
@@ -136,6 +137,7 @@ export const serverRouter = router({
       // If user provided a key, return combined installation command
       return {
         ...server,
+        sshPrivateKey: sshPrivateKey, // return plaintext to the creator for api compatibility
         userSshKey: input.sshKey || null,
         connectCommand: input.sshKey
           ? `echo '${input.sshKey}' >> /root/.ssh/authorized_keys && echo '${sshPublicKey}' >> /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys && mkdir -p /root/.ssh && chmod 700 /root/.ssh`

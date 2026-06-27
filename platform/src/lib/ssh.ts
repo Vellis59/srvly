@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import fs from "fs";
 import path from "path";
 import os from "os";
+import { decryptKey } from "./crypto";
 
 type ExecResult = {
   success: boolean;
@@ -38,7 +39,10 @@ export async function executeOnServer(
     };
   }
 
-  return executeRaw(server.ip, server.sshPrivateKey, script, timeout);
+  // Decrypt the private key before passing to executeRaw
+  const decryptedPrivateKey = decryptKey(server.sshPrivateKey);
+
+  return executeRaw(server.ip, decryptedPrivateKey, script, timeout);
 }
 
 /**

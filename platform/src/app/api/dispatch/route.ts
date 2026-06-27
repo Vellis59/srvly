@@ -5,6 +5,7 @@ import { servers } from "@/server/db/schema";
 import { eq, and } from "drizzle-orm";
 import { authUser, error, ok, validateBody } from "@/lib/api-helpers";
 import { dispatchSchema } from "@/lib/api-schemas";
+import { decryptKey } from "@/lib/crypto";
 
 /**
  * POST /api/dispatch
@@ -45,10 +46,11 @@ export async function POST(req: NextRequest) {
     if (!targetServer || !targetServer.sshPrivateKey || !targetServer.ip) {
       return error("No connected server with SSH key available", 404);
     }
+    const decryptedPrivateKey = decryptKey(targetServer.sshPrivateKey);
 
     const result = await executeRaw(
       targetServer.ip,
-      targetServer.sshPrivateKey,
+      decryptedPrivateKey,
       script,
       timeout,
     );
