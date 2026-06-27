@@ -22,14 +22,15 @@ function ok(data: any) {
 }
 
 // ─── POST /api/agent/install/exec ───
-// Run a command inside a container via docker exec.
+// Default: run commands on the HOST (via SSH).
+// With container=true: run inside the container via docker exec.
 export async function POST(req: NextRequest) {
   try {
     const user = await authUser(req);
     if (!user) return error("Invalid token", 401);
 
     const body = await req.json();
-    const { installationId, command, workdir } = body;
+    const { installationId, command, workdir, container } = body;
     if (!installationId) return error("installationId required");
     if (!command) return error("command required");
 
@@ -48,20 +49,34 @@ export async function POST(req: NextRequest) {
     const containerName = (inst.params as any)?.containerName || installationId;
     const timeout = Math.min(Number(body.timeout || 30), 120);
 
-    let execCmd = `docker exec ${containerName} sh -c ${JSON.stringify(command)} 2>&1`;
-    if (workdir) {
-      execCmd = `docker exec -w ${JSON.stringify(workdir)} ${containerName} sh -c ${JSON.stringify(command)} 2>&1`;
+    // Build command: host mode (default) or container mode
+    let execCmd: string;
+    if (container) {
+      // Run INSIDE the container (requires running container)
+      execCmd = `docker exec ${containerName} sh -c ${JSON.stringify(command)} 2>&1`;
+      if (workdir) {
+        execCmd = `docker exec -w ${JSON.stringify(workdir)} ${containerName} sh -c ${JSON.stringify(command)} 2>&1`;
+      }
+    } else {
+      // Run on the HOST (always works, even if container is down)
+      if (workdir) {
+        execCmd = `cd ${JSON.stringify(workdir)} && ${command} 2>&1`;
+      } else {
+        execCmd = `${command} 2>&1`;
+      }
     }
 
     const result = await executeOnServer(server.id, execCmd, timeout);
-    const lines = (result.output || "").trim().split("\n").length;
-    const truncated = (result.output || "").length > 10000;
+    const output = (result.output || "").trim();
+    const lines = output ? output.split("\n").length : 0;
+    const truncated = output.length > 10000;
 
     return ok({
-      container: containerName,
+      mode: container ? "container" : "host",
+      container: container ? containerName : null,
       command,
       exitCode: result.success ? 0 : 1,
-      output: (result.output || "").slice(0, 10000),
+      output: output.slice(0, 10000),
       lines,
       truncated,
       error: result.error || null,
