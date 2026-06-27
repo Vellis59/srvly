@@ -76,13 +76,32 @@ export default function InstallPage() {
     const defaultImage = (recipe as any)?.recipe?.params?.image?.default || recipeId;
 
     let fullPrompt = parts.join(" ") + ".\n\n";
-    fullPrompt += "Use the API :\n";
+    fullPrompt += "## Installation instructions\n\n";
+    fullPrompt += "### 1. Check port availability\n";
+    fullPrompt += `Before installing, verify that port **${finalPort}** is free on the server:\n`;
+    fullPrompt += "- Run: `curl -s -o /dev/null -w \"%{http_code}\" http://localhost:${finalPort} 2>/dev/null || echo \"FREE\"`\n";
+    fullPrompt += "- If the response is NOT \"FREE\" (port is occupied), **automatically pick another free port** (e.g., ${finalPort} + 1, then +2, etc.) and use that instead.\n";
+    fullPrompt += `- Update all subsequent commands with the new port.\n\n`;
+    fullPrompt += "### 2. Clean up before retry\n";
+    fullPrompt += "If a previous installation attempt exists (failed or partial):\n";
+    fullPrompt += "- First, check existing installations for this server via the API:\n";
+    fullPrompt += `  GET ${baseUrl}/api/agent/install/list?serverId=${selectedServer}\n`;
+    fullPrompt += "- If you find a failed installation with the same name, **delete it** before retrying.\n";
+    fullPrompt += "- Also run `docker rm -f " + appName.toLowerCase().replace(/[^a-z0-9]/g, "-") + " 2>/dev/null || true` to clean up any leftover container.\n";
+    fullPrompt += "- Do NOT create a duplicate installation record. Reuse or clean up the existing one.\n\n";
+    fullPrompt += "### 3. Install\n";
+    fullPrompt += `Use the API:\n`;
     fullPrompt += `POST ${baseUrl}/api/agent/docker/deploy\n`;
     fullPrompt += `Body: { "serverId": "${selectedServer}", "name": "${appName}", "image": "${defaultImage}", "port": ${finalPort}`;
     if (hasDomain) fullPrompt += `, "domain": "${domain.trim()}"`;
     fullPrompt += ` }\n\n`;
+    fullPrompt += `If the port was changed in step 1, use the new port instead of ${finalPort}.\n\n`;
     fullPrompt += `The token is sent in the header: Authorization: Bearer ***`;
     fullPrompt += `\n\n`;
+    fullPrompt += `### 4. Verify and confirm\n`;
+    fullPrompt += "- Wait for the app to be ready (HTTP 200).\n";
+    fullPrompt += "- Provide the access URL to the user.\n";
+    fullPrompt += "- If the installation fails, report the error and offer to retry.\n\n";
     fullPrompt += `Consult the GitHub docs: ${ghLink || "https://github.com"} for environment-specific variables if needed.`;
 
     return fullPrompt;
