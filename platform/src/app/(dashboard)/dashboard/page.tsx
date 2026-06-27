@@ -47,11 +47,11 @@ function statusLabel(status: string): string {
 
 function statusBadge(status: string): string {
   switch (status) {
-    case "success": return "bg-emerald-100 text-emerald-700";
-    case "running": return "bg-blue-100 text-blue-700";
-    case "failed": return "bg-red-100 text-red-700";
-    case "stopped": return "bg-slate-100 text-zinc-400";
-    default: return "bg-slate-100 text-zinc-400";
+    case "success": return "bg-zinc-700 text-emerald-400";
+    case "running": return "bg-zinc-700 text-blue-400";
+    case "failed": return "bg-zinc-700 text-red-400";
+    case "stopped": return "bg-zinc-800 text-zinc-400";
+    default: return "bg-zinc-800 text-zinc-400";
   }
 }
 
@@ -115,7 +115,7 @@ export default function DashboardPage() {
       {/* ── Plan usage banner ── */}
       {plan && plan.maxServers > 0 && (
         <div className="mb-6 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2.5 flex items-center justify-between text-sm">
-          <span className="text-slate-300">
+          <span className="text-zinc-300">
             <span className="font-medium text-white capitalize">{plan.plan}</span> plan —{" "}
             {plan.currentServers}/{plan.maxServers} server{plan.maxServers > 1 ? "s" : ""} used
           </span>
@@ -136,7 +136,7 @@ export default function DashboardPage() {
         <StatCard
           href="/servers"
           icon="♝"
-          iconBg="bg-blue-100"
+          iconBg="bg-zinc-700"
           iconColor="text-zinc-400"
           value={statsLoading ? "…" : `${stats?.connectedServers || 0}/${stats?.totalServers || 0}`}
           label={_("dashboard.servers.online")}
@@ -145,7 +145,7 @@ export default function DashboardPage() {
         <StatCard
           href="/dashboard"
           icon="📦"
-          iconBg="bg-emerald-100"
+          iconBg="bg-zinc-700"
           iconColor="text-emerald-600"
           value={statsLoading ? "…" : (stats?.totalApps || 0)}
           label={_("dashboard.apps.installed")}
@@ -158,7 +158,7 @@ export default function DashboardPage() {
         <StatCard
           href="/dashboard"
           icon="💾"
-          iconBg="bg-amber-100"
+          iconBg="bg-zinc-700"
           iconColor="text-amber-600"
           value={
             statsLoading
@@ -198,10 +198,10 @@ export default function DashboardPage() {
           </div>
 
           {!servers || servers.length === 0 ? (
-            <div className="text-center py-6 text-slate-400">
+            <div className="text-center py-6 text-zinc-400">
               <p className="mb-2 text-lg">♜</p>
               <p className="text-sm mb-1">{_("server.list.empty.title")}</p>
-              <p className="text-xs text-slate-300 mb-4">{_("server.list.empty.desc")}</p>
+              <p className="text-xs text-zinc-300 mb-4">{_("server.list.empty.desc")}</p>
               <Link
                 href="/servers"
                 className="inline-block px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 transition-colors"
@@ -212,7 +212,7 @@ export default function DashboardPage() {
           ) : (
             <div className="space-y-2">
               {/* Summary bar */}
-              <div className="flex items-center gap-4 text-xs text-slate-500 mb-3 pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-4 text-xs text-zinc-500 mb-3 pb-3 border-b border-zinc-700">
                 <span className="flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-emerald-500" /> {healthyServers.length} live
                 </span>
@@ -245,7 +245,7 @@ export default function DashboardPage() {
                         }`}
                       />
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-slate-900 group-hover:text-emerald-700 transition-colors truncate">
+                        <p className="text-sm font-medium text-slate-900 group-hover:text-emerald-400 transition-colors truncate">
                           {server.name}
                         </p>
                         <p className="text-xs text-zinc-500 font-mono truncate">{server.ip}</p>
@@ -254,27 +254,27 @@ export default function DashboardPage() {
 
                     <div className="flex items-center gap-3 shrink-0">
                       {server.os && (
-                        <span className="text-[11px] text-slate-400 hidden md:inline max-w-[100px] truncate">
+                        <span className="text-[11px] text-zinc-400 hidden md:inline max-w-[100px] truncate">
                           {server.os.slice(0, 20)}
                         </span>
                       )}
                       {diskPct !== null && (
-                        <span className="text-[11px] text-slate-400 hidden lg:inline">
+                        <span className="text-[11px] text-zinc-400 hidden lg:inline">
                           💾 {diskPct}%
                         </span>
                       )}
                       {info.uptime && (
-                        <span className="text-[11px] text-slate-400 hidden sm:inline">
+                        <span className="text-[11px] text-zinc-400 hidden sm:inline">
                           ⏱ {info.uptime.slice(0, 15)}
                         </span>
                       )}
                       <span
                         className={`text-xs px-2 py-1 rounded-lg font-medium ${
                           server.status === "connected"
-                            ? "bg-emerald-50 text-emerald-700"
+                            ? "bg-zinc-800 text-emerald-400"
                             : server.status === "pending"
                             ? "bg-yellow-50 text-yellow-700"
-                            : "bg-slate-100 text-zinc-400"
+                            : "bg-zinc-800 text-zinc-400"
                         }`}
                       >
                         {server.status === "connected"
@@ -283,7 +283,7 @@ export default function DashboardPage() {
                           ? "Pending"
                           : server.status}
                       </span>
-                      <span className="text-slate-300 group-hover:text-slate-500 transition-colors">→</span>
+                      <span className="text-zinc-300 group-hover:text-zinc-500 transition-colors">→</span>
                     </div>
                   </Link>
                 );
@@ -299,10 +299,10 @@ export default function DashboardPage() {
           </div>
 
           {!activity || activity.length === 0 ? (
-            <div className="text-center py-6 text-slate-400">
+            <div className="text-center py-6 text-zinc-400">
               <p className="mb-2 text-lg">📭</p>
               <p className="text-sm">No recent activity</p>
-              <p className="text-xs text-slate-300 mt-1">
+              <p className="text-xs text-zinc-300 mt-1">
                 Install an app from the catalog to see activity here
               </p>
             </div>
@@ -312,14 +312,14 @@ export default function DashboardPage() {
                 <Link
                   key={ev.id}
                   href={`/servers/${ev.serverId}`}
-                  className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors group"
+                  className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-zinc-800 transition-colors group"
                 >
                   <span className="text-base mt-0.5">{statusIcon(ev.status)}</span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-slate-900 truncate group-hover:text-emerald-700 transition-colors">
+                    <p className="text-sm font-medium text-slate-900 truncate group-hover:text-emerald-400 transition-colors">
                       {ev.recipeName || ev.recipeId}
                     </p>
-                    <div className="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
+                    <div className="flex items-center gap-2 text-xs text-zinc-400 mt-0.5">
                       <span className="truncate">{ev.serverName || ev.serverId}</span>
                       <span className="shrink-0">·</span>
                       <span className={`shrink-0 text-xs font-medium px-1.5 py-0.5 rounded ${statusBadge(ev.status)}`}>
@@ -344,26 +344,26 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2 mb-4">
             <h2 className="font-semibold text-zinc-100">⚠️ Apps in error</h2>
             {(stats?.installFailed || 0) > 0 && (
-              <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">
+              <span className="text-xs bg-zinc-700 text-red-400 px-2 py-0.5 rounded-full font-medium">
                 {stats?.installFailed}
               </span>
             )}
           </div>
 
           {(stats?.installFailed || 0) === 0 ? (
-            <div className="text-center py-6 text-slate-400">
+            <div className="text-center py-6 text-zinc-400">
               <p className="text-lg mb-1">✅</p>
               <p className="text-sm">All apps running smoothly</p>
-              <p className="text-xs text-slate-300 mt-1">No errors detected</p>
+              <p className="text-xs text-zinc-300 mt-1">No errors detected</p>
             </div>
           ) : (
             <div>
-              <p className="text-sm text-slate-500 mb-3">
+              <p className="text-sm text-zinc-500 mb-3">
                 {stats?.installFailed} app{(stats?.installFailed || 0) > 1 ? "s" : ""} in error — check logs
               </p>
               <Link
                 href="/servers"
-                className="inline-block text-sm text-red-600 hover:text-red-700 font-medium"
+                className="inline-block text-sm text-red-600 hover:text-red-400 font-medium"
               >
                 View servers →
               </Link>
@@ -371,7 +371,7 @@ export default function DashboardPage() {
           )}
 
           {servers && servers.length === 0 && (
-            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <div className="mt-4 bg-zinc-800 border border-blue-200 rounded-xl p-4">
               <p className="text-sm font-medium text-zinc-200 mb-1">🚀 Welcome to srvly</p>
               <p className="text-xs text-zinc-400">
                 Add your first server to get started
@@ -386,38 +386,38 @@ export default function DashboardPage() {
           <div className="space-y-3">
             <Link
               href="/servers"
-              className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors"
+              className="flex items-center gap-3 p-3 rounded-xl hover:bg-zinc-800 transition-colors"
             >
-              <div className="w-9 h-9 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-600 text-sm">
+              <div className="w-9 h-9 bg-zinc-700 rounded-lg flex items-center justify-center text-emerald-600 text-sm">
                 ➕
               </div>
               <div>
                 <p className="text-sm font-medium text-slate-900">Add a server</p>
-                <p className="text-xs text-slate-400">Connect a VPS</p>
+                <p className="text-xs text-zinc-400">Connect a VPS</p>
               </div>
             </Link>
             <Link
               href="/catalog"
-              className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors"
+              className="flex items-center gap-3 p-3 rounded-xl hover:bg-zinc-800 transition-colors"
             >
-              <div className="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center text-zinc-400 text-sm">
+              <div className="w-9 h-9 bg-zinc-700 rounded-lg flex items-center justify-center text-zinc-400 text-sm">
                 📦
               </div>
               <div>
                 <p className="text-sm font-medium text-slate-900">Install an app</p>
-                <p className="text-xs text-slate-400">From the catalog</p>
+                <p className="text-xs text-zinc-400">From the catalog</p>
               </div>
             </Link>
             <Link
               href="/settings"
-              className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors"
+              className="flex items-center gap-3 p-3 rounded-xl hover:bg-zinc-800 transition-colors"
             >
               <div className="w-9 h-9 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 text-sm">
                 ⚙️
               </div>
               <div>
                 <p className="text-sm font-medium text-slate-900">Agent settings</p>
-                <p className="text-xs text-slate-400">API token & prompt</p>
+                <p className="text-xs text-zinc-400">API token & prompt</p>
               </div>
             </Link>
           </div>
@@ -437,7 +437,7 @@ export default function DashboardPage() {
                       {formatBytes(stats.totalRamUsed)} / {formatBytes(stats.totalRamTotal)}
                     </span>
                   </div>
-                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-blue-500 rounded-full transition-all"
                       style={{ width: `${Math.min(100, Math.round((stats.totalRamUsed / stats.totalRamTotal) * 100))}%` }}
@@ -455,7 +455,7 @@ export default function DashboardPage() {
                       {stats.totalDiskUsed} GB / {stats.totalDiskTotal} GB
                     </span>
                   </div>
-                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all ${
                         (stats.totalDiskUsed / stats.totalDiskTotal) > 0.85
@@ -472,18 +472,18 @@ export default function DashboardPage() {
 
               {/* Health badges */}
               <div className="flex flex-wrap gap-2 pt-2">
-                <span className="flex items-center gap-1 text-xs bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg">
+                <span className="flex items-center gap-1 text-xs bg-zinc-800 text-emerald-400 px-2.5 py-1 rounded-lg">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   {healthyServers.length}/{stats.totalServers} servers live
                 </span>
                 {stats.installFailed > 0 && (
-                  <span className="flex items-center gap-1 text-xs bg-red-50 text-red-700 px-2.5 py-1 rounded-lg">
+                  <span className="flex items-center gap-1 text-xs bg-zinc-800 text-red-400 px-2.5 py-1 rounded-lg">
                     <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
                     {stats.installFailed} app(s) in error
                   </span>
                 )}
                 {stats.installRunning > 0 && (
-                  <span className="flex items-center gap-1 text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-lg">
+                  <span className="flex items-center gap-1 text-xs bg-zinc-800 text-blue-400 px-2.5 py-1 rounded-lg">
                     <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                     {stats.installRunning} deploying
                   </span>
@@ -491,13 +491,13 @@ export default function DashboardPage() {
               </div>
 
               {!stats.totalRamTotal && !stats.totalDiskTotal && (
-                <p className="text-sm text-slate-400 text-center py-4">
+                <p className="text-sm text-zinc-400 text-center py-4">
                   Run detection on your servers to see metrics here
                 </p>
               )}
             </div>
           ) : (
-            <div className="text-center py-6 text-slate-400">
+            <div className="text-center py-6 text-zinc-400">
               <p className="text-lg mb-1">📊</p>
               <p className="text-sm">No servers yet</p>
             </div>

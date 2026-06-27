@@ -192,7 +192,7 @@ export default function AppDetailPage() {
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl border border-zinc-800 p-6 mb-6">
         <div className="flex items-center gap-4">
           {appIcon ? (
-            <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-50 flex items-center justify-center border border-slate-200">
+            <div className="w-14 h-14 rounded-xl overflow-hidden bg-zinc-800 flex items-center justify-center border border-zinc-700">
               <img src={appIcon} alt={appName} className="w-9 h-9 object-contain" />
             </div>
           ) : (
@@ -205,9 +205,9 @@ export default function AppDetailPage() {
               <h1 className="text-2xl font-bold text-zinc-100 truncate">{appName}</h1>
               <span className={`w-3 h-3 rounded-full ${statusColors[status] || "bg-slate-400"}`} />
               <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                status === "success" ? "bg-emerald-100 text-emerald-700" :
-                status === "failed" ? "bg-red-100 text-red-700" :
-                status === "running" ? "bg-amber-100 text-amber-700" :
+                status === "success" ? "bg-zinc-700 text-emerald-400" :
+                status === "failed" ? "bg-zinc-700 text-red-400" :
+                status === "running" ? "bg-zinc-700 text-amber-400" :
                 "bg-zinc-800 text-zinc-300"
               }`}>{statusLabels[status] || status}</span>
             </div>
@@ -249,24 +249,24 @@ export default function AppDetailPage() {
           <h2 className="font-semibold text-zinc-100 mb-4">Container actions</h2>
           <div className="flex flex-wrap gap-3 mb-4">
             <button onClick={() => runCmd("restart", restartApp)}
-              className="px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-xl text-sm font-medium">⟳ Restart</button>
+              className="px-4 py-2 bg-zinc-700 hover:bg-amber-200 text-amber-400 rounded-xl text-sm font-medium">⟳ Restart</button>
             {status !== "stopped" ? (
               <button onClick={() => runCmd("stop", stopApp)}
-                className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-xl text-sm font-medium">⏹ Stop</button>
+                className="px-4 py-2 bg-zinc-700 hover:bg-red-200 text-red-400 rounded-xl text-sm font-medium">⏹ Stop</button>
             ) : (
               <button onClick={() => runCmd("start", startApp)}
-                className="px-4 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-xl text-sm font-medium">▶ Start</button>
+                className="px-4 py-2 bg-zinc-700 hover:bg-emerald-200 text-emerald-400 rounded-xl text-sm font-medium">▶ Start</button>
             )}
             <button onClick={handleBackup}
               className="px-4 py-2 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-xl text-sm font-medium">💾 Backup</button>
             <button onClick={() => { if (confirm("Uninstall this app?")) deleteApp.mutate({ id: installationId }); }}
               disabled={deleteApp.isPending}
-              className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-sm font-medium">🗑 Delete</button>
+              className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-red-600 rounded-xl text-sm font-medium">🗑 Delete</button>
           </div>
           {output.restart && <pre className="text-xs font-mono bg-slate-900 text-slate-100 p-3 rounded-xl mb-2 max-h-40 overflow-y-auto">{output.restart}</pre>}
           {output.stop && <pre className="text-xs font-mono bg-slate-900 text-slate-100 p-3 rounded-xl mb-2 max-h-40 overflow-y-auto">{output.stop}</pre>}
           {output.start && <pre className="text-xs font-mono bg-slate-900 text-slate-100 p-3 rounded-xl mb-2 max-h-40 overflow-y-auto">{output.start}</pre>}
-          {output.backup && <div className={`text-xs p-3 rounded-xl font-mono ${output.backup.startsWith("✅") ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>{output.backup}</div>}
+          {output.backup && <div className={`text-xs p-3 rounded-xl font-mono ${output.backup.startsWith("✅") ? "bg-zinc-800 text-emerald-400" : "bg-zinc-800 text-red-400"}`}>{output.backup}</div>}
         </div>
       )}
 
@@ -277,7 +277,7 @@ export default function AppDetailPage() {
             <h2 className="font-semibold text-zinc-100">Container logs</h2>
             <div className="flex items-center gap-2">
               <select value={logLines} onChange={(e) => setLogLines(Number(e.target.value))}
-                className="text-xs px-2 py-1 border border-slate-200 rounded-lg bg-white">
+                className="text-xs px-2 py-1 border border-zinc-700 rounded-lg bg-zinc-900">
                 <option value={50}>50 lines</option>
                 <option value={100}>100 lines</option>
                 <option value={500}>500 lines</option>
@@ -305,7 +305,7 @@ export default function AppDetailPage() {
               {output.env && !editingEnv && (
                 <>
                   <button onClick={() => setShowAllSecrets((p) => !p)}
-                    className="text-xs px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg font-medium">
+                    className="text-xs px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-amber-400 rounded-lg font-medium">
                     {showAllSecrets ? "🔒 Hide secrets" : "👁 Show secrets"}
                   </button>
                   <button onClick={() => startEditing()}
@@ -332,16 +332,16 @@ export default function AppDetailPage() {
                 {Object.entries(editValues).map(([k, v]) => {
                   const isSecret = /pass|secret|token|key|auth|credential|private/i.test(k);
                   return (
-                    <div key={k} className="flex items-center gap-2 text-xs font-mono bg-slate-50 rounded-lg px-3 py-1.5">
+                    <div key={k} className="flex items-center gap-2 text-xs font-mono bg-zinc-800 rounded-lg px-3 py-1.5">
                       <span className="text-zinc-300 font-medium min-w-[140px] truncate">{k}=</span>
                       <input type={isSecret && !showSecrets[k] ? "password" : "text"}
                         value={v}
                         onChange={(e) => setEditValues((p) => ({ ...p, [k]: e.target.value }))}
-                        className="flex-1 px-2 py-1 border border-slate-200 rounded bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        className="flex-1 px-2 py-1 border border-zinc-700 rounded bg-zinc-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                       />
                       {isSecret && (
                         <button onClick={() => setShowSecrets((p) => ({ ...p, [k]: !p[k] }))}
-                          className="text-[10px] text-blue-500 hover:text-blue-700 shrink-0">
+                          className="text-[10px] text-blue-500 hover:text-blue-400 shrink-0">
                           {showSecrets[k] ? "🙈" : "👁️"}
                         </button>
                       )}
@@ -351,7 +351,7 @@ export default function AppDetailPage() {
               </div>
               <div className="flex gap-2 justify-end">
                 <button onClick={() => { setEditingEnv(false); }}
-                  className="text-xs px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium">
+                  className="text-xs px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-zinc-300 rounded-lg font-medium">
                   Cancel
                 </button>
                 <button onClick={saveEnvChanges}
@@ -375,15 +375,15 @@ export default function AppDetailPage() {
                 const secret = /pass|secret|token|key|auth|credential|private/i.test(key);
                 const revealed = showAllSecrets || showSecrets[key];
                 return (
-                  <div key={i} className="flex items-center gap-2 text-xs font-mono bg-slate-50 rounded-lg px-3 py-1.5">
+                  <div key={i} className="flex items-center gap-2 text-xs font-mono bg-zinc-800 rounded-lg px-3 py-1.5">
                     <span className="text-zinc-300 font-medium shrink-0">{key}</span>
                     <span className="text-zinc-400">=</span>
-                    <span className={secret && !revealed ? "text-slate-300" : "text-zinc-100 break-all"}>
+                    <span className={secret && !revealed ? "text-zinc-300" : "text-zinc-100 break-all"}>
                       {secret && !revealed ? "****" : val}
                     </span>
                     {secret && !showAllSecrets && (
                       <button onClick={() => setShowSecrets(p => ({ ...p, [key]: !p[key] }))}
-                        className="text-[10px] text-blue-500 hover:text-blue-700 shrink-0">
+                        className="text-[10px] text-blue-500 hover:text-blue-400 shrink-0">
                         {revealed ? "Hide" : "Show"}
                       </button>
                     )}
@@ -444,7 +444,7 @@ export default function AppDetailPage() {
 
           {insp && insp.status && (
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-slate-700">Container info</h3>
+              <h3 className="text-sm font-medium text-zinc-300">Container info</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 <div className="bg-zinc-800 rounded-xl p-3">
                   <p className="text-[10px] text-zinc-400 uppercase">Health</p>
@@ -516,16 +516,16 @@ export default function AppDetailPage() {
               {id:"domain",label:"🌍 Domain",desc:"Add or change the domain",
                prompt:("I need to configure a domain for " + appName + ".\n\nContainer: " + containerName + "\nPort: " + (params.port || "unknown") + "\n" + (params.domain ? "- Current domain: " + params.domain : "\nPlease: configure DNS A record, set up Nginx/Caddy reverse proxy, enable SSL, verify."))},
             ].map((agent) => (
-              <div key={agent.id} className="bg-zinc-800 rounded-xl p-4 border border-slate-200">
+              <div key={agent.id} className="bg-zinc-800 rounded-xl p-4 border border-zinc-700">
                 <div className="flex items-center justify-between mb-2">
                   <p className="font-medium text-sm text-zinc-100">{agent.label}</p>
                   <button onClick={() => function(){try{var t=agent.prompt;if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(t);else{var ta=document.createElement("textarea");ta.value=t;ta.style.cssText="position:fixed;left:0;top:0;width:0;height:0;opacity:0";document.body.appendChild(ta);ta.focus();ta.select();document.execCommand("copy");document.body.removeChild(ta)}}catch(e){}}()}
-                    className="text-[10px] px-2 py-1 bg-white border border-slate-200 rounded-lg hover:bg-zinc-800 text-zinc-300 font-medium transition-colors">
+                    className="text-[10px] px-2 py-1 bg-zinc-900 border border-zinc-700 rounded-lg hover:bg-zinc-800 text-zinc-300 font-medium transition-colors">
                     Copy
                   </button>
                 </div>
                 <p className="text-xs text-zinc-500 mb-2">{agent.desc}</p>
-                <pre className="text-[10px] font-mono text-zinc-400 bg-zinc-950 rounded-lg p-2 max-h-24 overflow-y-auto whitespace-pre-wrap border border-slate-100">
+                <pre className="text-[10px] font-mono text-zinc-400 bg-zinc-950 rounded-lg p-2 max-h-24 overflow-y-auto whitespace-pre-wrap border border-zinc-700">
                   {agent.prompt.slice(0, 200)}{agent.prompt.length > 200 ? "..." : ""}
                 </pre>
               </div>
@@ -542,8 +542,8 @@ export default function AppDetailPage() {
             <button onClick={handleBackup}
               className="text-xs px-3 py-1.5 bg-purple-600 text-white rounded-lg font-medium">💾 Create backup</button>
           </div>
-          {output.backup && <div className={`text-xs p-3 rounded-xl mb-4 font-mono ${output.backup.startsWith("✅") ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>{output.backup}</div>}
-          {restoreMsg && <div className={`text-xs p-3 rounded-xl mb-4 font-mono ${restoreMsg.startsWith("✅") ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>{restoreMsg}</div>}
+          {output.backup && <div className={`text-xs p-3 rounded-xl mb-4 font-mono ${output.backup.startsWith("✅") ? "bg-zinc-800 text-emerald-400" : "bg-zinc-800 text-red-400"}`}>{output.backup}</div>}
+          {restoreMsg && <div className={`text-xs p-3 rounded-xl mb-4 font-mono ${restoreMsg.startsWith("✅") ? "bg-zinc-800 text-emerald-400" : "bg-zinc-800 text-red-400"}`}>{restoreMsg}</div>}
           {appBackups.length === 0 ? (
             <div className="text-center py-8 text-zinc-400">
               <p>No backups yet</p>
@@ -557,7 +557,7 @@ export default function AppDetailPage() {
                     <p className="text-[11px] text-zinc-400">{new Date(b.createdAt).toLocaleString()}</p>
                   </div>
                   <button onClick={() => handleRestore(b)}
-                    className="text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-700 px-3 py-1.5 rounded-lg font-medium shrink-0 ml-3">
+                    className="text-xs bg-zinc-700 hover:bg-emerald-200 text-emerald-400 px-3 py-1.5 rounded-lg font-medium shrink-0 ml-3">
                     ↻ Restore
                   </button>
                 </div>
@@ -604,8 +604,8 @@ export default function AppDetailPage() {
 
           {/* Inspect result */}
           {insp && insp.status && (
-            <div className="border-t border-slate-200 pt-4">
-              <h3 className="text-sm font-medium text-slate-700 mb-3">Docker inspect</h3>
+            <div className="border-t border-zinc-700 pt-4">
+              <h3 className="text-sm font-medium text-zinc-300 mb-3">Docker inspect</h3>
               <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs font-mono bg-slate-900 text-slate-100 p-4 rounded-xl">
                 {insp.health && insp.health !== "none" && <div>Health: <span className={insp.health === "healthy" ? "text-emerald-400" : "text-amber-400"}>{insp.health}</span></div>}
                 {insp.image && <div>Image: {insp.image.split("/").pop()}</div>}

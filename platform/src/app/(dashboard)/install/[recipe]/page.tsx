@@ -123,7 +123,7 @@ export default function InstallPage() {
     <div className="max-w-2xl mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <button onClick={() => router.push("/catalog")} className="text-sm text-emerald-600 hover:text-emerald-700 mb-2 block">
+        <button onClick={() => router.push("/catalog")} className="text-sm text-emerald-600 hover:text-emerald-400 mb-2 block">
           ← Back to catalog
         </button>
         <h1 className="text-2xl font-bold text-zinc-100">{recipe.name}</h1>
@@ -131,21 +131,21 @@ export default function InstallPage() {
       </div>
 
       {/* Form */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl border border-slate-200 p-6 mb-6 space-y-5">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl border border-zinc-700 p-6 mb-6 space-y-5">
         <h2 className="font-semibold text-zinc-100">Installation parameters</h2>
 
         {/* Server */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Server</label>
+          <label className="block text-sm font-medium text-zinc-300 mb-1">Server</label>
           {servers?.filter((s) => s.status === "connected").length === 0 ? (
-            <div className="bg-amber-50 text-amber-700 text-sm p-3 rounded-xl border border-amber-200">
+            <div className="bg-zinc-800 text-amber-400 text-sm p-3 rounded-xl border border-amber-200">
               No connected servers. <a href="/servers" className="underline">Add one first.</a>
             </div>
           ) : (
             <select
               value={selectedServer}
               onChange={(e) => setSelectedServer(e.target.value)}
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+              className="w-full px-4 py-2.5 border border-zinc-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-zinc-900"
             >
               <option value="">Select a server...</option>
               {servers?.filter((s) => s.status === "connected").map((s) => (
@@ -159,26 +159,26 @@ export default function InstallPage() {
 
         {/* Domain */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Domain (optional)</label>
+          <label className="block text-sm font-medium text-zinc-300 mb-1">Domain (optional)</label>
           <input
             type="text"
             value={domain}
             onChange={(e) => setDomain(e.target.value)}
             placeholder={`${selectedServerData?.ip || "ip"}:${port || defaultPort} (default)`}
-            className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full px-4 py-2.5 border border-zinc-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
           <p className="text-xs text-zinc-400 mt-1">Leave empty to use IP and port directly.</p>
         </div>
 
         {/* Port */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Port</label>
+          <label className="block text-sm font-medium text-zinc-300 mb-1">Port</label>
           <input
             type="number"
             value={port}
             onChange={(e) => setPort(e.target.value)}
             placeholder={String(defaultPort)}
-            className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full px-4 py-2.5 border border-zinc-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
           <p className="text-xs text-zinc-400 mt-1">Default: {defaultPort}. Leave empty to use the default port.</p>
         </div>
@@ -192,7 +192,7 @@ export default function InstallPage() {
             onChange={(e) => setUseCredentials(e.target.checked)}
             className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500"
           />
-          <label htmlFor="useCreds" className="text-sm font-medium text-slate-700">
+          <label htmlFor="useCreds" className="text-sm font-medium text-zinc-300">
             Set a username / password (optional)
           </label>
         </div>
@@ -200,21 +200,21 @@ export default function InstallPage() {
         {useCredentials && (
           <div className="grid grid-cols-2 gap-4 pl-6">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Username</label>
+              <label className="block text-xs font-medium text-zinc-400 mb-1">Username</label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 border border-zinc-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Password</label>
+              <label className="block text-xs font-medium text-zinc-400 mb-1">Password</label>
               <input
                 type="text"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 border border-zinc-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
           </div>
@@ -253,7 +253,7 @@ export default function InstallPage() {
 
       {/* Empty state */}
       {!selectedServer && (
-        <div className="bg-slate-50 rounded-2xl p-8 text-center border border-dashed border-slate-200">
+        <div className="bg-zinc-800 rounded-2xl p-8 text-center border border-dashed border-zinc-700">
           <p className="text-3xl mb-2">👆</p>
           <p className="text-sm text-zinc-500">
             Select a server to generate the installation prompt.

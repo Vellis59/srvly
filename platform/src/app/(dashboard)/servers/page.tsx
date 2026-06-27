@@ -55,15 +55,15 @@ function AddServerModal({ onClose }: { onClose: () => void }) {
 
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-2xl p-8 w-full max-w-lg shadow-2xl">
+        <div className="bg-zinc-900 rounded-2xl p-8 w-full max-w-lg shadow-2xl">
           <div className="text-center mb-6">
             <p className="text-4xl mb-3">🎉</p>
             <h2 className="text-xl font-bold text-slate-900">Server added!</h2>
-            <p className="text-sm text-slate-500 mt-1">{createdServer.name}</p>
+            <p className="text-sm text-zinc-500 mt-1">{createdServer.name}</p>
           </div>
 
-          <div className="bg-slate-50 rounded-xl p-4 mb-2">
-            <p className="text-xs text-slate-500 mb-1 font-medium uppercase tracking-wide">
+          <div className="bg-zinc-800 rounded-xl p-4 mb-2">
+            <p className="text-xs text-zinc-500 mb-1 font-medium uppercase tracking-wide">
               SSH Public Key
             </p>
             <pre className="text-xs font-mono bg-slate-900 text-emerald-400 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap break-all max-h-32 overflow-y-auto">
@@ -71,8 +71,8 @@ function AddServerModal({ onClose }: { onClose: () => void }) {
             </pre>
           </div>
 
-          <div className="bg-amber-50 rounded-xl p-4 mb-6 border border-amber-200">
-            <p className="text-xs text-amber-700 font-medium mb-2 uppercase tracking-wide">
+          <div className="bg-zinc-800 rounded-xl p-4 mb-6 border border-amber-200">
+            <p className="text-xs text-amber-400 font-medium mb-2 uppercase tracking-wide">
               Run this on your server
             </p>
             <pre className="text-xs font-mono bg-slate-900 text-slate-100 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap break-all">
@@ -95,10 +95,10 @@ curl -sL ${window.location.origin}/connect.sh | bash -s -- '${createdServer.sshP
               {connecting ? "Testing..." : "Test connection"}
             </button>
             {connectStatus && (
-              <p className="text-sm text-center text-slate-600">{connectStatus}</p>
+              <p className="text-sm text-center text-zinc-400">{connectStatus}</p>
             )}
             <button onClick={onClose}
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-medium hover:bg-slate-50 transition-colors">
+              className="w-full px-4 py-2.5 border border-zinc-700 rounded-xl text-sm font-medium hover:bg-zinc-800 transition-colors">
               Done
             </button>
           </div>
@@ -109,12 +109,12 @@ curl -sL ${window.location.origin}/connect.sh | bash -s -- '${createdServer.sshP
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl">
+      <div className="bg-zinc-900 rounded-2xl p-8 w-full max-w-md shadow-2xl">
         <h2 className="text-xl font-bold mb-6">New server</h2>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-medium text-zinc-300 mb-1">
               Server name
             </label>
             <input
@@ -122,12 +122,12 @@ curl -sL ${window.location.origin}/connect.sh | bash -s -- '${createdServer.sshP
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="My Hetzner VPS"
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-4 py-2.5 border border-zinc-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-medium text-zinc-300 mb-1">
               IP Address
             </label>
             <input
@@ -135,15 +135,15 @@ curl -sL ${window.location.origin}/connect.sh | bash -s -- '${createdServer.sshP
               value={ip}
               onChange={(e) => setIp(e.target.value)}
               placeholder="123.123.123.123"
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-4 py-2.5 border border-zinc-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              SSH Public Key <span className="text-xs text-slate-400 font-normal">(optional — what's this? 🛈)</span>
+            <label className="block text-sm font-medium text-zinc-300 mb-1">
+              SSH Public Key <span className="text-xs text-zinc-400 font-normal">(optional — what's this? 🛈)</span>
             </label>
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-2 text-xs text-blue-700">
+            <div className="bg-zinc-800 border border-blue-200 rounded-xl p-3 mb-2 text-xs text-blue-400">
               <p className="font-medium mb-1">💡 Don't worry if you don't know what this is.</p>
               <p>Leave this field <strong>empty</strong> and srvly will do everything automatically.
               After adding the server, just run the one-line command shown on the next screen.</p>
@@ -153,15 +153,15 @@ curl -sL ${window.location.origin}/connect.sh | bash -s -- '${createdServer.sshP
               onChange={(e) => setSshKey(e.target.value)}
               placeholder="Leave empty unless you want to use your own key"
               rows={2}
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-4 py-2.5 border border-zinc-700 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-zinc-400 mt-1">
               Paste a public key that is already authorized on your server.
               If left empty, srvly will generate a new key pair.
             </p>
           </div>
 
-          <div className="bg-slate-50 rounded-xl p-4 text-sm text-slate-600">
+          <div className="bg-zinc-800 rounded-xl p-4 text-sm text-zinc-400">
             <p className="font-medium text-slate-800 mb-1">
               Next step
             </p>
@@ -174,7 +174,7 @@ curl -sL ${window.location.origin}/connect.sh | bash -s -- '${createdServer.sshP
 
         <div className="flex gap-3 mt-6">
           <button onClick={onClose}
-            className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-medium hover:bg-slate-50 transition-colors">
+            className="flex-1 px-4 py-2.5 border border-zinc-700 rounded-xl text-sm font-medium hover:bg-zinc-800 transition-colors">
             Cancel
           </button>
           <button
@@ -275,12 +275,12 @@ export default function ServersPage() {
           ))}
         </div>
       ) : (
-        <div className="bg-slate-50 rounded-2xl p-12 text-center">
+        <div className="bg-zinc-800 rounded-2xl p-12 text-center">
           <p className="text-5xl mb-4">♝</p>
-          <h2 className="text-lg font-semibold text-slate-700 mb-2">
+          <h2 className="text-lg font-semibold text-zinc-300 mb-2">
             No servers yet
           </h2>
-          <p className="text-sm text-slate-500 mb-6">
+          <p className="text-sm text-zinc-500 mb-6">
             Add your first VPS to start deploying apps.
           </p>
           <button

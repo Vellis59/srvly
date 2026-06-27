@@ -119,10 +119,10 @@ function ActionCard({ action, onRun, loading, done }: {
     <button
       onClick={() => onRun(action)}
       disabled={loading}
-      className={`bg-white rounded-2xl border p-5 transition-all text-left w-full ${
+      className={`bg-zinc-900 rounded-2xl border p-5 transition-all text-left w-full ${
         done
           ? "border-emerald-200 opacity-80"
-          : "border-slate-200 hover:shadow-md hover:border-emerald-300"
+          : "border-zinc-700 hover:shadow-md hover:border-emerald-300"
       } disabled:opacity-50`}
     >
       <div className="flex items-start gap-4">
@@ -138,7 +138,7 @@ function ActionCard({ action, onRun, loading, done }: {
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-zinc-100">{a.label}</h3>
             {done && (
-              <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
+              <span className="text-xs bg-zinc-700 text-emerald-400 px-2 py-0.5 rounded-full font-medium">
                 Done
               </span>
             )}
@@ -177,7 +177,7 @@ function StatBar({ label, used, total, unit, colorLow = "emerald", colorMid = "a
       <p className="text-sm font-semibold text-zinc-100 mb-2">
         {unit === "GB" ? `${used} / ${total} GB` : `${used} / ${total}`}
       </p>
-      <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+      <div className="w-full h-2.5 bg-zinc-800 rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full transition-all duration-500 bg-${barColor}-500`}
           style={{ width: `${Math.min(100, pct)}%` }}
@@ -302,18 +302,18 @@ export default function ServerDetailPage() {
         <div className="flex items-center gap-2">
           {server.status === "connected" && (
             <button onClick={refreshServices} disabled={servicesLoading}
-              className="text-sm bg-slate-100 hover:bg-slate-200 text-zinc-300 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
+              className="text-sm bg-zinc-800 hover:bg-slate-200 text-zinc-300 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
               <span className={`${servicesLoading ? "animate-spin" : ""}`}>⟳</span>
               {servicesLoading ? "Scanning..." : "Scan services"}
             </button>
           )}
           <button onClick={detectServer} disabled={scanning}
-            className="text-sm bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg transition-colors">
+            className="text-sm bg-zinc-800 hover:bg-zinc-700 text-emerald-400 px-3 py-1.5 rounded-lg transition-colors">
             {scanning ? "Detecting..." : "Detect OS / connect"}
           </button>
           <button onClick={() => { if (confirm("Delete this server?")) deleteServer.mutate({ id: server.id }); }}
             disabled={deleteServer.isPending}
-            className="text-sm text-red-500 hover:text-red-700 px-3 py-1.5 transition-colors">
+            className="text-sm text-red-500 hover:text-red-400 px-3 py-1.5 transition-colors">
             {deleteServer.isPending ? "Deleting..." : "Delete"}
           </button>
         </div>
@@ -394,7 +394,7 @@ export default function ServerDetailPage() {
             };
             return (
               <div key={svc} className={`rounded-xl border p-3 text-center transition-all ${
-                active ? "bg-white border-emerald-200" : "bg-zinc-800 border-slate-200 opacity-70"
+                active ? "bg-zinc-900 border-emerald-200" : "bg-zinc-800 border-zinc-700 opacity-70"
               }`}>
                 <p className="text-lg mb-1">{icons[svc] || "❓"}</p>
                 <p className="text-xs font-medium text-zinc-300 capitalize">{svc}</p>
@@ -411,8 +411,8 @@ export default function ServerDetailPage() {
       {server.status === "connected" && (
         <>
           {allSetupDone ? (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 mb-6 flex items-center gap-4">
-              <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-xl">✅</div>
+            <div className="bg-zinc-800 border border-emerald-200 rounded-2xl p-5 mb-6 flex items-center gap-4">
+              <div className="w-10 h-10 bg-zinc-700 rounded-xl flex items-center justify-center text-xl">✅</div>
               <div className="flex-1">
                 <h3 className="font-semibold text-emerald-800">Server fully configured</h3>
                 <p className="text-sm text-emerald-400">Security, Docker, Caddy (auto SSL), and Fail2Ban are all installed.</p>
@@ -432,7 +432,7 @@ export default function ServerDetailPage() {
                     await runAction(step as keyof typeof ACTIONS);
                   }, Promise.resolve());
                 }}
-                  className="px-6 py-3 bg-white text-emerald-700 rounded-xl font-semibold hover:bg-emerald-50 transition-colors">
+                  className="px-6 py-3 bg-zinc-900 text-emerald-400 rounded-xl font-semibold hover:bg-zinc-800 transition-colors">
                   {running ? "Running..." : "Configure"}
                 </button>
               </div>
@@ -495,8 +495,8 @@ export default function ServerDetailPage() {
                   disabled={quickCmd === cmd.label}
                   className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${
                     quickCmd === cmd.label
-                      ? "bg-emerald-100 text-emerald-700"
-                      : "bg-slate-100 text-zinc-500 hover:bg-slate-200"
+                      ? "bg-zinc-700 text-emerald-400"
+                      : "bg-zinc-800 text-zinc-500 hover:bg-slate-200"
                   }`}>
                   {quickCmd === cmd.label ? "..." : cmd.label}
                 </button>
@@ -556,14 +556,14 @@ export default function ServerDetailPage() {
 
       {/* ── Not connected state ── */}
       {server.status !== "connected" && (
-        <div className="bg-amber-50 rounded-2xl p-8 text-center border border-amber-200">
+        <div className="bg-zinc-800 rounded-2xl p-8 text-center border border-amber-200">
           <p className="text-4xl mb-3">🔑</p>
           <h2 className="text-lg font-semibold text-amber-800 mb-1">Server pending</h2>
           <p className="text-sm text-amber-600 mb-4">
             Add the SSH public key to your server to enable actions.
           </p>
 
-          <div className="max-w-xl mx-auto text-left bg-white rounded-xl p-4 border border-amber-200 mb-4">
+          <div className="max-w-xl mx-auto text-left bg-zinc-900 rounded-xl p-4 border border-amber-200 mb-4">
             <p className="text-xs font-medium text-zinc-500 mb-2 uppercase tracking-wide">
               Command to run on your server
             </p>
@@ -638,7 +638,7 @@ function MonitoringSection({ serverId }: { serverId: string }) {
         <h2 className="font-semibold text-zinc-100">📊 Monitoring</h2>
         <button onClick={handleCollect} disabled={collecting}
           className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1 ${
-            collected ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-zinc-500 hover:bg-slate-200"
+            collected ? "bg-zinc-700 text-emerald-400" : "bg-zinc-800 text-zinc-500 hover:bg-slate-200"
           }`}>
           <span className={collecting ? "animate-pulse" : ""}>📡</span>
           {collecting ? "Collecting..." : collected ? "Collected ✓" : "Collect metrics"}
@@ -650,9 +650,9 @@ function MonitoringSection({ serverId }: { serverId: string }) {
         <div className="space-y-2 mb-4">
           {warnings.map((w, i) => (
             <div key={i} className={`text-xs px-3 py-2 rounded-lg flex items-center gap-2 ${
-              w.includes("⚠") ? "bg-red-50 text-red-700 border border-red-200" :
-              w.includes("⚡") ? "bg-amber-50 text-amber-700 border border-amber-200" :
-              "bg-blue-50 text-blue-700 border border-blue-200"
+              w.includes("⚠") ? "bg-zinc-800 text-red-400 border border-red-200" :
+              w.includes("⚡") ? "bg-zinc-800 text-amber-400 border border-amber-200" :
+              "bg-zinc-800 text-blue-400 border border-blue-200"
             }`}>
               {w}
             </div>
@@ -804,7 +804,7 @@ function DomainSection({ serverId }: { serverId: string }) {
       )}
 
       {domains && domains.length === 0 && !domainsLoading && (
-        <div className="text-sm text-zinc-400 text-center py-4 mb-4 border-2 border-dashed border-slate-200 rounded-xl">
+        <div className="text-sm text-zinc-400 text-center py-4 mb-4 border-2 border-dashed border-zinc-700 rounded-xl">
           No domains configured yet
         </div>
       )}
@@ -812,14 +812,14 @@ function DomainSection({ serverId }: { serverId: string }) {
       <div className="flex flex-col md:flex-row gap-3">
         <input type="text" value={name} onChange={(e) => setName(e.target.value)}
           placeholder="app.yourdomain.com"
-          className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          className="flex-1 px-4 py-2.5 border border-zinc-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
           onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }} />
         <input type="number" value={port} onChange={(e) => setPort(e.target.value)}
           placeholder="port"
-          className="w-full md:w-24 px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          className="w-full md:w-24 px-4 py-2.5 border border-zinc-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
           onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }} />
         <select value={selectedApp} onChange={(e) => setSelectedApp(e.target.value)}
-          className="w-full md:w-44 px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+          className="w-full md:w-44 px-4 py-2.5 border border-zinc-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-zinc-900">
           <option value="">No app linked</option>
           {(installations || []).map((inst: any) => {
             const params = (inst.params || {}) as any;
@@ -933,28 +933,28 @@ function DomainItem({ domain, onDelete }: { domain: any; onDelete: () => void })
           {/* Status badges */}
           {dnsStatus && (
             <span className={`inline-block text-[10px] px-1.5 py-0.5 rounded font-medium mt-1 mr-1 ${
-              dnsStatus.status === "ok" ? "bg-emerald-100 text-emerald-700" :
-              dnsStatus.status === "no_dns" ? "bg-red-100 text-red-700" :
-              "bg-amber-100 text-amber-700"
+              dnsStatus.status === "ok" ? "bg-zinc-700 text-emerald-400" :
+              dnsStatus.status === "no_dns" ? "bg-zinc-700 text-red-400" :
+              "bg-zinc-700 text-amber-400"
             }`}>
               DNS: {dnsStatus.status === "ok" ? "✓" : dnsStatus.status === "no_dns" ? "✗" : "⚠"}
             </span>
           )}
           {httpStatus && httpStatus.https && (
-            <span className="inline-block text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-medium mt-1 mr-1">
+            <span className="inline-block text-[10px] bg-zinc-700 text-emerald-400 px-1.5 py-0.5 rounded font-medium mt-1 mr-1">
               HTTPS {httpStatus.https}
             </span>
           )}
           {httpStatus && httpStatus.http && !httpStatus.https && (
-            <span className="inline-block text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-medium mt-1 mr-1">
+            <span className="inline-block text-[10px] bg-zinc-700 text-amber-400 px-1.5 py-0.5 rounded font-medium mt-1 mr-1">
               HTTP {httpStatus.http}
             </span>
           )}
           {sslStatus && sslStatus.ssl && (
             <span className={`inline-block text-[10px] px-1.5 py-0.5 rounded font-medium mt-1 mr-1 ${
-              sslStatus.expired ? "bg-red-100 text-red-700" :
-              sslStatus.expiresSoon ? "bg-amber-100 text-amber-700" :
-              "bg-emerald-100 text-emerald-700"
+              sslStatus.expired ? "bg-zinc-700 text-red-400" :
+              sslStatus.expiresSoon ? "bg-zinc-700 text-amber-400" :
+              "bg-zinc-700 text-emerald-400"
             }`}>
               SSL: {sslStatus.daysLeft !== null ? `${sslStatus.daysLeft}d` : "✓"}
             </span>
@@ -963,7 +963,7 @@ function DomainItem({ domain, onDelete }: { domain: any; onDelete: () => void })
 
         <div className="flex flex-wrap gap-1 shrink-0">
           <button onClick={runDnsCheck} disabled={loading === "dns"}
-            className="text-[11px] bg-blue-50 hover:bg-blue-100 text-blue-600 px-2 py-1 rounded-lg font-medium transition-colors">
+            className="text-[11px] bg-zinc-800 hover:bg-zinc-700 text-blue-600 px-2 py-1 rounded-lg font-medium transition-colors">
             {loading === "dns" ? "..." : "DNS"}
           </button>
           <button onClick={runHttpCheck} disabled={loading === "http"}
@@ -975,16 +975,16 @@ function DomainItem({ domain, onDelete }: { domain: any; onDelete: () => void })
             {loading === "ssl" ? "..." : "SSL"}
           </button>
           <button onClick={runGenerateProxy} disabled={loading === "proxy"}
-            className="text-[11px] bg-slate-100 hover:bg-slate-200 text-zinc-500 px-2 py-1 rounded-lg font-medium transition-colors">
+            className="text-[11px] bg-zinc-800 hover:bg-slate-200 text-zinc-500 px-2 py-1 rounded-lg font-medium transition-colors">
             {loading === "proxy" ? "..." : "🔄 Proxy"}
           </button>
           {domain.sslStatus !== "active" && (
             <button onClick={enableSsl} disabled={loading === "ssl-enable"}
-              className="text-[11px] bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2 py-1 rounded-lg font-medium transition-colors">
+              className="text-[11px] bg-zinc-800 hover:bg-zinc-700 text-emerald-400 px-2 py-1 rounded-lg font-medium transition-colors">
               {loading === "ssl-enable" ? "..." : "🔒 SSL"}
             </button>
           )}
-          <button onClick={onDelete} className="text-[11px] text-red-500 hover:text-red-700 px-2 py-1">
+          <button onClick={onDelete} className="text-[11px] text-red-500 hover:text-red-400 px-2 py-1">
             ✕
           </button>
         </div>
@@ -1210,7 +1210,7 @@ function InstalledApps({ serverId }: { serverId: string }) {
       </div>
 
       {apps.length === 0 ? (
-        <div className="text-sm text-zinc-500 text-center py-8 border-2 border-dashed border-slate-200 rounded-xl">
+        <div className="text-sm text-zinc-500 text-center py-8 border-2 border-dashed border-zinc-700 rounded-xl">
           <p className="text-2xl mb-2">📭</p>
           No installations yet.<br />
           <span className="text-xs text-zinc-400">Install an app via the catalog or ask your AI agent.</span>
@@ -1235,19 +1235,19 @@ function InstalledApps({ serverId }: { serverId: string }) {
             return (
               <Link key={item.id} href={"/servers/" + serverId + "/apps/" + item.id}
                 className={"flex items-center gap-3 p-3 border rounded-xl transition-all hover:shadow-sm group " + (
-                  status === "success" ? "bg-white border-slate-200" :
-                  status === "failed" ? "bg-red-50 border-red-200" :
-                  status === "running" ? "bg-amber-50 border-amber-200" :
-                  "bg-zinc-800 border-slate-200")}>
+                  status === "success" ? "bg-zinc-900 border-zinc-700" :
+                  status === "failed" ? "bg-zinc-800 border-red-200" :
+                  status === "running" ? "bg-zinc-800 border-amber-200" :
+                  "bg-zinc-800 border-zinc-700")}>
                 <span className={"w-2.5 h-2.5 rounded-full " + (statusColors[status] || "bg-slate-400") + " shrink-0"} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="font-medium text-sm text-zinc-100 group-hover:text-emerald-700 transition-colors truncate">{name}</p>
+                    <p className="font-medium text-sm text-zinc-100 group-hover:text-emerald-400 transition-colors truncate">{name}</p>
                     <span className={"text-[10px] font-medium px-1.5 py-0.5 rounded " + (
-                      status === "success" ? "bg-emerald-100 text-emerald-700" :
-                      status === "failed" ? "bg-red-100 text-red-700" :
-                      status === "running" ? "bg-amber-100 text-amber-700" :
-                      "bg-slate-100 text-zinc-500")}>
+                      status === "success" ? "bg-zinc-700 text-emerald-400" :
+                      status === "failed" ? "bg-zinc-700 text-red-400" :
+                      status === "running" ? "bg-zinc-700 text-amber-400" :
+                      "bg-zinc-800 text-zinc-500")}>
                       {status === "success" ? "Active" : status === "running" ? "Busy" : status}
                     </span>
                   </div>
@@ -1260,7 +1260,7 @@ function InstalledApps({ serverId }: { serverId: string }) {
                 {appUrl && (
                   <a href={appUrl} target="_blank" rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="text-xs bg-slate-100 hover:bg-slate-200 text-zinc-500 px-2.5 py-1.5 rounded-lg font-medium transition-colors shrink-0 z-10">
+                    className="text-xs bg-zinc-800 hover:bg-slate-200 text-zinc-500 px-2.5 py-1.5 rounded-lg font-medium transition-colors shrink-0 z-10">
                     ↗ Open
                   </a>
                 )}
@@ -1406,7 +1406,7 @@ function BackupSection({ serverId }: { serverId: string }) {
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-semibold text-zinc-100">🗄️ Backups</h2>
         <button onClick={handleDiscover} disabled={discover.isPending}
-          className="text-xs bg-slate-100 hover:bg-slate-200 text-zinc-500 px-2.5 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1">
+          className="text-xs bg-zinc-800 hover:bg-slate-200 text-zinc-500 px-2.5 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1">
           <span className={discover.isPending ? "animate-pulse" : ""}>🔍</span>
           {discover.isPending ? "Scanning..." : "Discover"}
         </button>
@@ -1420,7 +1420,7 @@ function BackupSection({ serverId }: { serverId: string }) {
           {targets && targets.volumes.length > 0 ? (
             <>
               <select value={selectedVolume} onChange={(e) => setSelectedVolume(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white mb-2">
+                className="w-full px-3 py-2 border border-zinc-700 rounded-lg text-sm bg-zinc-900 mb-2">
                 {targets.volumes.map((v: string) => (
                   <option key={v} value={v}>{v}</option>
                 ))}
@@ -1443,7 +1443,7 @@ function BackupSection({ serverId }: { serverId: string }) {
             <>
               <select value={selectedDb.container}
                 onChange={(e) => setSelectedDb((p) => ({ ...p, container: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white mb-2">
+                className="w-full px-3 py-2 border border-zinc-700 rounded-lg text-sm bg-zinc-900 mb-2">
                 <option value="">Select container</option>
                 {targets.dbContainers.map((c: any) => (
                   <option key={c.name} value={c.name}>{c.name} ({c.image})</option>
@@ -1451,7 +1451,7 @@ function BackupSection({ serverId }: { serverId: string }) {
               </select>
               <select value={selectedDb.type}
                 onChange={(e) => setSelectedDb((p) => ({ ...p, type: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white mb-2">
+                className="w-full px-3 py-2 border border-zinc-700 rounded-lg text-sm bg-zinc-900 mb-2">
                 <option value="postgres">PostgreSQL</option>
                 <option value="mysql">MySQL / MariaDB</option>
                 <option value="mongodb">MongoDB</option>
@@ -1460,7 +1460,7 @@ function BackupSection({ serverId }: { serverId: string }) {
               <input type="text" value={selectedDb.dbName}
                 onChange={(e) => setSelectedDb((p) => ({ ...p, dbName: e.target.value }))}
                 placeholder="DB name (optional)"
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white mb-2" />
+                className="w-full px-3 py-2 border border-zinc-700 rounded-lg text-sm bg-zinc-900 mb-2" />
               <button onClick={handleDbBackup}
                 disabled={dbBackup.isPending || !selectedDb.container}
                 className="w-full px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors">
@@ -1479,8 +1479,8 @@ function BackupSection({ serverId }: { serverId: string }) {
       {actionMsg && (
         <div className={`text-xs px-3 py-2 rounded-lg mb-4 ${
           actionMsg.type === "success"
-            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-            : "bg-red-50 text-red-700 border border-red-200"
+            ? "bg-zinc-800 text-emerald-400 border border-emerald-200"
+            : "bg-zinc-800 text-red-400 border border-red-200"
         }`}>
           {actionMsg.text}
         </div>
@@ -1491,7 +1491,7 @@ function BackupSection({ serverId }: { serverId: string }) {
         <h3 className="text-sm font-medium text-zinc-300 mb-2">History</h3>
         {isLoading && <div className="text-sm text-zinc-400 text-center py-3">Loading backups...</div>}
         {!isLoading && (!backups || backups.length === 0) && (
-          <div className="text-sm text-zinc-400 text-center py-4 border-2 border-dashed border-slate-200 rounded-xl">
+          <div className="text-sm text-zinc-400 text-center py-4 border-2 border-dashed border-zinc-700 rounded-xl">
             No backups yet. Discover volumes or DB containers and click Backup.
           </div>
         )}
@@ -1502,7 +1502,7 @@ function BackupSection({ serverId }: { serverId: string }) {
               const isFailed = b.status === "failed";
               return (
                 <div key={b.id} className={`border rounded-xl overflow-hidden ${
-                  isFailed ? "border-red-200 bg-red-50" : "border-slate-200 bg-white"
+                  isFailed ? "border-red-200 bg-zinc-800" : "border-zinc-700 bg-zinc-900"
                 }`}>
                   <div className="flex items-center gap-3 p-3">
                     <span className="text-base">{typeIcons[b.type] || "💾"}</span>
@@ -1522,19 +1522,19 @@ function BackupSection({ serverId }: { serverId: string }) {
                     <div className="flex gap-1">
                       {!isRunning && (
                         <button onClick={() => handleRestore(b)}
-                          className="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2 py-1 rounded-lg font-medium">
+                          className="text-xs bg-zinc-800 hover:bg-zinc-700 text-emerald-400 px-2 py-1 rounded-lg font-medium">
                           ↻ Restore
                         </button>
                       )}
                       <button onClick={() => handleDelete(b.id)}
                         disabled={deleteBackup.isPending}
-                        className="text-xs text-red-500 hover:text-red-700 px-2 py-1">
+                        className="text-xs text-red-500 hover:text-red-400 px-2 py-1">
                         ✕
                       </button>
                     </div>
                   </div>
                   {isFailed && b.errorMessage && (
-                    <div className="border-t border-red-200 px-3 py-2 text-xs text-red-700 font-mono break-words">
+                    <div className="border-t border-red-200 px-3 py-2 text-xs text-red-400 font-mono break-words">
                       {b.errorMessage}
                     </div>
                   )}

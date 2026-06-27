@@ -27,7 +27,7 @@ function AppCard({ app }: { app: { id: string; name: string; description?: strin
       className="group bg-zinc-900 border border-zinc-800 rounded-xl p-4 hover:border-zinc-700 hover:shadow-md transition-all flex items-start gap-3"
     >
       {hasIcon ? (
-        <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 bg-slate-50 flex items-center justify-center">
+        <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 bg-zinc-800 flex items-center justify-center">
           <img src={app.icon!} alt={app.name} className="w-7 h-7 object-contain"
             onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-sm font-bold text-zinc-500">${initial}</span>`; }} />
         </div>
@@ -37,7 +37,7 @@ function AppCard({ app }: { app: { id: string; name: string; description?: strin
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <h3 className="font-medium text-sm text-zinc-100 group-hover:text-emerald-700 transition-colors truncate">
+        <h3 className="font-medium text-sm text-zinc-100 group-hover:text-emerald-400 transition-colors truncate">
           {app.name}
         </h3>
         {app.description && (
@@ -150,7 +150,7 @@ export default function CatalogPage() {
           className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
             !selectedCategory
               ? "bg-emerald-600 text-white shadow-sm"
-              : "bg-white border border-slate-200 text-zinc-400 hover:border-zinc-700 hover:text-emerald-700"
+              : "bg-zinc-900 border border-zinc-700 text-zinc-400 hover:border-zinc-700 hover:text-emerald-400"
           }`}
         >
           <span>📋</span>
@@ -166,7 +166,7 @@ export default function CatalogPage() {
             className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
               selectedCategory === cat.id
                 ? "bg-emerald-600 text-white shadow-sm"
-                : "bg-white border border-slate-200 text-zinc-400 hover:border-zinc-700 hover:text-emerald-700"
+                : "bg-zinc-900 border border-zinc-700 text-zinc-400 hover:border-zinc-700 hover:text-emerald-400"
             }`}
           >
             <span>{cat.icon}</span>
@@ -189,8 +189,8 @@ export default function CatalogPage() {
               onClick={() => handleSubcategoryClick(sub.id)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
                 selectedSubcategory === sub.id
-                  ? "bg-emerald-100 text-emerald-700"
-                  : "bg-slate-50 text-zinc-500 hover:bg-slate-100"
+                  ? "bg-zinc-700 text-emerald-400"
+                  : "bg-zinc-800 text-zinc-500 hover:bg-zinc-800"
               }`}
             >
               {sub.label}
@@ -206,8 +206,8 @@ export default function CatalogPage() {
           {/* Popular apps */}
           {featured && featured.length > 0 && (
             <div className="mb-8">
-              <h2 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                <span className="w-5 h-5 bg-amber-100 rounded-full flex items-center justify-center text-[10px]">⭐</span>
+              <h2 className="text-sm font-semibold text-zinc-300 mb-3 flex items-center gap-2">
+                <span className="w-5 h-5 bg-zinc-700 rounded-full flex items-center justify-center text-[10px]">⭐</span>
                 Popular apps
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -221,8 +221,8 @@ export default function CatalogPage() {
           {/* Recent apps */}
           {recentApps && recentApps.length > 0 && (
             <div className="mb-8">
-              <h2 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                <span className="w-5 h-5 bg-emerald-100 rounded-full flex items-center justify-center text-[10px]">✨</span>
+              <h2 className="text-sm font-semibold text-zinc-300 mb-3 flex items-center gap-2">
+                <span className="w-5 h-5 bg-zinc-700 rounded-full flex items-center justify-center text-[10px]">✨</span>
                 Recently added
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -235,8 +235,8 @@ export default function CatalogPage() {
 
           {/* Browse by category */}
           <div>
-            <h2 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-              <span className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center text-[10px]">📂</span>
+            <h2 className="text-sm font-semibold text-zinc-300 mb-3 flex items-center gap-2">
+              <span className="w-5 h-5 bg-zinc-700 rounded-full flex items-center justify-center text-[10px]">📂</span>
               Browse by category
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -269,7 +269,7 @@ export default function CatalogPage() {
           ) : filtered.length === 0 ? (
             <div className="bg-zinc-900 rounded-2xl p-12 text-center border border-zinc-800">
               <p className="text-5xl mb-4">🔍</p>
-              <h2 className="text-lg font-semibold text-slate-700 mb-2">No results</h2>
+              <h2 className="text-lg font-semibold text-zinc-300 mb-2">No results</h2>
               <p className="text-sm text-zinc-500">
                 {search ? "Try a different keyword" : "No apps in this category yet"}
               </p>
@@ -280,7 +280,7 @@ export default function CatalogPage() {
               {selectedCategory && categoryData && (
                 <div className="flex items-center justify-between mb-4">
                   <p className="text-sm text-zinc-500">
-                    <strong className="text-slate-700">{filtered.length}</strong> app{filtered.length !== 1 ? "s" : ""}
+                    <strong className="text-zinc-300">{filtered.length}</strong> app{filtered.length !== 1 ? "s" : ""}
                     {selectedSubcategory && ` in ${subcategories.find(s => s.id === selectedSubcategory)?.label || selectedSubcategory}`}
                   </p>
                 </div>
@@ -293,7 +293,7 @@ export default function CatalogPage() {
                     <div key={sub.id} className="mb-6">
                       <div className="flex items-center gap-2 mb-3">
                         <h3 className="text-sm font-semibold text-slate-800">{sub.label}</h3>
-                        <span className="text-xs bg-slate-100 text-zinc-500 px-2 py-0.5 rounded-full">
+                        <span className="text-xs bg-zinc-800 text-zinc-500 px-2 py-0.5 rounded-full">
                           {sub.apps.length}
                         </span>
                       </div>
@@ -308,7 +308,7 @@ export default function CatalogPage() {
                     <div className="mb-6">
                       <div className="flex items-center gap-2 mb-3">
                         <h3 className="text-sm font-semibold text-slate-800">Other</h3>
-                        <span className="text-xs bg-slate-100 text-zinc-500 px-2 py-0.5 rounded-full">
+                        <span className="text-xs bg-zinc-800 text-zinc-500 px-2 py-0.5 rounded-full">
                           {categoryData.uncategorized.length}
                         </span>
                       </div>

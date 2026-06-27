@@ -23,10 +23,10 @@ function AppCard({ app }: { app: { id: string; name: string; description?: strin
   return (
     <Link
       href={`/install/${app.id}`}
-      className="group bg-white rounded-xl border border-slate-200 p-4 hover:border-emerald-300 hover:shadow-md transition-all flex items-start gap-3"
+      className="group bg-zinc-900 rounded-xl border border-zinc-700 p-4 hover:border-emerald-300 hover:shadow-md transition-all flex items-start gap-3"
     >
       {hasIcon ? (
-        <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 bg-slate-50 flex items-center justify-center">
+        <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 bg-zinc-800 flex items-center justify-center">
           <img src={app.icon!} alt={app.name} className="w-7 h-7 object-contain"
             onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
         </div>
@@ -36,7 +36,7 @@ function AppCard({ app }: { app: { id: string; name: string; description?: strin
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <h3 className="font-medium text-sm text-zinc-100 group-hover:text-emerald-700 transition-colors truncate">
+        <h3 className="font-medium text-sm text-zinc-100 group-hover:text-emerald-400 transition-colors truncate">
           {app.name}
         </h3>
         {app.description && (
@@ -74,9 +74,9 @@ export default function CategoryPage() {
 
   if (isLoading) return <div className="text-zinc-400 py-8">Loading...</div>;
   if (!catPage) return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-12 text-center border border-slate-200">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-12 text-center border border-zinc-700">
       <p className="text-5xl mb-4">🔍</p>
-      <h2 className="text-lg font-semibold text-slate-700 mb-2">Category not found</h2>
+      <h2 className="text-lg font-semibold text-zinc-300 mb-2">Category not found</h2>
       <Link href="/catalog" className="text-sm text-emerald-600 hover:underline">← Back to catalog</Link>
     </div>
   );
@@ -89,7 +89,7 @@ export default function CategoryPage() {
           ← Back to catalog
         </Link>
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center text-3xl">
+          <div className="w-14 h-14 bg-zinc-700 rounded-2xl flex items-center justify-center text-3xl">
             {catDef?.icon || "📦"}
           </div>
           <div>
@@ -110,7 +110,7 @@ export default function CategoryPage() {
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
               !selectedSub
                 ? "bg-emerald-600 text-white"
-                : "bg-white border border-slate-200 text-slate-600 hover:border-emerald-300"
+                : "bg-zinc-900 border border-zinc-700 text-zinc-400 hover:border-emerald-300"
             }`}
           >
             All ({catPage.total})
@@ -122,7 +122,7 @@ export default function CategoryPage() {
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 selectedSub === sub.id
                   ? "bg-emerald-600 text-white"
-                  : "bg-white border border-slate-200 text-slate-600 hover:border-emerald-300"
+                  : "bg-zinc-900 border border-zinc-700 text-zinc-400 hover:border-emerald-300"
               }`}
             >
               {sub.label} ({sub.apps.length})
@@ -146,7 +146,7 @@ export default function CategoryPage() {
             <div key={sub.id} className="mb-6">
               <div className="flex items-center gap-2 mb-3">
                 <h3 className="text-sm font-semibold text-slate-800">{sub.label}</h3>
-                <span className="text-xs bg-slate-100 text-zinc-500 px-2 py-0.5 rounded-full">
+                <span className="text-xs bg-zinc-800 text-zinc-500 px-2 py-0.5 rounded-full">
                   {sub.apps.length}
                 </span>
               </div>
@@ -161,7 +161,7 @@ export default function CategoryPage() {
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-3">
                 <h3 className="text-sm font-semibold text-slate-800">Other</h3>
-                <span className="text-xs bg-slate-100 text-zinc-500 px-2 py-0.5 rounded-full">
+                <span className="text-xs bg-zinc-800 text-zinc-500 px-2 py-0.5 rounded-full">
                   {uncategorized.length}
                 </span>
               </div>

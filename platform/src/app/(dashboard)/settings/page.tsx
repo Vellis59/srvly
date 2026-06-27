@@ -171,7 +171,7 @@ export default function SettingsPage() {
               <button
                 onClick={handleRegenerate}
                 disabled={regenerating}
-                className="text-xs text-red-500 hover:text-red-700 disabled:opacity-50"
+                className="text-xs text-red-500 hover:text-red-400 disabled:opacity-50"
               >
                 {regenerating ? "..." : "Regenerate"}
               </button>
