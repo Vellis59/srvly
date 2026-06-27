@@ -1,0 +1,8 @@
+# ─── srvly Caddyfile ───
+# Replace YOUR_DOMAIN with your actual domain pointing to this server.
+# Caddy will automatically provision a Let's Encrypt certificate.
+
+YOUR_DOMAIN {
+    # Reverse proxy to the Next.js app on port 3000
+    reverse_proxy platform:3000
+}

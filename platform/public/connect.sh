@@ -1,6 +1,6 @@
 #!/bin/bash
 # srvly — Server bootstrap & connect script
-# Usage: curl -sL https://srvly.vellis.cc/connect.sh | bash -s -- "<SSH_PUBLIC_KEY>"
+# Usage: curl -sL https://YOUR_DOMAIN/connect.sh | bash -s -- "<SSH_PUBLIC_KEY>"
 #
 # This script:
 #   1. Installs the srvly SSH key (persistent via cron guard)
@@ -14,7 +14,7 @@ GUARD_PATH="/etc/cron.hourly/srvly-key-guard"
 
 if [ -z "$SRVLY_KEY" ]; then
   echo "Missing SSH public key."
-  echo "Usage: curl -sL https://srvly.vellis.cc/connect.sh | bash -s -- \"<SSH_KEY>\""
+  echo "Usage: curl -sL https://YOUR_DOMAIN/connect.sh | bash -s -- \"<SSH_KEY>\""
   exit 1
 fi
 

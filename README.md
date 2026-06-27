@@ -1,48 +1,215 @@
 # srvly
 
-Plateforme SaaS pour la gestion de serveurs/VPS.
+**Open-source VPS management platform** — connect your servers, deploy apps with your AI agent, monitor everything from one dashboard.
+
+srvly is a **management portal** that gives you a unified view of all your VPS instances. Each server gets its own SSH key, and you deploy applications via your AI agent (Hermes, OpenCLAW, etc.) which communicates with the srvly API.
+
+## Features
+
+- **Server management** — Add, connect, and monitor your VPS instances from one dashboard
+- **SSH key authentication** — srvly generates SSH keys or accepts your own; a cron guard ensures keys stay authorized
+- **One-click deploy** — Server setup script (Docker + UFW + Fail2Ban + SSH hardening) in a single command
+- **App catalog** — 900+ open-source apps ready to deploy (via `vellis.cc` catalog)
+- **AI agent integration** — Your AI agent handles installations and debugging via the srvly API
+- **Real-time monitoring** — CPU, RAM, disk, uptime, and health status for each server
+- **Docker management** — View logs, restart, stop/start containers from the dashboard
+- **Multi-user ready** — Built-in plan system (free: 1 server) with GitHub OAuth authentication
 
 ## Architecture
 
 ```
-srvly/
-├── platform/           # Next.js 14 (dashboard + API + SSH dispatch)
-│   ├── src/app/        # Pages : dashboard, servers, catalog
-│   ├── src/server/     # DB schema, tRPC routers, auth
-│   ├── src/components/ # Sidebar, UI
-│   └── src/lib/        # SSH utility, trpc client
-├── recipes/            # Catalogue YAML des applications
-├── infra/              # Docker Compose (PostgreSQL + app)
-└── scripts/            # Utilitaires d'import
+┌──────────────────────────────────────────────────────┐
+│                   srvly platform                      │
+│  ┌─────────────┐  ┌──────────┐  ┌─────────────────┐  │
+│  │  Next.js 14  │  │  tRPC    │  │  Postgres (DB)  │  │
+│  │  (dashboard) │──│  (API)   │──│  + Drizzle ORM  │  │
+│  └─────────────┘  └──────────┘  └─────────────────┘  │
+│         │                                              │
+│         ▼                                              │
+│  ┌─────────────┐                                       │
+│  │  SSH Module  │──→ Direct SSH to your servers        │
+│  └─────────────┘                                       │
+└──────────────────────────────────────────────────────┘
+         │
+         ▼
+┌──────────────────┐   ┌──────────────────┐
+│  Your AI Agent   │   │  Your VPS fleet  │
+│  (Hermes, etc.)  │──→│  (Docker + apps) │
+└──────────────────┘   └──────────────────┘
 ```
 
-## Stack
-
-| Couche | Technologie |
+| Layer | Technology |
 |---|---|
-| Frontend/API | Next.js 14 + tRPC |
-| Base de données | PostgreSQL + Drizzle ORM |
+| Frontend / API | Next.js 14 + tRPC |
+| Database | PostgreSQL + Drizzle ORM |
 | Auth | NextAuth v5 (GitHub OAuth) |
-| Exécution | SSH direct (ssh2) via clé déposée sur le serveur |
-| Infra | Docker Compose (Hetzner VPS / Contabo) |
+| Execution | Direct SSH (ssh2) using per-server key pair |
+| Proxy | Caddy (auto HTTPS via Let's Encrypt) |
+| Infrastructure | Docker Compose |
 
-## Principe
+## Quick Start (Self-Hosted)
 
-**srvly** est un portail de gestion. Chaque utilisateur connecte son VPS en déposant une clé SSH (générée par la plateforme). Les actions mécaniques (sécurité, Docker, Nginx, logs, restart) s'exécutent directement via SSH.
+### Prerequisites
 
-L'installation des applications et le débogage avancé sont gérés par l'**agent IA du client** (Hermes, OpenCLAW, etc.) qui dialogue avec l'utilisateur et appelle l'API srvly pour enregistrer les déploiements.
+- A Linux VPS (Ubuntu 24.04 LTS recommended)
+- A domain pointing to your server's IP (e.g., `srvly.example.com`)
+- A [GitHub OAuth App](https://github.com/settings/applications/new) (callback URL: `https://YOUR_DOMAIN/api/auth/callback/github`)
+- Docker and Docker Compose (or run the all-in-one setup below)
 
-## Flux de connexion d'un serveur
+### 1. All-in-one setup (recommended)
 
-1. Membre crée un compte (GitHub OAuth)
-2. Ajoute son VPS (IP + nom) → clé SSH générée
-3. Exécute la commande sur son serveur pour déposer la clé publique
-4. (Optionnel) Exécute les actions Sécurité / Docker / Nginx / SSL
-5. Le serveur est prêt — les actions du dashboard passent en SSH direct
+SSH into your server and run:
 
-## Pages principales
+```bash
+curl -sL https://YOUR_DOMAIN/connect.sh | bash -s -- 'YOUR_SSH_PUBLIC_KEY'
+```
 
-- `/dashboard` — Vue d'ensemble
-- `/servers` — Liste + ajout de serveurs
-- `/servers/[id]` — Actions, apps installées, domaines, SSL
-- `/catalog` — Catalogue d'applications
+This single command:
+- 🔒 Hardens SSH (key-only, no passwords)
+- 🔥 Configures UFW firewall (22/80/443)
+- 🛡️ Installs Fail2Ban (3 attempts → 1h ban)
+- 🐳 Installs Docker + Compose
+- 📥 Clones the srvly repository
+- 🔑 Sets up your SSH key (with hourly cron guard)
+- ⚙️ Generates `.env` and deploys the stack
+
+### 2. Manual setup
+
+```bash
+# Clone the repository
+git clone https://github.com/YOUR_GITHUB_USER/srvly.git /opt/srvly
+cd /opt/srvly
+
+# Configure environment
+cp platform/.env.example .env
+nano .env   # Fill in your GitHub OAuth credentials, secrets, and domain
+
+# Start the stack
+docker compose -f infra/docker-compose.yml up -d --build
+```
+
+### 3. Configure your reverse proxy
+
+Edit `infra/Caddyfile` with your domain, then restart:
+
+```bash
+docker compose -f infra/docker-compose.yml up -d
+```
+
+Caddy automatically provisions Let's Encrypt TLS certificates.
+
+## Configuration
+
+### Environment Variables
+
+| Variable | Description | Required |
+|---|---|---|
+| `DATABASE_URL` | PostgreSQL connection string | ✅ |
+| `POSTGRES_PASSWORD` | PostgreSQL password | ✅ |
+| `AUTH_SECRET` | NextAuth encryption secret (`openssl rand -base64 32`) | ✅ |
+| `NEXT_PUBLIC_BASE_URL` | Your srvly domain (e.g., `https://srvly.example.com`) | ✅ |
+| `NEXT_PUBLIC_APP_URL` | Same as BASE_URL | ✅ |
+| `NEXTAUTH_URL` | Same as BASE_URL | ✅ |
+| `AUTH_TRUST_HOST` | Set to `true` for production | ✅ |
+| `GITHUB_CLIENT_ID` | GitHub OAuth App client ID | ✅ |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth App client secret | ✅ |
+| `SSH_KEY_PATH` | Path to store generated SSH keys (`/app/ssh_keys`) | ✅ |
+| `REDIS_URL` | Redis connection (optional, for future features) | ❌ |
+
+### GitHub OAuth Setup
+
+1. Go to [GitHub Developer Settings → OAuth Apps](https://github.com/settings/applications/new)
+2. Fill in:
+   - **Application name**: `srvly` (or your choice)
+   - **Homepage URL**: `https://YOUR_DOMAIN`
+   - **Authorization callback URL**: `https://YOUR_DOMAIN/api/auth/callback/github`
+3. Copy `Client ID` and `Client Secret` to your `.env` file
+
+## Server Connection Flow
+
+1. Sign in with GitHub on your srvly instance
+2. Click **Add Server** → enter IP and an optional custom SSH key
+3. Copy the one-liner setup command shown on screen
+4. Paste and run it on your target server (as root)
+5. srvly creates a cron job that re-checks the SSH key hourly
+6. Your server appears in the dashboard with live health data
+
+## Development
+
+```bash
+# Clone and install
+git clone https://github.com/YOUR_GITHUB_USER/srvly.git
+cd srvly/platform
+npm install
+
+# Setup database
+cp .env.example .env
+# Edit .env with your PostgreSQL credentials
+npx drizzle-kit push
+
+# Run development server
+npm run dev
+```
+
+## Project Structure
+
+```
+srvly/
+├── platform/           # Next.js 14 app (dashboard + API + SSH)
+│   ├── src/
+│   │   ├── app/        # Pages: dashboard, servers, catalog, settings
+│   │   ├── server/     # DB schema, tRPC routers, auth config
+│   │   ├── components/ # Reusable UI components
+│   │   └── lib/        # SSH utility, tRPC client, i18n
+│   ├── Dockerfile
+│   └── .env.example
+├── infra/              # Docker Compose + Caddyfile for self-hosting
+│   ├── docker-compose.yml
+│   ├── Caddyfile
+│   ├── deploy-hetzner.sh
+│   └── secure-deploy.sh
+└── scripts/            # Import utilities
+```
+
+## API
+
+srvly exposes both tRPC and REST endpoints for agent integration.
+
+### REST Endpoints
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/api/agent/docker/deploy` | POST | Deploy a Docker app on a server |
+| `/api/agent/install/register` | POST | Register an app installation |
+| `/api/domains/enable-ssl` | POST | Enable SSL for a domain |
+| `/api/dispatch` | POST | Dispatch commands to a server |
+| `/api/deploy` | GET | Download the all-in-one deployment script |
+
+### Authentication
+
+API requests must include the server's `token` in the `Authorization` header:
+```
+Authorization: Bearer <server-token>
+```
+
+The token is visible on each server's detail page in the dashboard.
+
+## Security
+
+- SSH key-only authentication (password auth disabled)
+- UFW firewall (default deny incoming, allow 22/80/443)
+- Fail2Ban (3 failed SSH attempts → 1-hour ban)
+- Cron-guarded SSH key (re-authorized hourly)
+- AI agent prompts are sandboxed — agents cannot modify SSH config, firewall rules, or system settings
+
+## License
+
+[MIT](LICENSE)
+
+## Contributing
+
+Contributions are welcome! Open an issue or submit a pull request.
+
+---
+
+**srvly** — Open-source VPS management. Deploy, monitor, and manage your servers with the help of your AI agent.

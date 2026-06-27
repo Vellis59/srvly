@@ -45,7 +45,7 @@ echo "=== [5/8] Clone srvly ==="
 if [ -d /opt/srvly ]; then
   cd /opt/srvly && git pull
 else
-  git clone https://github.com/Vellis59/srvly.git /opt/srvly
+  git clone https://github.com/YOUR_GITHUB_USER/srvly.git /opt/srvly
   cd /opt/srvly
 fi
 echo "OK"
@@ -62,13 +62,14 @@ if not os.path.exists(p):
         f.write("DATABASE_URL=postgres://srvly:***@postgres:5432/srvly\\n")
         f.write("POSTGRES_PASSWORD=***\n")
         f.write("AUTH_SECRET=***\n")
-        f.write("NEXT_PUBLIC_BASE_URL=https://srvly.vellis.cc\\n")
-        f.write("NEXT_PUBLIC_APP_URL=https://srvly.vellis.cc\\n")
-        f.write("NEXTAUTH_URL=https:...")
+        f.write("NEXT_PUBLIC_BASE_URL=https://YOUR_DOMAIN\\n")
+        f.write("NEXT_PUBLIC_APP_URL=https://YOUR_DOMAIN\\n")
+        f.write("NEXTAUTH_URL=https://YOUR_DOMAIN\\n")
+        f.write("AUTH_SECRET=" + au + "\\n")
+        f.write("AUTH_TRUST_HOST=true\\n")
+        f.write("AUTH_GITHUB_ID=\\n")
+        f.write("AUTH_GITHUB_SECRET=\\n")
         f.write("SSH_KEY_PATH=/app/ssh_keys\\n")
-        f.write("AUTH_TRUST_HOST=***")
-        f.write("AUTH_GITHUB_ID=***")
-        f.write("AUTH_GITHUB_SECRET=***")
     print(".env created")
 else:
     print(".env exists")
@@ -78,7 +79,7 @@ echo "OK"
 echo "=== [7/8] Caddy config ==="
 mkdir -p /opt/srvly/infra
 cat > /opt/srvly/infra/Caddyfile << 'CADDY'
-srvly.vellis.cc {
+YOUR_DOMAIN {
     reverse_proxy platform:3000
 }
 CADDY
@@ -138,7 +139,7 @@ echo "=== [8/8] Deploy ==="
 cd /opt/srvly && docker compose -f infra/docker-compose.yml up -d --build 2>&1
 echo ""
 echo "=================================="
-echo "  DONE! https://srvly.vellis.cc  "
+echo "  DONE! https://YOUR_DOMAIN  "
 echo "=================================="
 `;
 
