@@ -31,7 +31,7 @@ const plans = [
       "Catalogue d'applications",
     ],
     cta: "Get started",
-    href: "/auth/signin",
+    href: "https://console.srvly.app/auth/signin",
   },
   {
     id: "starter",
@@ -86,7 +86,7 @@ export default function LandingPage() {
               GitHub
             </a>
             <Link
-              href="/auth/signin"
+              href="https://console.srvly.app/auth/signin"
               className="text-sm px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-500 transition-colors font-medium"
             >
               Sign in
@@ -109,7 +109,7 @@ export default function LandingPage() {
         </p>
         <div className="flex items-center justify-center gap-4">
           <Link
-            href="/auth/signin"
+            href="https://console.srvly.app/auth/signin"
             className="px-6 py-3 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-500 transition-colors text-lg"
           >
             Start free →
