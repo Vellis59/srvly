@@ -77,14 +77,14 @@ function StatCard({
   return (
     <Link
       href={href}
-      className="bg-white rounded-2xl border border-slate-200 p-5 hover:shadow-md hover:border-emerald-300 transition-all group"
+      className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 hover:bg-zinc-900/80 transition-all group"
     >
       <div className={`w-10 h-10 ${iconBg} rounded-xl flex items-center justify-center ${iconColor} text-lg mb-3`}>
         {icon}
       </div>
-      <p className="text-2xl font-bold text-slate-900">{value}</p>
-      <p className="text-xs text-slate-500 mt-0.5">{label}</p>
-      {sub && <p className="text-[11px] text-slate-400 mt-1 truncate">{sub}</p>}
+      <p className="text-2xl font-bold text-zinc-100">{value}</p>
+      <p className="text-xs text-zinc-500 mt-0.5">{label}</p>
+      {sub && <p className="text-[11px] text-zinc-600 mt-1 truncate">{sub}</p>}
     </Link>
   );
 }
@@ -103,18 +103,18 @@ export default function DashboardPage() {
   const healthyServers = servers?.filter((s) => s.status === "connected") || [];
 
   return (
-    <div>
+    <div className="min-h-screen">
       {/* ── Header ── */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">
+        <h1 className="text-2xl font-bold text-zinc-100">
           {_("dashboard.welcome")}{session?.user?.name ? `, ${session.user.name}` : ""} 👋
         </h1>
-        <p className="text-slate-500 mt-1">{_("app.tagline")}</p>
+        <p className="text-zinc-500 mt-1">{_("app.tagline")}</p>
       </div>
 
       {/* ── Plan usage banner ── */}
       {plan && plan.maxServers > 0 && (
-        <div className="mb-6 bg-slate-800 rounded-xl px-4 py-2.5 flex items-center justify-between text-sm">
+        <div className="mb-6 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2.5 flex items-center justify-between text-sm">
           <span className="text-slate-300">
             <span className="font-medium text-white capitalize">{plan.plan}</span> plan —{" "}
             {plan.currentServers}/{plan.maxServers} server{plan.maxServers > 1 ? "s" : ""} used
@@ -232,7 +232,7 @@ export default function DashboardPage() {
                   <Link
                     key={server.id}
                     href={`/servers/${server.id}`}
-                    className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-colors group"
+                    className="flex items-center justify-between p-3 rounded-xl hover:bg-zinc-800/50 transition-colors group"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <div
@@ -248,7 +248,7 @@ export default function DashboardPage() {
                         <p className="text-sm font-medium text-slate-900 group-hover:text-emerald-700 transition-colors truncate">
                           {server.name}
                         </p>
-                        <p className="text-xs text-slate-400 font-mono truncate">{server.ip}</p>
+                        <p className="text-xs text-zinc-500 font-mono truncate">{server.ip}</p>
                       </div>
                     </div>
 

@@ -206,32 +206,32 @@ function ServerCard({ server }: { server: Server }) {
 
   return (
     <Link href={`/servers/${server.id}`}
-      className="block bg-white rounded-2xl border border-slate-200 p-5 hover:shadow-md hover:border-emerald-300 transition-all">
+      className="block bg-zinc-900 border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 hover:bg-zinc-900/80 transition-all">
       <div className="flex items-start justify-between mb-3">
         <div>
-          <h3 className="font-semibold text-slate-900">{server.name}</h3>
-          <p className="text-sm text-slate-500 font-mono mt-0.5">
+          <h3 className="font-semibold text-zinc-100">{server.name}</h3>
+          <p className="text-sm text-zinc-500 font-mono mt-0.5">
             {server.ip}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <span
             className={`w-2.5 h-2.5 rounded-full ${
-              statusColors[server.status] || "bg-slate-400"
+              statusColors[server.status] || "bg-zinc-600"
             }`}
           />
-          <span className="text-xs font-medium text-slate-600">
+          <span className="text-xs font-medium text-zinc-400">
             {statusLabels[server.status] || server.status}
           </span>
         </div>
       </div>
 
-      <div className="flex gap-4 text-sm text-slate-500">
+      <div className="flex gap-4 text-sm text-zinc-400">
         {server.os && (
-          <span className="bg-slate-100 px-2 py-1 rounded-lg">{server.os}</span>
+          <span className="bg-zinc-800 text-zinc-300 px-2 py-1 rounded-lg">{server.os}</span>
         )}
         {server.ram && (
-          <span className="bg-slate-100 px-2 py-1 rounded-lg">
+          <span className="bg-zinc-800 text-zinc-300 px-2 py-1 rounded-lg">
             {server.ram >= 1024
               ? `${(server.ram / 1024).toFixed(1)} GB`
               : `${server.ram} MB`}
@@ -253,8 +253,8 @@ export default function ServersPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Servers</h1>
-          <p className="text-slate-500 mt-1">
+          <h1 className="text-2xl font-bold text-zinc-100">Servers</h1>
+          <p className="text-zinc-500 mt-1">
             Manage your servers connected to the platform
           </p>
         </div>
@@ -267,7 +267,7 @@ export default function ServersPage() {
       </div>
 
       {isLoading ? (
-        <div className="text-slate-400">Loading...</div>
+        <div className="text-zinc-500">Loading...</div>
       ) : servers && servers.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {servers.map((server) => (
