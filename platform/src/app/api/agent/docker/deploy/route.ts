@@ -25,36 +25,79 @@ export async function POST(req: NextRequest) {
     const appPort = port || 3000;
     const containerName = name.toLowerCase().replace(/[^a-z0-9]/g, "-");
     const imageName = image || name.toLowerCase();
+    
+    // Strict input validations to prevent RCE
+    if (!/^[a-zA-Z0-9_/.:-]+$/.test(imageName)) {
+      return error("Invalid image name format", 400);
+    }
+    if (!/^[a-zA-Z0-9_-]+$/.test(containerName)) {
+      return error("Invalid container name format", 400);
+    }
+
     const appDir = "/opt/srvly/" + containerName;
+    const envFilePath = `/tmp/srvly-${containerName}.env`;
+
+    // Build env lines safely
+    let envLines = "";
+    if (env && typeof env === "object") {
+      for (const [k, v] of Object.entries(env)) {
+        if (!/^[a-zA-Z0-9_-]+$/.test(k)) {
+          return error(`Invalid environment variable key: ${k}`, 400);
+        }
+        envLines += `${k}=${String(v)}\n`;
+      }
+    }
 
     // Build install script
     const s = [
       "set -e",
+      `mkdir -p "${appDir}"`,
+    ];
+
+    // Safely write environment variables to env file using Heredoc literal 'ENV_EOF'
+    if (envLines) {
+      s.push(`cat > "${envFilePath}" << 'ENV_EOF'`);
+      s.push(envLines.trim());
+      s.push("ENV_EOF");
+    }
+
+    s.push(
       `echo ">>> PULL"`,
       `docker pull ${imageName} 2>&1`,
       "",
       `echo ">>> CLEAN"`,
       `docker rm -f ${containerName} 2>/dev/null || true`,
-      `mkdir -p ${appDir}`,
       "",
-      `echo ">>> RUN"`,
-    ];
+      `echo ">>> RUN"`
+    );
 
     let runCmd = `docker run -d --name ${containerName} --restart unless-stopped -p ${appPort}:${appPort}`;
-    if (env && typeof env === "object") {
-      for (const [k, v] of Object.entries(env)) {
-        runCmd += ` -e ${k}='${String(v)}'`;
-      }
+    if (envLines) {
+      runCmd += ` --env-file "${envFilePath}"`;
     }
     if (volumes && Array.isArray(volumes)) {
       for (const vol of volumes) {
         const parts = vol.split(":");
         const hostPath = parts[0].startsWith("/") ? parts[0] : `${appDir}/${parts[0]}`;
-        runCmd += ` -v ${hostPath}:${parts[1]}`;
+        const containerPath = parts[1];
+        
+        // Strict path character validation to prevent command injection
+        if (!/^[a-zA-Z0-9_/.-]+$/.test(hostPath) || !/^[a-zA-Z0-9_/.-]+$/.test(containerPath)) {
+          return error(`Invalid volume path format: ${vol}`, 400);
+        }
+        
+        s.push(`mkdir -p "${hostPath}"`);
+        runCmd += ` -v "${hostPath}:${containerPath}"`;
       }
     }
     runCmd += ` ${imageName} 2>&1`;
     s.push(runCmd);
+    
+    // Clean up temporary env file
+    if (envLines) {
+      s.push(`rm -f "${envFilePath}"`);
+    }
+
     s.push("", `echo ">>> WAIT"`, "sleep 3", "", `echo ">>> CHECK"`);
     s.push("for i in 1 2 3 4 5; do");
     s.push(`  CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${appPort} 2>/dev/null || echo '000')`);

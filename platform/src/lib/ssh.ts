@@ -50,6 +50,12 @@ export async function executeRaw(
   script: string,
   timeout = 60,
 ): Promise<ExecResult> {
+  // Validate host to prevent command injection
+  const hostRegex = /^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$|^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$|^[a-fA-F0-9:]+$/;
+  if (!hostRegex.test(host)) {
+    return { success: false, output: "", error: "Invalid host address format" };
+  }
+
   // Write key to a temp file with secure permissions
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "srvly-ssh-"));
   const keyPath = path.join(tmpDir, "id_rsa");

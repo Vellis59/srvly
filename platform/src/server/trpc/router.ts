@@ -1286,6 +1286,18 @@ except:
       const params = (row.installation.params as any) || {};
       const container = params.containerName || params.name || row.installation.recipeId;
 
+      // Validate container name to prevent execution bugs
+      if (!/^[a-zA-Z0-9_.-]+$/.test(container)) {
+        return { success: false, error: "Invalid container name format" };
+      }
+
+      // Validate env keys and values
+      for (const [k, v] of Object.entries(input.env)) {
+        if (!/^[a-zA-Z0-9_-]+$/.test(k)) {
+          return { success: false, error: `Invalid environment variable key format: ${k}` };
+        }
+      }
+
       // Get current container config via docker inspect
       const result = await executeOnServer(
         row.server.id,
@@ -1329,23 +1341,27 @@ for e in (c.get('Env') or []):
         if (line.startsWith("VOLUMES=")) volumes = line.substring(8).split("|").filter(Boolean);
       }
 
-      // Build new env args
-      const envArgs = Object.entries(input.env).map(([k, v]) => `-e ${k}=${v}`).join(" ");
-
       // Build volume args
       const volArgs = volumes.map(v => `-v ${v}`).join(" ");
 
       // Build port args
       const portArgs = ports ? ports.split("|").map(p => `-p ${p}`).join(" ") : "";
 
-      // Recreate container
+      // Recreate container with safe .env file (Heredoc literal 'ENV_EOF')
+      const envLines = Object.entries(input.env).map(([k, v]) => `${k}=${v}`).join("\n");
+      const envFilePath = `/tmp/srvly-${container}.env`;
+
       const script = [
+        `cat > "${envFilePath}" << 'ENV_EOF'`,
+        envLines,
+        `ENV_EOF`,
         `echo "Stopping ${container}..."`,
         `docker stop ${container} 2>/dev/null || true`,
         `echo "Removing ${container}..."`,
         `docker rm ${container} 2>/dev/null || true`,
         `echo "Starting with new env..."`,
-        `docker run -d --name ${container} --restart ${restart} ${portArgs} ${volArgs} ${envArgs} ${image} 2>&1`,
+        `docker run -d --name ${container} --restart ${restart} ${portArgs} ${volArgs} --env-file "${envFilePath}" ${image} 2>&1`,
+        `rm -f "${envFilePath}"`,
         `echo "RESTARTED"`,
       ].join("\n");
 
@@ -2021,7 +2037,10 @@ export const backupRouter = router({
     }),
 
   volumeBackup: agentProcedure
-    .input(z.object({ serverId: z.string(), volumeName: z.string() }))
+    .input(z.object({
+      serverId: z.string(),
+      volumeName: z.string().regex(/^[a-zA-Z0-9_.-]+$/, "Invalid volume name format"),
+    }))
     .mutation(async ({ ctx, input }) => {
       const [server] = await ctx.db
         .select()
@@ -2077,9 +2096,9 @@ export const backupRouter = router({
   dbBackup: agentProcedure
     .input(z.object({
       serverId: z.string(),
-      containerName: z.string(),
+      containerName: z.string().regex(/^[a-zA-Z0-9_.-]+$/, "Invalid container name format"),
       dbType: z.enum(["postgres", "mysql", "mongodb", "redis"]),
-      dbName: z.string().default(""),
+      dbName: z.string().regex(/^[a-zA-Z0-9_.-]*$/, "Invalid database name format").default(""),
     }))
     .mutation(async ({ ctx, input }) => {
       const [server] = await ctx.db
@@ -2135,7 +2154,11 @@ export const backupRouter = router({
     }),
 
   restoreVolume: agentProcedure
-    .input(z.object({ serverId: z.string(), volumeName: z.string(), backupFilename: z.string() }))
+    .input(z.object({
+      serverId: z.string(),
+      volumeName: z.string().regex(/^[a-zA-Z0-9_.-]+$/, "Invalid volume name format"),
+      backupFilename: z.string().regex(/^[a-zA-Z0-9_.-]+\.tar\.gz$/, "Invalid backup filename format"),
+    }))
     .mutation(async ({ ctx, input }) => {
       const [server] = await ctx.db
         .select()
@@ -2155,9 +2178,9 @@ export const backupRouter = router({
   restoreDb: agentProcedure
     .input(z.object({
       serverId: z.string(),
-      containerName: z.string(),
+      containerName: z.string().regex(/^[a-zA-Z0-9_.-]+$/, "Invalid container name format"),
       dbType: z.enum(["postgres", "mysql", "mongodb", "redis"]),
-      backupFilename: z.string(),
+      backupFilename: z.string().regex(/^[a-zA-Z0-9_.-]+\.(sql|rdb|archive)$/, "Invalid backup filename format"),
     }))
     .mutation(async ({ ctx, input }) => {
       const [server] = await ctx.db
