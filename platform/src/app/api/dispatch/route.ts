@@ -1,72 +1,66 @@
-import { NextRequest, NextResponse } from "next/server";
-import { executeRaw } from "@/lib/ssh";
+import { NextRequest } from "next/server";
+import { executeRaw, executeOnServer } from "@/lib/ssh";
 import { db } from "@/server/db";
 import { servers } from "@/server/db/schema";
-import { eq } from "drizzle-orm";
-import { auth } from "@/server/auth";
+import { eq, and } from "drizzle-orm";
+import { authUser, error, ok, validateBody } from "@/lib/api-helpers";
+import { dispatchSchema } from "@/lib/api-schemas";
 
 /**
  * POST /api/dispatch
  * Executes a command on a server via SSH.
- * Body must contain: { server_id, script, timeout? }
+ * Requires Bearer token auth.
+ * Body: { serverId?, script, timeout? }
  */
 export async function POST(req: NextRequest) {
-  // Auth check (optional for now — falls back to first server matching the IP)
   try {
-    const body = await req.json();
+    // Require Bearer token auth
+    const user = await authUser(req);
+    if (!user) return error("Invalid token", 401);
 
-    const serverId = body.server_id || body.serverId;
-    const script = body.script || body.command;
-    const timeout = (body.timeout || 60) as number;
+    const validation = await validateBody(req, dispatchSchema);
+    if (!validation.valid) return validation.response;
+    const { serverId, script, timeout } = validation.data;
 
-    if (!script) {
-      return NextResponse.json(
-        { success: false, error: "'script' parameter is required" },
-        { status: 400 }
-      );
-    }
-
-    // Find server by ID or by session user's first connected server
+    // Find server: by ID (must belong to user) or first of the user
     let targetServer: any;
 
-    if (serverId && serverId !== "unknown") {
+    if (serverId) {
       const [srv] = await db
         .select()
         .from(servers)
-        .where(eq(servers.id, serverId))
+        .where(and(eq(servers.id, serverId), eq(servers.userId, user.id)))
         .limit(1);
       targetServer = srv;
-    }
-
-    if (!targetServer) {
-      // Fallback: use the first server with an SSH key
+    } else {
+      // Fallback: first server of the authenticated user that's connected
       const [srv] = await db
         .select()
         .from(servers)
-        .where(eq(servers.status, "connected"))
+        .where(and(eq(servers.userId, user.id), eq(servers.status, "connected")))
         .limit(1);
       targetServer = srv;
     }
 
     if (!targetServer || !targetServer.sshPrivateKey || !targetServer.ip) {
-      return NextResponse.json(
-        { success: false, error: "No connected server with SSH key available" },
-        { status: 404 }
-      );
+      return error("No connected server with SSH key available", 404);
     }
 
     const result = await executeRaw(
       targetServer.ip,
       targetServer.sshPrivateKey,
       script,
-      timeout
+      timeout,
     );
 
-    return NextResponse.json(result);
+    return ok({
+      serverId: targetServer.id,
+      serverName: targetServer.name,
+      success: result.success,
+      output: result.output?.slice(0, 50000),
+      error: result.error,
+    });
   } catch (err: any) {
-    return NextResponse.json(
-      { success: false, error: err.message || "dispatch error" },
-      { status: 500 }
-    );
+    return error(err.message || "dispatch error", 500);
   }
 }

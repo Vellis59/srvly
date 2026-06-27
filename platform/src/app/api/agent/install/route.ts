@@ -1,32 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { db } from "@/server/db";
-import { installations, servers, domains } from "@/server/db/schema";
+import { installations, servers } from "@/server/db/schema";
 import { eq, and } from "drizzle-orm";
-import { executeOnServer } from "@/lib/ssh";
-
-/** Helper: verify Bearer token and return userId */
-async function authUser(req: NextRequest) {
-  const auth = req.headers.get("authorization") || "";
-  if (!auth.startsWith("Bearer ")) return null;
-  const token = auth.slice(7).trim();
-  if (!token) return null;
-
-  const { users } = await import("@/server/db/schema");
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.apiToken, token))
-    .limit(1);
-  return user || null;
-}
-
-function error(msg: string, status = 400) {
-  return NextResponse.json({ success: false, error: msg }, { status });
-}
-
-function ok(data: any) {
-  return NextResponse.json({ success: true, ...data });
-}
+import { authUser, error, ok, validateBody } from "@/lib/api-helpers";
+import { installRegisterSchema, installListSchema } from "@/lib/api-schemas";
 
 // ─── POST /api/agent/install/register ───
 export async function POST(req: NextRequest) {
@@ -34,9 +11,9 @@ export async function POST(req: NextRequest) {
     const user = await authUser(req);
     if (!user) return error("Invalid token", 401);
 
-    const body = await req.json();
-    const { serverId, name, port, domain, image, containerName, notes } = body;
-    if (!serverId || !name) return error("serverId and name required");
+    const validation = await validateBody(req, installRegisterSchema);
+    if (!validation.valid) return validation.response;
+    const { serverId, name, port, domain, image, containerName, notes } = validation.data;
 
     const [server] = await db
       .select()
@@ -70,6 +47,10 @@ export async function GET(req: NextRequest) {
 
     const serverId = req.nextUrl.searchParams.get("serverId");
     if (!serverId) return error("serverId required");
+
+    // Validate UUID format
+    const parseResult = installListSchema.safeParse({ serverId });
+    if (!parseResult.success) return error("Invalid serverId format", 422);
 
     const [server] = await db
       .select()

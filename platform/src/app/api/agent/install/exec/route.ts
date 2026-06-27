@@ -1,25 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { db } from "@/server/db";
 import { installations, servers } from "@/server/db/schema";
 import { eq, and } from "drizzle-orm";
 import { executeOnServer } from "@/lib/ssh";
-
-async function authUser(req: NextRequest) {
-  const auth = req.headers.get("authorization") || "";
-  if (!auth.startsWith("Bearer ")) return null;
-  const token = auth.slice(7).trim();
-  if (!token) return null;
-  const { users } = await import("@/server/db/schema");
-  const [user] = await db.select().from(users).where(eq(users.apiToken, token)).limit(1);
-  return user || null;
-}
-
-function error(msg: string, status = 400) {
-  return NextResponse.json({ success: false, error: msg }, { status });
-}
-function ok(data: any) {
-  return NextResponse.json({ success: true, ...data });
-}
+import { authUser, error, ok, validateBody } from "@/lib/api-helpers";
+import { installExecSchema } from "@/lib/api-schemas";
 
 // ─── POST /api/agent/install/exec ───
 // Default: run commands on the HOST (via SSH).
@@ -29,10 +14,9 @@ export async function POST(req: NextRequest) {
     const user = await authUser(req);
     if (!user) return error("Invalid token", 401);
 
-    const body = await req.json();
-    const { installationId, command, workdir, container } = body;
-    if (!installationId) return error("installationId required");
-    if (!command) return error("command required");
+    const validation = await validateBody(req, installExecSchema);
+    if (!validation.valid) return validation.response;
+    const { installationId, command, workdir, container, timeout } = validation.data;
 
     const [inst] = await db
       .select()
@@ -47,7 +31,6 @@ export async function POST(req: NextRequest) {
     if (!server) return error("Server not found", 404);
 
     const containerName = (inst.params as any)?.containerName || installationId;
-    const timeout = Math.min(Number(body.timeout || 30), 120);
 
     // Build command: host mode (default) or container mode
     let execCmd: string;

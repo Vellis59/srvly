@@ -1,25 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { db } from "@/server/db";
 import { installations, servers, domains } from "@/server/db/schema";
 import { eq, and } from "drizzle-orm";
 import { executeOnServer } from "@/lib/ssh";
-
-async function authUser(req: NextRequest) {
-  const auth = req.headers.get("authorization") || "";
-  if (!auth.startsWith("Bearer ")) return null;
-  const token = auth.slice(7).trim();
-  if (!token) return null;
-  const { users } = await import("@/server/db/schema");
-  const [user] = await db.select().from(users).where(eq(users.apiToken, token)).limit(1);
-  return user || null;
-}
-
-function error(msg: string, status = 400) {
-  return NextResponse.json({ success: false, error: msg }, { status });
-}
-function ok(data: any) {
-  return NextResponse.json({ success: true, ...data });
-}
+import { authUser, error, ok, validateBody } from "@/lib/api-helpers";
+import { dockerDeploySchema } from "@/lib/api-schemas";
 
 // ─── POST /api/agent/docker/deploy ────────────────────────────
 export async function POST(req: NextRequest) {
@@ -27,9 +12,9 @@ export async function POST(req: NextRequest) {
     const user = await authUser(req);
     if (!user) return error("Invalid token", 401);
 
-    const body = await req.json();
-    const { serverId, name, image, port, domain, env, volumes } = body;
-    if (!serverId || !name) return error("serverId and name required");
+    const validation = await validateBody(req, dockerDeploySchema);
+    if (!validation.valid) return validation.response;
+    const { serverId, name, image, port, domain, env, volumes } = validation.data;
 
     const [server] = await db
       .select()
