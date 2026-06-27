@@ -22,6 +22,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: "/auth/signin",
   },
   callbacks: {
+    signIn: async () => {
+      return true;
+    },
     session({ session, user }) {
       if (session.user) session.user.id = user.id;
       return session;
