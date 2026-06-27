@@ -354,7 +354,7 @@ export default function ServerDetailPage() {
             </p>
             {!servicesData && (
               <button onClick={refreshServices} disabled={servicesLoading}
-                className="text-xs text-emerald-600 hover:text-emerald-800 mt-1">
+                className="text-xs text-emerald-400 hover:text-emerald-800 mt-1">
                 {servicesLoading ? "Scanning..." : "Scan →"}
               </button>
             )}
@@ -398,7 +398,7 @@ export default function ServerDetailPage() {
               }`}>
                 <p className="text-lg mb-1">{icons[svc] || "❓"}</p>
                 <p className="text-xs font-medium text-zinc-300 capitalize">{svc}</p>
-                <p className={`text-[11px] ${active ? "text-emerald-600" : "text-zinc-400"}`}>
+                <p className={`text-[11px] ${active ? "text-emerald-400" : "text-zinc-400"}`}>
                   {active ? "Installed" : servicesLoading ? "..." : "Not found"}
                 </p>
               </div>
@@ -415,7 +415,7 @@ export default function ServerDetailPage() {
               <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-xl">✅</div>
               <div className="flex-1">
                 <h3 className="font-semibold text-emerald-800">Server fully configured</h3>
-                <p className="text-sm text-emerald-600">Security, Docker, Caddy (auto SSL), and Fail2Ban are all installed.</p>
+                <p className="text-sm text-emerald-400">Security, Docker, Caddy (auto SSL), and Fail2Ban are all installed.</p>
               </div>
             </div>
           ) : (
@@ -690,10 +690,10 @@ function MonitoringSection({ serverId }: { serverId: string }) {
           <div className="bg-zinc-800 rounded-xl p-4">
             <p className="text-xs text-zinc-400 uppercase tracking-wide font-medium mb-2">RAM</p>
             <div className="flex items-end gap-3 mb-1">
-              <p className={`text-lg font-bold ${ramPct > 85 ? "text-red-600" : ramPct > 70 ? "text-amber-600" : "text-zinc-100"}`}>
+              <p className={`text-lg font-bold ${ramPct > 85 ? "text-red-400" : ramPct > 70 ? "text-amber-600" : "text-zinc-100"}`}>
                 {latest ? `${Math.round(latest.ramUsed / 1024 * 10) / 10} / ${Math.round(latest.ramTotal / 1024 * 10) / 10} GB` : "—"}
               </p>
-              <span className={`text-xs font-medium ${ramPct > 85 ? "text-red-600" : ramPct > 70 ? "text-amber-600" : "text-zinc-500"}`}>
+              <span className={`text-xs font-medium ${ramPct > 85 ? "text-red-400" : ramPct > 70 ? "text-amber-600" : "text-zinc-500"}`}>
                 {ramPct}%
               </span>
             </div>
@@ -708,10 +708,10 @@ function MonitoringSection({ serverId }: { serverId: string }) {
           <div className="bg-zinc-800 rounded-xl p-4">
             <p className="text-xs text-zinc-400 uppercase tracking-wide font-medium mb-2">Disk</p>
             <div className="flex items-end gap-3 mb-1">
-              <p className={`text-lg font-bold ${diskPct > 85 ? "text-red-600" : diskPct > 70 ? "text-amber-600" : "text-zinc-100"}`}>
+              <p className={`text-lg font-bold ${diskPct > 85 ? "text-red-400" : diskPct > 70 ? "text-amber-600" : "text-zinc-100"}`}>
                 {latest ? `${latest.diskUsed} / ${latest.diskTotal} GB` : "—"}
               </p>
-              <span className={`text-xs font-medium ${diskPct > 85 ? "text-red-600" : diskPct > 70 ? "text-amber-600" : "text-zinc-500"}`}>
+              <span className={`text-xs font-medium ${diskPct > 85 ? "text-red-400" : diskPct > 70 ? "text-amber-600" : "text-zinc-500"}`}>
                 {diskPct}%
               </span>
             </div>
@@ -992,7 +992,7 @@ function DomainItem({ domain, onDelete }: { domain: any; onDelete: () => void })
 
       {/* Results */}
       {dnsStatus && (
-        <p className={`text-[11px] mt-1.5 ${dnsStatus.match ? "text-emerald-600" : "text-amber-600"}`}>
+        <p className={`text-[11px] mt-1.5 ${dnsStatus.match ? "text-emerald-400" : "text-amber-600"}`}>
           DNS: {dnsStatus.resolved} {dnsStatus.match ? "✓ matches server" : `✗ (server: ${dnsStatus.serverIp})`}
         </p>
       )}
@@ -1002,7 +1002,7 @@ function DomainItem({ domain, onDelete }: { domain: any; onDelete: () => void })
         </p>
       )}
       {sslStatus && sslStatus.ssl && (
-        <p className={`text-[11px] mt-0.5 ${sslStatus.expired ? "text-red-600" : sslStatus.expiresSoon ? "text-amber-600" : "text-emerald-600"}`}>
+        <p className={`text-[11px] mt-0.5 ${sslStatus.expired ? "text-red-400" : sslStatus.expiresSoon ? "text-amber-600" : "text-emerald-400"}`}>
           SSL: {sslStatus.subject?.slice(0, 40)} · expires {sslStatus.daysLeft !== null ? `in ${sslStatus.daysLeft}d` : "?"}
         </p>
       )}
@@ -1516,7 +1516,7 @@ function BackupSection({ serverId }: { serverId: string }) {
                       <p className="text-[11px] text-zinc-400 mt-0.5">
                         {formatSize(b.sizeBytes)} · {formatDate(b.createdAt)}
                         {isRunning && <span className="ml-2 text-blue-600">⏳ Running</span>}
-                        {isFailed && <span className="ml-2 text-red-600">❌ Failed</span>}
+                        {isFailed && <span className="ml-2 text-red-400">❌ Failed</span>}
                       </p>
                     </div>
                     <div className="flex gap-1">

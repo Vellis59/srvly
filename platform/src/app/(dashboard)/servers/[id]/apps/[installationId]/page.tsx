@@ -189,7 +189,7 @@ export default function AppDetailPage() {
       </Link>
 
       {/* Header */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl border border-slate-200 p-6 mb-6">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl border border-zinc-800 p-6 mb-6">
         <div className="flex items-center gap-4">
           {appIcon ? (
             <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-50 flex items-center justify-center border border-slate-200">
@@ -208,7 +208,7 @@ export default function AppDetailPage() {
                 status === "success" ? "bg-emerald-100 text-emerald-700" :
                 status === "failed" ? "bg-red-100 text-red-700" :
                 status === "running" ? "bg-amber-100 text-amber-700" :
-                "bg-slate-100 text-zinc-500"
+                "bg-zinc-800 text-zinc-300"
               }`}>{statusLabels[status] || status}</span>
             </div>
             <div className="flex items-center gap-3 text-sm text-zinc-500">
@@ -236,7 +236,7 @@ export default function AppDetailPage() {
             className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors whitespace-nowrap ${
               activeTab === tab.id
                 ? "bg-emerald-600 text-white shadow-sm"
-                : "bg-white text-zinc-500 hover:bg-slate-100 border border-slate-200"
+                : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700 border border-zinc-700"
             }`}>
             {tab.label}
           </button>
@@ -245,7 +245,7 @@ export default function AppDetailPage() {
 
       {/* ── Actions tab ── */}
       {activeTab === "actions" && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl border border-slate-200 p-6 mb-6">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl border border-zinc-800 p-6 mb-6">
           <h2 className="font-semibold text-zinc-100 mb-4">Container actions</h2>
           <div className="flex flex-wrap gap-3 mb-4">
             <button onClick={() => runCmd("restart", restartApp)}
@@ -272,7 +272,7 @@ export default function AppDetailPage() {
 
       {/* ── Logs tab ── */}
       {activeTab === "logs" && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl border border-slate-200 p-6 mb-6">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl border border-zinc-800 p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-zinc-100">Container logs</h2>
             <div className="flex items-center gap-2">
@@ -298,7 +298,7 @@ export default function AppDetailPage() {
 
       {/* ── Environment tab ── */}
       {activeTab === "env" && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl border border-slate-200 p-6 mb-6">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl border border-zinc-800 p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-zinc-100">🔑 Environment variables</h2>
             <div className="flex items-center gap-2">
@@ -315,7 +315,7 @@ export default function AppDetailPage() {
                 </>
               )}
               <button onClick={fetchEnv}
-                className="text-xs px-3 py-1.5 bg-slate-600 hover:bg-slate-700 text-white rounded-lg font-medium">
+                className="text-xs px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg font-medium">
                 ↻ Load
               </button>
             </div>
@@ -333,7 +333,7 @@ export default function AppDetailPage() {
                   const isSecret = /pass|secret|token|key|auth|credential|private/i.test(k);
                   return (
                     <div key={k} className="flex items-center gap-2 text-xs font-mono bg-slate-50 rounded-lg px-3 py-1.5">
-                      <span className="text-slate-700 font-medium min-w-[140px] truncate">{k}=</span>
+                      <span className="text-zinc-300 font-medium min-w-[140px] truncate">{k}=</span>
                       <input type={isSecret && !showSecrets[k] ? "password" : "text"}
                         value={v}
                         onChange={(e) => setEditValues((p) => ({ ...p, [k]: e.target.value }))}
@@ -376,7 +376,7 @@ export default function AppDetailPage() {
                 const revealed = showAllSecrets || showSecrets[key];
                 return (
                   <div key={i} className="flex items-center gap-2 text-xs font-mono bg-slate-50 rounded-lg px-3 py-1.5">
-                    <span className="text-slate-700 font-medium shrink-0">{key}</span>
+                    <span className="text-zinc-300 font-medium shrink-0">{key}</span>
                     <span className="text-zinc-400">=</span>
                     <span className={secret && !revealed ? "text-slate-300" : "text-zinc-100 break-all"}>
                       {secret && !revealed ? "****" : val}
@@ -400,7 +400,7 @@ export default function AppDetailPage() {
 
       {/* ── Monitoring tab ── */}
       {activeTab === "monitoring" && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl border border-slate-200 p-6 mb-6">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl border border-zinc-800 p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-zinc-100">📊 Container monitoring</h2>
             <div className="flex items-center gap-2">
@@ -409,7 +409,7 @@ export default function AppDetailPage() {
                 {statsLoading ? "⟳ Loading..." : "📡 Collect"}
               </button>
               <button onClick={fetchInspect}
-                className="text-xs px-3 py-1.5 bg-slate-600 hover:bg-slate-700 text-white rounded-lg font-medium">
+                className="text-xs px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg font-medium">
                 {insp ? "🔄 Refresh" : "🔍 Inspect"}
               </button>
             </div>
@@ -417,20 +417,20 @@ export default function AppDetailPage() {
 
           {statsData && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-              <div className="bg-slate-50 rounded-xl p-3 text-center">
+              <div className="bg-zinc-800 rounded-xl p-3 text-center">
                 <p className="text-xs text-zinc-400 uppercase mb-1">CPU</p>
                 <p className="text-lg font-semibold text-zinc-100">{statsData.cpu || "—"}</p>
               </div>
-              <div className="bg-slate-50 rounded-xl p-3 text-center">
+              <div className="bg-zinc-800 rounded-xl p-3 text-center">
                 <p className="text-xs text-zinc-400 uppercase mb-1">RAM</p>
                 <p className="text-lg font-semibold text-zinc-100">{statsData.mem || "—"}</p>
                 <p className="text-[10px] text-zinc-400">{statsData.memPct ? "(" + statsData.memPct + ")" : ""}</p>
               </div>
-              <div className="bg-slate-50 rounded-xl p-3 text-center">
+              <div className="bg-zinc-800 rounded-xl p-3 text-center">
                 <p className="text-xs text-zinc-400 uppercase mb-1">Disk</p>
                 <p className="text-lg font-semibold text-zinc-100">{statsData.disk || "—"}</p>
               </div>
-              <div className="bg-slate-50 rounded-xl p-3 text-center">
+              <div className="bg-zinc-800 rounded-xl p-3 text-center">
                 <p className="text-xs text-zinc-400 uppercase mb-1">Network</p>
                 {insp?.ports ? (
                   <>
@@ -446,36 +446,36 @@ export default function AppDetailPage() {
             <div className="space-y-3">
               <h3 className="text-sm font-medium text-slate-700">Container info</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                <div className="bg-slate-50 rounded-xl p-3">
+                <div className="bg-zinc-800 rounded-xl p-3">
                   <p className="text-[10px] text-zinc-400 uppercase">Health</p>
                   <p className={"text-sm font-mono font-medium mt-0.5 " + (
-                    insp.health === "healthy" ? "text-emerald-600" :
-                    insp.health === "unhealthy" ? "text-red-600" :
-                    insp.health === "starting" ? "text-amber-600" :
+                    insp.health === "healthy" ? "text-emerald-400" :
+                    insp.health === "unhealthy" ? "text-red-400" :
+                    insp.health === "starting" ? "text-amber-400" :
                     "text-zinc-500"
                   )}>{insp.health || (insp.status === "running" ? "—" : insp.status)}</p>
                 </div>
-                <div className="bg-slate-50 rounded-xl p-3">
+                <div className="bg-zinc-800 rounded-xl p-3">
                   <p className="text-[10px] text-zinc-400 uppercase">Image</p>
                   <p className="text-sm font-mono text-zinc-100 mt-0.5 truncate">{(insp.image || "").split("/").pop() || "—"}</p>
                 </div>
-                <div className="bg-slate-50 rounded-xl p-3">
+                <div className="bg-zinc-800 rounded-xl p-3">
                   <p className="text-[10px] text-zinc-400 uppercase">Restart</p>
                   <p className="text-sm font-mono text-zinc-100 mt-0.5">{insp.restartPolicy || "—"}</p>
                 </div>
-                <div className="bg-slate-50 rounded-xl p-3">
+                <div className="bg-zinc-800 rounded-xl p-3">
                   <p className="text-[10px] text-zinc-400 uppercase">Network</p>
                   <p className="text-sm font-mono text-zinc-100 mt-0.5">{insp.network || "—"}</p>
                 </div>
-                <div className="bg-slate-50 rounded-xl p-3">
+                <div className="bg-zinc-800 rounded-xl p-3">
                   <p className="text-[10px] text-zinc-400 uppercase">Uptime</p>
                   <p className="text-sm font-mono text-zinc-100 mt-0.5">{insp.uptime || "—"}</p>
                 </div>
-                <div className="bg-slate-50 rounded-xl p-3">
+                <div className="bg-zinc-800 rounded-xl p-3">
                   <p className="text-[10px] text-zinc-400 uppercase">Ports</p>
                   <p className="text-sm font-mono text-zinc-100 mt-0.5 truncate">{insp.ports || "—"}</p>
                 </div>
-                <div className="bg-slate-50 rounded-xl p-3">
+                <div className="bg-zinc-800 rounded-xl p-3">
                   <p className="text-[10px] text-zinc-400 uppercase">Volumes</p>
                   <p className="text-sm font-mono text-zinc-100 mt-0.5">{insp.volumes ? insp.volumes.split("|").length : "0"}</p>
                 </div>
@@ -493,7 +493,7 @@ export default function AppDetailPage() {
 
       {/* ── Agent prompts tab ── */}
       {activeTab === "agent" && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl border border-slate-200 p-6 mb-6">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl border border-zinc-800 p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-zinc-100">🤖 AI agent prompts</h2>
             <p className="text-xs text-zinc-400">Copy a prompt to give your agent context</p>
@@ -516,16 +516,16 @@ export default function AppDetailPage() {
               {id:"domain",label:"🌍 Domain",desc:"Add or change the domain",
                prompt:("I need to configure a domain for " + appName + ".\n\nContainer: " + containerName + "\nPort: " + (params.port || "unknown") + "\n" + (params.domain ? "- Current domain: " + params.domain : "\nPlease: configure DNS A record, set up Nginx/Caddy reverse proxy, enable SSL, verify."))},
             ].map((agent) => (
-              <div key={agent.id} className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+              <div key={agent.id} className="bg-zinc-800 rounded-xl p-4 border border-slate-200">
                 <div className="flex items-center justify-between mb-2">
                   <p className="font-medium text-sm text-zinc-100">{agent.label}</p>
                   <button onClick={() => function(){try{var t=agent.prompt;if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(t);else{var ta=document.createElement("textarea");ta.value=t;ta.style.cssText="position:fixed;left:0;top:0;width:0;height:0;opacity:0";document.body.appendChild(ta);ta.focus();ta.select();document.execCommand("copy");document.body.removeChild(ta)}}catch(e){}}()}
-                    className="text-[10px] px-2 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 text-zinc-500 font-medium transition-colors">
+                    className="text-[10px] px-2 py-1 bg-white border border-slate-200 rounded-lg hover:bg-zinc-800 text-zinc-300 font-medium transition-colors">
                     Copy
                   </button>
                 </div>
                 <p className="text-xs text-zinc-500 mb-2">{agent.desc}</p>
-                <pre className="text-[10px] font-mono text-slate-700 bg-white rounded-lg p-2 max-h-24 overflow-y-auto whitespace-pre-wrap border border-slate-100">
+                <pre className="text-[10px] font-mono text-zinc-400 bg-zinc-950 rounded-lg p-2 max-h-24 overflow-y-auto whitespace-pre-wrap border border-slate-100">
                   {agent.prompt.slice(0, 200)}{agent.prompt.length > 200 ? "..." : ""}
                 </pre>
               </div>
@@ -536,7 +536,7 @@ export default function AppDetailPage() {
 
       {/* ── Backup tab ── */}
       {activeTab === "backup" && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl border border-slate-200 p-6 mb-6">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl border border-zinc-800 p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-zinc-100">Backups for this app</h2>
             <button onClick={handleBackup}
@@ -551,7 +551,7 @@ export default function AppDetailPage() {
           ) : (
             <div className="space-y-2">
               {appBackups.map((b: any) => (
-                <div key={b.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                <div key={b.id} className="flex items-center justify-between p-3 bg-zinc-800 rounded-xl">
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-mono text-zinc-100 truncate">{b.filename}</p>
                     <p className="text-[11px] text-zinc-400">{new Date(b.createdAt).toLocaleString()}</p>
@@ -569,34 +569,34 @@ export default function AppDetailPage() {
 
       {/* ── Details tab ── */}
       {activeTab === "details" && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl border border-slate-200 p-6 mb-6">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl border border-zinc-800 p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-zinc-100">Container details</h2>
             <button onClick={fetchInspect}
               className="text-xs px-3 py-1.5 bg-slate-600 text-white rounded-lg font-medium">🔍 Inspect</button>
           </div>
           <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="bg-slate-50 rounded-xl p-3">
+            <div className="bg-zinc-800 rounded-xl p-3">
               <p className="text-xs text-zinc-400 uppercase mb-0.5">Image</p>
               <p className="text-sm font-mono text-zinc-100 truncate">{params.image || "—"}</p>
             </div>
-            <div className="bg-slate-50 rounded-xl p-3">
+            <div className="bg-zinc-800 rounded-xl p-3">
               <p className="text-xs text-zinc-400 uppercase mb-0.5">Port</p>
               <p className="text-sm font-mono text-zinc-100">{params.port || "—"}</p>
             </div>
-            <div className="bg-slate-50 rounded-xl p-3">
+            <div className="bg-zinc-800 rounded-xl p-3">
               <p className="text-xs text-zinc-400 uppercase mb-0.5">Container name</p>
               <p className="text-sm font-mono text-zinc-100 truncate">{containerName}</p>
             </div>
-            <div className="bg-slate-50 rounded-xl p-3">
+            <div className="bg-zinc-800 rounded-xl p-3">
               <p className="text-xs text-zinc-400 uppercase mb-0.5">Domain</p>
               <p className="text-sm font-mono text-zinc-100 truncate">{params.domain || "—"}</p>
             </div>
-            <div className="bg-slate-50 rounded-xl p-3">
+            <div className="bg-zinc-800 rounded-xl p-3">
               <p className="text-xs text-zinc-400 uppercase mb-0.5">Recipe</p>
               <p className="text-sm font-mono text-zinc-100 truncate">{app.recipeId || "—"}</p>
             </div>
-            <div className="bg-slate-50 rounded-xl p-3">
+            <div className="bg-zinc-800 rounded-xl p-3">
               <p className="text-xs text-zinc-400 uppercase mb-0.5">Created</p>
               <p className="text-sm font-mono text-zinc-100">{app.createdAt ? new Date(app.createdAt).toLocaleDateString() : "—"}</p>
             </div>
