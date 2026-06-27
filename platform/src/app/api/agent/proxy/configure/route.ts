@@ -53,9 +53,12 @@ export async function POST(req: NextRequest) {
 echo ">>> Configuring Caddy for ${appDomain} → :${appPort}"
 CFG=/opt/srvly/infra/Caddyfile
 [ ! -f "$CFG" ] && CFG=/etc/caddy/Caddyfile
-echo "${appDomain} {" >> $CFG
-echo "    reverse_proxy 127.0.0.1:${appPort}" >> $CFG
-echo "}" >> $CFG
+if grep -q "^${appDomain} {" "$CFG" 2>/dev/null; then
+  echo "[SKIP] ${appDomain} already in Caddyfile"
+else
+  echo "[ADD] ${appDomain} → :${appPort}"
+  printf '\\n${appDomain} {\\n    reverse_proxy 127.0.0.1:${appPort}\\n}\\n' >> "$CFG"
+fi
 if docker ps -q --filter name=caddy 2>/dev/null | grep -q .; then
   docker compose -f /opt/srvly/infra/docker-compose.yml restart caddy 2>&1 || docker exec $(docker ps -q --filter name=caddy) caddy reload --config /etc/caddy/Caddyfile 2>&1
 else
