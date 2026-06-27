@@ -76,7 +76,9 @@ function AddServerModal({ onClose }: { onClose: () => void }) {
               Run this on your server
             </p>
             <pre className="text-xs font-mono bg-slate-900 text-slate-100 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap break-all">
-{`# One-command setup (run on your server as root):\n\ncurl -sL https://YOUR_DOMAIN/connect.sh | bash -s -- '${createdServer.sshPublicKey}'`}
+{`# One-command setup (run on your server as root):
+
+curl -sL ${window.location.origin}/connect.sh | bash -s -- '${createdServer.sshPublicKey}'`}
             </pre>
             <p className="text-xs text-amber-600 mt-2">
               This will install the SSH key, set up Docker, UFW, and Fail2Ban.
