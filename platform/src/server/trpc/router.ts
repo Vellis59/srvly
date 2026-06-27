@@ -58,6 +58,29 @@ export const serverRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      // Check server limit for this user
+      const [userRecord] = await ctx.db
+        .select({ plan: users.plan, maxServers: users.maxServers })
+        .from(users)
+        .where(eq(users.id, ctx.user.id!))
+        .limit(1);
+      const maxServers = userRecord?.maxServers ?? 1;
+      if (maxServers > 0) {
+        const existingCount = await ctx.db
+          .select({ count: sql<number>`cast(count(*) as int)` })
+          .from(servers)
+          .where(eq(servers.userId, ctx.user.id!));
+        const currentCount = existingCount[0]?.count ?? 0;
+        if (currentCount >= maxServers) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: maxServers === 1
+              ? "Free plan limited to 1 server. Self-host srvly for unlimited servers, or upgrade."
+              : `Your plan allows up to ${maxServers} servers. Self-host srvly or upgrade for more.`,
+          });
+        }
+      }
+
       let sshPrivateKey: string;
       let sshPublicKey: string;
 
@@ -1377,13 +1400,32 @@ export const userRouter = router({
         email: user.email || null,
         image: user.image || null,
         apiToken: token,
+        plan: "free",
+        maxServers: 1,
       })
       .onConflictDoUpdate({
         target: users.id,
         set: { apiToken: token, name: user.name, email: user.email },
       });
 
-    return { token, user: { name: user.name, email: user.email } };
+    return { token, plan: "free", maxServers: 1, user: { name: user.name, email: user.email } };
+  }),
+
+  getPlan: agentProcedure.query(async ({ ctx }) => {
+    const [userRecord] = await ctx.db
+      .select({ plan: users.plan, maxServers: users.maxServers })
+      .from(users)
+      .where(eq(users.id, ctx.user.id!))
+      .limit(1);
+    return {
+      plan: userRecord?.plan ?? "free",
+      maxServers: userRecord?.maxServers ?? 1,
+      currentServers: await ctx.db
+        .select({ count: sql<number>`cast(count(*) as int)` })
+        .from(servers)
+        .where(eq(servers.userId, ctx.user.id!))
+        .then(r => r[0]?.count ?? 0),
+    };
   }),
 
   regenerateToken: agentProcedure.mutation(async ({ ctx }) => {

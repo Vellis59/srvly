@@ -96,6 +96,7 @@ export default function DashboardPage() {
   const { data: stats, isLoading: statsLoading } = trpc.dashboard.stats.useQuery();
   const { data: servers } = trpc.server.list.useQuery();
   const { data: activity } = trpc.dashboard.recentActivity.useQuery();
+  const { data: plan } = trpc.user.getPlan.useQuery();
   const _ = useT();
 
   const errorServers = servers?.filter((s) => s.status !== "connected") || [];
@@ -110,6 +111,25 @@ export default function DashboardPage() {
         </h1>
         <p className="text-slate-500 mt-1">{_("app.tagline")}</p>
       </div>
+
+      {/* ── Plan usage banner ── */}
+      {plan && plan.maxServers > 0 && (
+        <div className="mb-6 bg-slate-800 rounded-xl px-4 py-2.5 flex items-center justify-between text-sm">
+          <span className="text-slate-300">
+            <span className="font-medium text-white capitalize">{plan.plan}</span> plan —{" "}
+            {plan.currentServers}/{plan.maxServers} server{plan.maxServers > 1 ? "s" : ""} used
+          </span>
+          {plan.currentServers >= plan.maxServers ? (
+            <span className="text-amber-400 text-xs">Limit reached — self-host srvly for unlimited servers ↗</span>
+          ) : plan.currentServers >= plan.maxServers - 1 ? (
+            <span className="text-amber-400 text-xs">1 slot left</span>
+          ) : (
+            <a href="https://github.com/Vellis59/srvly" target="_blank" className="text-emerald-400 hover:text-emerald-300 text-xs">
+              Self-host for unlimited →
+            </a>
+          )}
+        </div>
+      )}
 
       {/* ── Stats cards ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
