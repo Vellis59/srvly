@@ -40,6 +40,7 @@ params:
   image:
     type: string
     title: Image Docker
+    default: synapsr/vexa-dashboard:latest
     default: ''
   port:
     type: integer

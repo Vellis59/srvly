@@ -22,6 +22,7 @@ params:
   image:
     type: string
     title: Image Docker
+    default: tykio/tyk-gateway:latest
     default: ''
   port:
     type: integer

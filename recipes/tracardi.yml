@@ -23,6 +23,7 @@ params:
   image:
     type: string
     title: Image Docker
+    default: tracardi/tracardi-api:latest
     default: ''
   port:
     type: integer

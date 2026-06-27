@@ -28,6 +28,7 @@ params:
   image:
     type: string
     title: Image Docker
+    default: pgvector/pgvector:latest
     default: ''
   port:
     type: integer

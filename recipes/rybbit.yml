@@ -26,6 +26,7 @@ params:
   image:
     type: string
     title: Image Docker
+    default: ghcr.io/rybbit-io/rybbit-backend:latest
     default: ''
   port:
     type: integer

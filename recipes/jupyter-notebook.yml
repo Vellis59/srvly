@@ -29,6 +29,7 @@ params:
   image:
     type: string
     title: Image Docker
+    default: jupyter/notebook:latest
     default: ''
   port:
     type: integer

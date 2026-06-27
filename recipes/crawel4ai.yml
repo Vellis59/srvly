@@ -30,6 +30,7 @@ params:
   image:
     type: string
     title: Image Docker
+    default: unclecode/crawl4ai:latest
     default: ''
   port:
     type: integer

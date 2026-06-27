@@ -30,6 +30,7 @@ params:
   image:
     type: string
     title: Image Docker
+    default: memgraph/memgraph:latest
     default: ''
   port:
     type: integer

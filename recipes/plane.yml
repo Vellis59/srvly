@@ -16,6 +16,7 @@ params:
   image:
     type: string
     title: Image Docker
+    default: makeplane/plane-aio-community:latest
     default: ''
   port:
     type: integer

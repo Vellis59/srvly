@@ -16,6 +16,7 @@ params:
   image:
     type: string
     title: Image Docker
+    default: appwrite/appwrite:latest
     default: ''
   port:
     type: integer
