@@ -1,12 +1,6 @@
-node_modules/
-.next/
-dist/
+platform/node_modules/
+platform/.next/
+*.local
 .env
 .env.local
-*.log
-.DS_Store
-Thumbs.db
-agent/bin/
-agent/target/
-platform/drizzle/
-.next/
+admin/
