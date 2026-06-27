@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 const plans = [
   {
@@ -68,6 +70,12 @@ const plans = [
 ];
 
 export default function LandingPage() {
+  // If accessed via console.srvly.app → redirect to dashboard
+  const host = headers().get("host") || "";
+  if (host.startsWith("console.") || host === "localhost:3000") {
+    redirect("/dashboard");
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
       {/* Nav */}
