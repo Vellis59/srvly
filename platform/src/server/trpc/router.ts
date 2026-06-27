@@ -1350,27 +1350,40 @@ for e in (c.get('Env') or []):
 
 export const userRouter = router({
   getToken: agentProcedure.query(async ({ ctx }) => {
-    const userId = (ctx.user as any).id || (ctx.user as any).email || "unknown";
+    const user = ctx.user as any;
+    const userId = user.id || user.email || "unknown";
+
+    // First, try to read existing token from DB
+    const [existing] = await ctx.db
+      .select({ apiToken: users.apiToken })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (existing?.apiToken) {
+      return { token: existing.apiToken, user: { name: user.name, email: user.email } };
+    }
+
+    // No existing token → generate a deterministic one and save
     const salt = process.env.NEXTAUTH_SECRET || "srvly-default-secret";
     const hash = createHash("sha256").update(userId + salt).digest("hex");
     const token = "srvly_" + hash.slice(0, 32);
 
-    // Ensure user exists in DB
     await ctx.db
       .insert(users)
       .values({
         id: userId,
-        name: (ctx.user as any).name || null,
-        email: (ctx.user as any).email || null,
-        image: (ctx.user as any).image || null,
+        name: user.name || null,
+        email: user.email || null,
+        image: user.image || null,
         apiToken: token,
       })
       .onConflictDoUpdate({
         target: users.id,
-        set: { apiToken: token, name: (ctx.user as any).name, email: (ctx.user as any).email },
+        set: { apiToken: token, name: user.name, email: user.email },
       });
 
-    return { token, user: { name: ctx.user.name, email: ctx.user.email } };
+    return { token, user: { name: user.name, email: user.email } };
   }),
 
   regenerateToken: agentProcedure.mutation(async ({ ctx }) => {
