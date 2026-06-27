@@ -8,9 +8,11 @@ srvly is a **management portal** that gives you a unified view of all your VPS i
 
 - **Server management** — Add, connect, and monitor your VPS instances from one dashboard
 - **SSH key authentication** — srvly generates SSH keys or accepts your own; a cron guard ensures keys stay authorized
+- **🔒 SSH keys encrypted at rest** — AES-256-GCM symmetric encryption in the database (auto-fallback for existing keys)
 - **One-click deploy** — Server setup script (Docker + UFW + Fail2Ban + SSH hardening) in a single command
 - **App catalog** — 900+ open-source apps ready to deploy (via `vellis.cc` catalog)
-- **AI agent integration** — Your AI agent handles installations and debugging via the srvly API
+- **AI agent integration** — Your AI agent handles installations and debugging via the srvly REST API
+- **Async job queue** — Deployments and backups are processed via BullMQ + Redis, not blocking the API
 - **Real-time monitoring** — CPU, RAM, disk, uptime, and health status for each server
 - **Docker management** — View logs, restart, stop/start containers from the dashboard
 - **Multi-user ready** — Built-in plan system (free: 1 server) with GitHub OAuth authentication
@@ -39,11 +41,12 @@ srvly is a **management portal** that gives you a unified view of all your VPS i
 ```
 
 | Layer | Technology |
-|---|---|
+|---|---|---|
 | Frontend / API | Next.js 14 + tRPC |
 | Database | PostgreSQL + Drizzle ORM |
+| Queue | Redis 7 + BullMQ (async job processing) |
 | Auth | NextAuth v5 (GitHub OAuth) |
-| Execution | Direct SSH (ssh2) using per-server key pair |
+| Execution | Direct SSH (system `ssh` binary) using per-server key pair |
 | Proxy | Caddy (auto HTTPS via Let's Encrypt) |
 | Infrastructure | Docker Compose |
 
@@ -114,7 +117,8 @@ Caddy automatically provisions Let's Encrypt TLS certificates.
 | `GITHUB_CLIENT_ID` | GitHub OAuth App client ID | ✅ |
 | `GITHUB_CLIENT_SECRET` | GitHub OAuth App client secret | ✅ |
 | `SSH_KEY_PATH` | Path to store generated SSH keys (`/app/ssh_keys`) | ✅ |
-| `REDIS_URL` | Redis connection (optional, for future features) | ❌ |
+| `REDIS_URL` | Redis connection for BullMQ job queue | ❌ (recommended) |
+| `SSH_ENCRYPTION_KEY` | Key for AES-256-GCM SSH key encryption (falls back to `AUTH_SECRET`) | ❌ |
 
 ### GitHub OAuth Setup
 
@@ -179,10 +183,15 @@ srvly exposes both tRPC and REST endpoints for agent integration.
 
 | Endpoint | Method | Description |
 |---|---|---|
+| `/api/agent/servers` | GET | List servers accessible to the agent |
 | `/api/agent/docker/deploy` | POST | Deploy a Docker app on a server |
 | `/api/agent/install/register` | POST | Register an app installation |
+| `/api/agent/install` | GET | List installations on a server |
+| `/api/agent/install/exec` | POST | Run commands (host or container mode) |
+| `/api/agent/install/logs` | POST | Fetch Docker container logs |
+| `/api/agent/proxy/configure` | POST | Configure Caddy reverse proxy |
 | `/api/domains/enable-ssl` | POST | Enable SSL for a domain |
-| `/api/dispatch` | POST | Dispatch commands to a server |
+| `/api/dispatch` | POST | Execute SSH commands on a server |
 | `/api/deploy` | GET | Download the all-in-one deployment script |
 
 ### Authentication
@@ -196,11 +205,14 @@ The token is visible on each server's detail page in the dashboard.
 
 ## Security
 
-- SSH key-only authentication (password auth disabled)
-- UFW firewall (default deny incoming, allow 22/80/443)
-- Fail2Ban (3 failed SSH attempts → 1-hour ban)
-- Cron-guarded SSH key (re-authorized hourly)
-- AI agent prompts are sandboxed — agents cannot modify SSH config, firewall rules, or system settings
+- **SSH key-only authentication** (password auth disabled)
+- **SSH private keys encrypted at rest** — AES-256-GCM symmetric encryption before writing to PostgreSQL
+- **Input validation** — All API endpoints validated with Zod schemas (types, bounds, regex pattern checks)
+- **RCE prevention** — Environment variables use heredoc + `--env-file` instead of inline shell interpolation
+- **Host validation** — IP/hostname format verified before SSH connection
+- **UFW firewall** (default deny incoming, allow 22/80/443)
+- **Fail2Ban** (3 failed SSH attempts → 1-hour ban)
+- **Cron-guarded SSH key** (re-authorized hourly)
 
 ## License
 

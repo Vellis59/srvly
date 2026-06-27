@@ -78,6 +78,7 @@ NEXT_PUBLIC_BASE_URL=https://${DOMAIN}
 NEXT_PUBLIC_APP_URL=https://${DOMAIN}
 NEXTAUTH_URL=https://${DOMAIN}
 SSH_KEY_PATH=/app/ssh_keys
+REDIS_URL=redis://redis:6379
 EOF
   echo "  ✅ .env generated"
 else
@@ -124,6 +125,19 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   caddy:
     image: caddy:2-alpine

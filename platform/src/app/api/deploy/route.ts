@@ -70,6 +70,7 @@ if not os.path.exists(p):
         f.write("AUTH_GITHUB_ID=\\n")
         f.write("AUTH_GITHUB_SECRET=\\n")
         f.write("SSH_KEY_PATH=/app/ssh_keys\\n")
+        f.write("REDIS_URL=redis://redis:6379\\n")
     print(".env created")
 else:
     print(".env exists")
@@ -116,6 +117,18 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped

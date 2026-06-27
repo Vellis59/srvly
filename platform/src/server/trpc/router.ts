@@ -10,6 +10,7 @@ import path from "path";
 import os from "os";
 import { execSync } from "child_process";
 import { encryptKey } from "@/lib/crypto";
+import { sshQueue } from "@/lib/queue";
 
 // ─── SSH key conversion (uses system ssh-keygen) ───
 
@@ -59,89 +60,83 @@ export const serverRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Check server limit for this user
-      const [userRecord] = await ctx.db
-        .select({ plan: users.plan, maxServers: users.maxServers })
-        .from(users)
-        .where(eq(users.id, ctx.user.id!))
-        .limit(1);
-      const maxServers = userRecord?.maxServers ?? 1;
-      if (maxServers > 0) {
-        const existingCount = await ctx.db
-          .select({ count: sql<number>`cast(count(*) as int)` })
-          .from(servers)
-          .where(eq(servers.userId, ctx.user.id!));
-        const currentCount = existingCount[0]?.count ?? 0;
-        if (currentCount >= maxServers) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: maxServers === 1
-              ? "Free plan limited to 1 server. Self-host srvly for unlimited servers, or upgrade."
-              : `Your plan allows up to ${maxServers} servers. Self-host srvly or upgrade for more.`,
-          });
+      const result = await ctx.db.transaction(async (tx) => {
+        // Lock user record to prevent race conditions on server limit check
+        const [userRecord] = await tx
+          .select({ plan: users.plan, maxServers: users.maxServers })
+          .from(users)
+          .where(eq(users.id, ctx.user.id!))
+          .for("update")
+          .limit(1);
+
+        const maxServers = userRecord?.maxServers ?? 1;
+        if (maxServers > 0) {
+          const existingCount = await tx
+            .select({ count: sql<number>`cast(count(*) as int)` })
+            .from(servers)
+            .where(eq(servers.userId, ctx.user.id!));
+          const currentCount = existingCount[0]?.count ?? 0;
+          if (currentCount >= maxServers) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: maxServers === 1
+                ? "Free plan limited to 1 server. Self-host srvly for unlimited servers, or upgrade."
+                : `Your plan allows up to ${maxServers} servers. Self-host srvly or upgrade for more.`,
+            });
+          }
         }
-      }
 
-      let sshPrivateKey: string;
-      let sshPublicKey: string;
+        let sshPrivateKey: string;
+        let sshPublicKey: string;
 
-      if (input.sshKey) {
-        // User provided their own public key — use it directly
-        // We need a private key to connect, but if the user only provides
-        // a public key, we can't SSH. However, this is the key that's
-        // already authorized on the server, so we create a placeholder
-        // and let the test-connection flow handle auth.
-        // For now: store the provided key as public, generate a matching private key approach.
-        // Actually: if they provide a public key, they likely have the private key
-        // on their own machine. srvly needs its OWN key pair to connect.
-        // The user-provided key means "this key is already authorized on the server".
-        // We still need our own pair for srvly to SSH.
-        // SOLUTION: generate srvly's key pair, but also store the user's key
-        // so we can show them the command to add BOTH keys.
-        
-        // Generate srvly's own key pair
-        const { publicKey, privateKey } = generateKeyPairSync("rsa", {
-          modulusLength: 4096,
-          publicKeyEncoding: { type: "spki", format: "pem" },
-          privateKeyEncoding: { type: "pkcs1", format: "pem" },
-        });
-        sshPrivateKey = privateKey;
-        sshPublicKey = pemToOpenSsh(privateKey);
-        
-        // The user's key is stored separately for display in the connect command
-        // (used in the response to show the combined command)
-      } else {
-        // Generate fresh key pair (default behavior)
-        const { publicKey, privateKey } = generateKeyPairSync("rsa", {
-          modulusLength: 4096,
-          publicKeyEncoding: { type: "spki", format: "pem" },
-          privateKeyEncoding: { type: "pkcs1", format: "pem" },
-        });
-        sshPrivateKey = privateKey;
-        sshPublicKey = pemToOpenSsh(privateKey);
-      }
+        if (input.sshKey) {
+          // Generate srvly's own key pair
+          const { publicKey, privateKey } = generateKeyPairSync("rsa", {
+            modulusLength: 4096,
+            publicKeyEncoding: { type: "spki", format: "pem" },
+            privateKeyEncoding: { type: "pkcs1", format: "pem" },
+          });
+          sshPrivateKey = privateKey;
+          sshPublicKey = pemToOpenSsh(privateKey);
+        } else {
+          // Generate fresh key pair (default behavior)
+          const { publicKey, privateKey } = generateKeyPairSync("rsa", {
+            modulusLength: 4096,
+            publicKeyEncoding: { type: "spki", format: "pem" },
+            privateKeyEncoding: { type: "pkcs1", format: "pem" },
+          });
+          sshPrivateKey = privateKey;
+          sshPublicKey = pemToOpenSsh(privateKey);
+        }
 
-      const [server] = await ctx.db
-        .insert(servers)
-        .values({
-          userId: ctx.user.id!,
-          name: input.name,
-          ip: input.ip,
-          sshPrivateKey: encryptKey(sshPrivateKey),
+        const [server] = await tx
+          .insert(servers)
+          .values({
+            userId: ctx.user.id!,
+            name: input.name,
+            ip: input.ip,
+            sshPrivateKey: encryptKey(sshPrivateKey),
+            sshPublicKey,
+            userSshKey: input.sshKey || null,
+            status: "pending",
+          })
+          .returning();
+
+        return {
+          server,
+          sshPrivateKey,
           sshPublicKey,
-          userSshKey: input.sshKey || null,
-          status: "pending",
-        })
-        .returning();
+        };
+      });
 
       // If user provided a key, return combined installation command
       return {
-        ...server,
-        sshPrivateKey: sshPrivateKey, // return plaintext to the creator for api compatibility
+        ...result.server,
+        sshPrivateKey: result.sshPrivateKey, // return plaintext to the creator for api compatibility
         userSshKey: input.sshKey || null,
         connectCommand: input.sshKey
-          ? `echo '${input.sshKey}' >> /root/.ssh/authorized_keys && echo '${sshPublicKey}' >> /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys && mkdir -p /root/.ssh && chmod 700 /root/.ssh`
-          : `echo '${sshPublicKey}' >> /root/.ssh/authorized_keys\nchmod 600 /root/.ssh/authorized_keys\nmkdir -p /root/.ssh && chmod 700 /root/.ssh`,
+          ? `echo '${input.sshKey}' >> /root/.ssh/authorized_keys && echo '${result.sshPublicKey}' >> /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys && mkdir -p /root/.ssh && chmod 700 /root/.ssh`
+          : `echo '${result.sshPublicKey}' >> /root/.ssh/authorized_keys\nchmod 600 /root/.ssh/authorized_keys\nmkdir -p /root/.ssh && chmod 700 /root/.ssh`,
       };
     }),
 
@@ -835,27 +830,20 @@ export const installRouter = router({
         })
         .returning();
 
-      // Dispatch to member server via SSH (async but tracked)
-      executeOnServer(input.serverId, script, 180)
-        .then(async (result) => {
-          const status = result.success ? "success" : "failed";
-          await ctx.db
-            .update(installations)
-            .set({ status, result, logs: result.output || "", updatedAt: new Date() })
-            .where(eq(installations.id, inst.id));
-        })
-        .catch(async (err: any) => {
-          await ctx.db
-            .update(installations)
-            .set({ status: "failed", result: { error: err.message }, updatedAt: new Date() })
-            .where(eq(installations.id, inst.id));
-        });
+      // Queue the deployment task in BullMQ
+      await sshQueue.add("install", {
+        serverId: input.serverId,
+        script,
+        timeout: 180,
+        dbTable: "installations",
+        dbId: inst.id,
+      });
 
       return {
         id: inst.id,
         port: port,
         script: script,
-        message: `Installation of ${recipe.name} started on port ${port}...`,
+        message: `Installation of ${recipe.name} queued on port ${port}...`,
       };
     }),
 
@@ -2066,33 +2054,16 @@ export const backupRouter = router({
         })
         .returning();
 
-      try {
-        const result = await executeOnServer(
-          input.serverId,
-          buildVolumeBackupScript(input.volumeName, filename),
-          300,
-        );
+      // Submit backup job to BullMQ queue
+      await sshQueue.add("backup", {
+        serverId: input.serverId,
+        script: buildVolumeBackupScript(input.volumeName, filename),
+        timeout: 300,
+        dbTable: "backups",
+        dbId: row!.id,
+      });
 
-        const sizeMatch = result.output?.match(/(\d+)\s*$/m);
-        const sizeBytes = sizeMatch ? parseInt(sizeMatch[1], 10) : 0;
-
-        await ctx.db
-          .update(backups)
-          .set({
-            status: result.success ? "success" : "failed",
-            sizeBytes,
-            errorMessage: result.success ? null : ((result as any).error || result.output || "unknown"),
-          })
-          .where(eq(backups.id, row!.id));
-
-        return { success: result.success, backupId: row!.id, filename, sizeBytes };
-      } catch (err: any) {
-        await ctx.db
-          .update(backups)
-          .set({ status: "failed", errorMessage: err.message })
-          .where(eq(backups.id, row!.id));
-        return { success: false, error: err.message };
-      }
+      return { success: true, backupId: row!.id, filename };
     }),
 
   dbBackup: agentProcedure
@@ -2126,33 +2097,16 @@ export const backupRouter = router({
         })
         .returning();
 
-      try {
-        const result = await executeOnServer(
-          input.serverId,
-          buildDbBackupScript(input.containerName, input.dbType, input.dbName, filename),
-          300,
-        );
+      // Submit DB backup job to BullMQ queue
+      await sshQueue.add("backup", {
+        serverId: input.serverId,
+        script: buildDbBackupScript(input.containerName, input.dbType, input.dbName, filename),
+        timeout: 300,
+        dbTable: "backups",
+        dbId: row!.id,
+      });
 
-        const sizeMatch = result.output?.match(/(\d+)\s*$/m);
-        const sizeBytes = sizeMatch ? parseInt(sizeMatch[1], 10) : 0;
-
-        await ctx.db
-          .update(backups)
-          .set({
-            status: result.success ? "success" : "failed",
-            sizeBytes,
-            errorMessage: result.success ? null : ((result as any).error || result.output || "unknown"),
-          })
-          .where(eq(backups.id, row!.id));
-
-        return { success: result.success, backupId: row!.id, filename, sizeBytes };
-      } catch (err: any) {
-        await ctx.db
-          .update(backups)
-          .set({ status: "failed", errorMessage: err.message })
-          .where(eq(backups.id, row!.id));
-        return { success: false, error: err.message };
-      }
+      return { success: true, backupId: row!.id, filename };
     }),
 
   restoreVolume: agentProcedure
@@ -2281,7 +2235,7 @@ export const backupRouter = router({
         return { success: false, error: `Container "${containerName}" has no backupable mounts (named volume or bind mount).` };
       }
 
-      // Create backup record per mount
+      // Create backup record per mount and queue them
       const createdBackups: any[] = [];
 
       for (const target of backupTargets) {
@@ -2298,41 +2252,24 @@ export const backupRouter = router({
           })
           .returning();
 
-        try {
-          const result = await executeOnServer(
-            row.server.id,
-            target.script,
-            300,
-          );
+        // Submit app backup mount target to BullMQ queue
+        await sshQueue.add("backup", {
+          serverId: row.server.id,
+          script: target.script,
+          timeout: 300,
+          dbTable: "backups",
+          dbId: backupRow!.id,
+        });
 
-          const sizeMatch = result.output?.match(/(\d+)\s*$/m);
-          const sizeBytes = sizeMatch ? parseInt(sizeMatch[1], 10) : 0;
-
-          await ctx.db
-            .update(backups)
-            .set({
-              status: result.success ? "success" : "failed",
-              sizeBytes,
-              errorMessage: result.success ? null : ((result as any).error || result.output || "unknown"),
-            })
-            .where(eq(backups.id, backupRow!.id));
-
-          createdBackups.push({ filename: target.filename, success: result.success, type: target.type });
-        } catch (err: any) {
-          await ctx.db
-            .update(backups)
-            .set({ status: "failed", errorMessage: err.message })
-            .where(eq(backups.id, backupRow!.id));
-          createdBackups.push({ filename: target.filename, success: false, error: err.message, type: target.type });
-        }
+        createdBackups.push({ filename: target.filename, success: true, type: target.type });
       }
 
-      const allSuccess = createdBackups.every((b) => b.success);
       return {
-        success: allSuccess,
+        success: true,
         filename: createdBackups.map((b) => b.filename).join(", "),
         volumes: createdBackups,
         appName,
+        message: "App backups queued successfully",
       };
     }),
 

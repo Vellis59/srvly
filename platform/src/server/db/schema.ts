@@ -9,7 +9,7 @@ export const users = pgTable("users", {
   emailVerified: timestamp("email_verified", { mode: "date" }),
   image: text("image"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  apiToken: text("api_token"),
+  apiToken: text("api_token").unique(),
   plan: text("plan").default("free").notNull(), // free | starter | pro | unlimited
   maxServers: integer("max_servers").default(1).notNull(),
 });
