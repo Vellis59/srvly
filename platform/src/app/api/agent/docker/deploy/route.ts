@@ -64,7 +64,8 @@ export async function POST(req: NextRequest) {
     if (volumes && Array.isArray(volumes)) {
       for (const vol of volumes) {
         const parts = vol.split(":");
-        runCmd += ` -v ${appDir}/${parts[0]}:${parts[1]}`;
+        const hostPath = parts[0].startsWith("/") ? parts[0] : `${appDir}/${parts[0]}`;
+        runCmd += ` -v ${hostPath}:${parts[1]}`;
       }
     }
     runCmd += ` ${imageName} 2>&1`;
