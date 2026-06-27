@@ -38,33 +38,26 @@ docker --version
 docker compose version
 echo "DOCKER DONE"`,
   },
-  nginx: {
-    label: "Install Nginx",
-    desc: "Nginx + basic configuration",
-    icon: "🌐",
+  caddy: {
+    label: "Install Caddy",
+    desc: "Caddy web server (auto SSL)",
+    icon: "🟢",
     color: "bg-emerald-500",
-    script: `apt-get update -qq && apt-get install -y -qq nginx
-systemctl enable nginx
-systemctl start nginx
-mkdir -p /etc/nginx/sites-enabled
-echo 'server {
-    listen 80 default_server;
-    server_name _;
-    root /var/www/html;
-    index index.html;
-    location / { try_files $uri $uri/ =404; }
-}' > /etc/nginx/sites-enabled/default
-nginx -t && systemctl reload nginx
-echo "NGINX DONE"`,
+    script: `apt-get update -qq && apt-get install -y -qq debian-keyring debian-archive-keyring apt-transport-https curl
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
+apt-get update -qq && apt-get install -y -qq caddy
+systemctl enable caddy
+echo "CADDY DONE"`,
   },
   ssl: {
     label: "Configure SSL",
-    desc: "Certbot + Let's Encrypt",
+    desc: "Caddy auto SSL (handled automatically)",
     icon: "🔒",
     color: "bg-purple-500",
-    script: `apt-get update -qq && apt-get install -y -qq certbot python3-certbot-nginx
-echo "SSL TOOLING INSTALLED"
-echo "Run: certbot --nginx -d your-domain.com"`,
+    script: `echo "Caddy handles SSL automatically for any domain pointed to this server."
+echo "Just add your domain in srvly → Domains → Add domain"
+echo "No certbot needed."`,
   },
 };
 
@@ -74,7 +67,7 @@ const QUICK_COMMANDS: Record<string, { label: string; cmd: string; requiresConfi
   memory: { label: "📊 free -h", cmd: "free -h && echo '---' && uptime" },
   all_apps: { label: "📦 All containers", cmd: "docker ps -a --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}' 2>&1 | head -40" },
   compose: { label: "📋 docker compose ps", cmd: "cd /opt 2>/dev/null && find . -name 'docker-compose*' -maxdepth 3 2>/dev/null | head -5; docker compose ls 2>/dev/null || true" },
-  nginx_test: { label: "🌐 nginx -t", cmd: "nginx -t 2>&1 || true" },
+  caddy_test: { label: "🟢 caddy version", cmd: "caddy version 2>&1 || echo not installed" },
   prune_containers: { label: "🧹 Prune containers", cmd: "docker container prune -f 2>&1 && echo 'DONE'" },
   prune_images: { label: "🧹 Prune images", cmd: "docker image prune -f 2>&1 && echo 'DONE'" },
   prune_cache: { label: "🧹 Prune build cache", cmd: "docker builder prune -af 2>&1 && echo 'DONE'" },
@@ -268,7 +261,7 @@ export default function ServerDetailPage() {
 
   const sysInfo = (server.systemInfo || {}) as Record<string, any>;
   const setupSteps = (sysInfo.setupSteps || {}) as Record<string, boolean>;
-  const allSetupDone = setupSteps.security && setupSteps.docker && setupSteps.nginx && setupSteps.ssl;
+  const allSetupDone = setupSteps.security && setupSteps.docker && setupSteps.caddy && setupSteps.ssl;
   const serverServices = (sysInfo.services || {}) as Record<string, string>;
 
   const statusColors: Record<string, string> = {
@@ -392,12 +385,12 @@ export default function ServerDetailPage() {
       {/* ── Service status cards ── */}
       {server.status === "connected" && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
-          {(["docker", "nginx", "caddy", "ufw", "fail2ban"] as const).map((svc) => {
+          {(["docker", "caddy", "nginx", "ufw", "fail2ban"] as const).map((svc) => {
             const detected = serverServices[svc] === "installed";
             const fromScan = servicesData?.services?.[svc] === "installed";
             const active = detected || fromScan;
             const icons: Record<string, string> = {
-              docker: "🐳", nginx: "🌐", caddy: "🟢", ufw: "🛡️", fail2ban: "🚫"
+              docker: "🐳", caddy: "🟢", nginx: "🌐", ufw: "🛡️", fail2ban: "🚫"
             };
             return (
               <div key={svc} className={`rounded-xl border p-3 text-center transition-all ${
@@ -422,7 +415,7 @@ export default function ServerDetailPage() {
               <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-xl">✅</div>
               <div className="flex-1">
                 <h3 className="font-semibold text-emerald-800">Server fully configured</h3>
-                <p className="text-sm text-emerald-600">Security, Docker, Nginx, and SSL tooling are all installed.</p>
+                <p className="text-sm text-emerald-600">Security, Docker, Caddy (auto SSL), and Fail2Ban are all installed.</p>
               </div>
             </div>
           ) : (
@@ -430,10 +423,10 @@ export default function ServerDetailPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-bold mb-1">Configure automatically</h2>
-                  <p className="text-sm text-emerald-100">Security → Docker → Nginx → SSL in one command</p>
+                  <p className="text-sm text-emerald-100">Security → Docker → Caddy → ready</p>
                 </div>
                 <button onClick={() => {
-                  const steps = ["security", "docker", "nginx", "ssl"];
+                  const steps = ["security", "docker", "caddy"];
                   steps.reduce(async (prev, step) => {
                     await prev;
                     await runAction(step as keyof typeof ACTIONS);
@@ -791,7 +784,7 @@ function DomainSection({ serverId }: { serverId: string }) {
         )}
       </div>
       <p className="text-sm text-slate-500 mb-4">
-        Add a custom domain pointing to an installed app (automatic Nginx reverse proxy).
+        Add a domain for an installed app. Caddy handles SSL automatically.
       </p>
 
       {domainsLoading && (
