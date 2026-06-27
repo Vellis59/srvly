@@ -136,14 +136,14 @@ function ActionCard({ action, onRun, loading, done }: {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-slate-900">{a.label}</h3>
+            <h3 className="font-semibold text-zinc-100">{a.label}</h3>
             {done && (
               <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
                 Done
               </span>
             )}
           </div>
-          <p className="text-sm text-slate-500 mt-0.5">{a.desc}</p>
+          <p className="text-sm text-zinc-500 mt-0.5">{a.desc}</p>
         </div>
         {loading && (
           <div className="animate-spin w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full" />
@@ -167,14 +167,14 @@ function StatBar({ label, used, total, unit, colorLow = "emerald", colorMid = "a
   const pct = total > 0 ? Math.round((used / total) * 100) : 0;
   const barColor = pct > 85 ? colorHigh : pct > 70 ? colorMid : colorLow;
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-4">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
       <div className="flex items-center justify-between mb-1">
-        <p className="text-xs text-slate-400 uppercase tracking-wide font-medium">{label}</p>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-zinc-400 uppercase tracking-wide font-medium">{label}</p>
+        <p className="text-xs text-zinc-500">
           {pct}%
         </p>
       </div>
-      <p className="text-sm font-semibold text-slate-900 mb-2">
+      <p className="text-sm font-semibold text-zinc-100 mb-2">
         {unit === "GB" ? `${used} / ${total} GB` : `${used} / ${total}`}
       </p>
       <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
@@ -256,8 +256,8 @@ export default function ServerDetailPage() {
     }
   };
 
-  if (isLoading) return <div className="text-slate-400 p-8">Loading...</div>;
-  if (!server) return <div className="text-slate-500 p-8">Server not found</div>;
+  if (isLoading) return <div className="text-zinc-400 p-8">Loading...</div>;
+  if (!server) return <div className="text-zinc-500 p-8">Server not found</div>;
 
   const sysInfo = (server.systemInfo || {}) as Record<string, any>;
   const setupSteps = (sysInfo.setupSteps || {}) as Record<string, boolean>;
@@ -283,15 +283,15 @@ export default function ServerDetailPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl font-bold text-slate-900">{server.name}</h1>
+            <h1 className="text-2xl font-bold text-zinc-100">{server.name}</h1>
             <div className="flex items-center gap-2">
               <span className={`w-2.5 h-2.5 rounded-full ${statusColors[server.status] || "bg-slate-400"}`} />
-              <span className="text-sm font-medium text-slate-600">
+              <span className="text-sm font-medium text-zinc-500">
                 {statusLabels[server.status] || server.status}
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-3 text-xs text-slate-500">
+          <div className="flex items-center gap-3 text-xs text-zinc-500">
             <span className="font-mono">{server.ip}</span>
             {server.os && <span>• OS: {server.os.slice(0, 30)}</span>}
             {server.lastSeen && (
@@ -302,7 +302,7 @@ export default function ServerDetailPage() {
         <div className="flex items-center gap-2">
           {server.status === "connected" && (
             <button onClick={refreshServices} disabled={servicesLoading}
-              className="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
+              className="text-sm bg-slate-100 hover:bg-slate-200 text-zinc-300 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
               <span className={`${servicesLoading ? "animate-spin" : ""}`}>⟳</span>
               {servicesLoading ? "Scanning..." : "Scan services"}
             </button>
@@ -339,17 +339,17 @@ export default function ServerDetailPage() {
             />
           )}
           {sysInfo.uptime && (
-            <div className="bg-white rounded-xl border border-slate-200 p-4">
-              <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">Uptime</p>
-              <p className="text-sm font-semibold text-slate-900">⏱ {sysInfo.uptime}</p>
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+              <p className="text-xs text-zinc-400 uppercase tracking-wide font-medium mb-1">Uptime</p>
+              <p className="text-sm font-semibold text-zinc-100">⏱ {sysInfo.uptime}</p>
               {server.lastSeen && (
-                <p className="text-xs text-slate-400 mt-1">Checked {timeAgo(server.lastSeen)}</p>
+                <p className="text-xs text-zinc-400 mt-1">Checked {timeAgo(server.lastSeen)}</p>
               )}
             </div>
           )}
-          <div className="bg-white rounded-xl border border-slate-200 p-4">
-            <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">Container count</p>
-            <p className="text-sm font-semibold text-slate-900">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+            <p className="text-xs text-zinc-400 uppercase tracking-wide font-medium mb-1">Container count</p>
+            <p className="text-sm font-semibold text-zinc-100">
               🐳 {servicesData?.containers ?? "—"}
             </p>
             {!servicesData && (
@@ -363,20 +363,20 @@ export default function ServerDetailPage() {
       ) : (
         /* Minimal info cards when no data yet */
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
-          <div className="bg-white rounded-xl border border-slate-200 p-4">
-            <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">OS</p>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+            <p className="text-xs text-zinc-400 uppercase tracking-wide mb-1">OS</p>
             <p className="text-sm font-medium">{server.os || "Not detected"}</p>
           </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-4">
-            <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">RAM</p>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+            <p className="text-xs text-zinc-400 uppercase tracking-wide mb-1">RAM</p>
             <p className="text-sm font-medium">Run detection</p>
           </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-4">
-            <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Disk</p>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+            <p className="text-xs text-zinc-400 uppercase tracking-wide mb-1">Disk</p>
             <p className="text-sm font-medium">Run detection</p>
           </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-4">
-            <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Uptime</p>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+            <p className="text-xs text-zinc-400 uppercase tracking-wide mb-1">Uptime</p>
             <p className="text-sm font-medium">—</p>
           </div>
         </div>
@@ -394,11 +394,11 @@ export default function ServerDetailPage() {
             };
             return (
               <div key={svc} className={`rounded-xl border p-3 text-center transition-all ${
-                active ? "bg-white border-emerald-200" : "bg-slate-50 border-slate-200 opacity-70"
+                active ? "bg-white border-emerald-200" : "bg-zinc-800 border-slate-200 opacity-70"
               }`}>
                 <p className="text-lg mb-1">{icons[svc] || "❓"}</p>
-                <p className="text-xs font-medium text-slate-700 capitalize">{svc}</p>
-                <p className={`text-[11px] ${active ? "text-emerald-600" : "text-slate-400"}`}>
+                <p className="text-xs font-medium text-zinc-300 capitalize">{svc}</p>
+                <p className={`text-[11px] ${active ? "text-emerald-600" : "text-zinc-400"}`}>
                   {active ? "Installed" : servicesLoading ? "..." : "Not found"}
                 </p>
               </div>
@@ -439,7 +439,7 @@ export default function ServerDetailPage() {
             </div>
           )}
 
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">
+          <h2 className="text-lg font-semibold text-zinc-100 mb-4">
             {allSetupDone ? "Setup steps" : "Available actions"}
           </h2>
           <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 ${allSetupDone ? "opacity-60" : ""}`}>
@@ -448,7 +448,7 @@ export default function ServerDetailPage() {
             ))}
           </div>
           {allSetupDone && (
-            <p className="text-xs text-slate-400 text-center -mt-4 mb-6">
+            <p className="text-xs text-zinc-400 text-center -mt-4 mb-6">
               All setup steps completed. Click a card to re-run if needed.
             </p>
           )}
@@ -456,11 +456,11 @@ export default function ServerDetailPage() {
           {/* Results from setup */}
           {Object.entries(results).length > 0 && (
             <div className="space-y-4 mb-6">
-              <h2 className="text-lg font-semibold text-slate-900">Results</h2>
+              <h2 className="text-lg font-semibold text-zinc-100">Results</h2>
               {Object.entries(results).map(([action, output]) => (
                 <div key={action} className="bg-slate-900 rounded-2xl p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs font-medium text-slate-400 uppercase">
+                    <span className="text-xs font-medium text-zinc-400 uppercase">
                       {ACTIONS[action]?.label || action}
                     </span>
                   </div>
@@ -484,8 +484,8 @@ export default function ServerDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
 
           {/* Quick commands */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6">
-            <h2 className="font-semibold text-slate-900 mb-4">⚡ Quick commands</h2>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+            <h2 className="font-semibold text-zinc-100 mb-4">⚡ Quick commands</h2>
             <div className="flex flex-wrap gap-2 mb-4">
               {Object.entries(QUICK_COMMANDS).map(([key, cmd]) => (
                 <button key={key} onClick={() => {
@@ -496,7 +496,7 @@ export default function ServerDetailPage() {
                   className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${
                     quickCmd === cmd.label
                       ? "bg-emerald-100 text-emerald-700"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                      : "bg-slate-100 text-zinc-500 hover:bg-slate-200"
                   }`}>
                   {quickCmd === cmd.label ? "..." : cmd.label}
                 </button>
@@ -510,12 +510,12 @@ export default function ServerDetailPage() {
           </div>
 
           {/* Action history */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6">
-            <h2 className="font-semibold text-slate-900 mb-4">📋 Recent activity</h2>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+            <h2 className="font-semibold text-zinc-100 mb-4">📋 Recent activity</h2>
             {!installations || installations.length === 0 ? (
-              <div className="text-sm text-slate-400 text-center py-6">
+              <div className="text-sm text-zinc-400 text-center py-6">
                 <p>No activity yet</p>
-                <p className="text-xs text-slate-300 mt-1">Install an app from the catalog</p>
+                <p className="text-xs text-zinc-300 mt-1">Install an app from the catalog</p>
               </div>
             ) : (
               <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -527,11 +527,11 @@ export default function ServerDetailPage() {
                     success: "✅", running: "🔄", failed: "❌", stopped: "⏹️",
                   };
                   return (
-                    <div key={inst.id} className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors">
+                    <div key={inst.id} className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-zinc-800 transition-colors">
                       <span className="text-base mt-0.5">{statusIcons[status] || "❓"}</span>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-slate-900 truncate">{name}</p>
-                        <div className="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
+                        <p className="text-sm font-medium text-zinc-100 truncate">{name}</p>
+                        <div className="flex items-center gap-2 text-xs text-zinc-400 mt-0.5">
                           <span className="capitalize">{status}</span>
                           {params.port && <span>· port {params.port}</span>}
                           {params.domain && <span>· {params.domain}</span>}
@@ -564,7 +564,7 @@ export default function ServerDetailPage() {
           </p>
 
           <div className="max-w-xl mx-auto text-left bg-white rounded-xl p-4 border border-amber-200 mb-4">
-            <p className="text-xs font-medium text-slate-500 mb-2 uppercase tracking-wide">
+            <p className="text-xs font-medium text-zinc-500 mb-2 uppercase tracking-wide">
               Command to run on your server
             </p>
             <pre className="text-xs font-mono bg-slate-900 text-slate-100 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap break-all">
@@ -596,7 +596,7 @@ chmod 600 /root/.ssh/authorized_keys`}
 function Sparkline({ values, maxVal, color }: { values: number[]; maxVal: number; color: string }) {
   const h = 32;
   const w = 120;
-  if (values.length < 2) return <div className="text-[10px] text-slate-400">—</div>;
+  if (values.length < 2) return <div className="text-[10px] text-zinc-400">—</div>;
   const max = Math.max(...values, maxVal);
   const pts = values.map((v, i) => `${(i / (values.length - 1)) * w},${h - (v / max) * h}`).join(" ");
   return (
@@ -633,12 +633,12 @@ function MonitoringSection({ serverId }: { serverId: string }) {
   const diskHistory = metrics.map((m: any) => parseFloat(m.diskUsePct || "0"));
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-semibold text-slate-900">📊 Monitoring</h2>
+        <h2 className="font-semibold text-zinc-100">📊 Monitoring</h2>
         <button onClick={handleCollect} disabled={collecting}
           className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1 ${
-            collected ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            collected ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-zinc-500 hover:bg-slate-200"
           }`}>
           <span className={collecting ? "animate-pulse" : ""}>📡</span>
           {collecting ? "Collecting..." : collected ? "Collected ✓" : "Collect metrics"}
@@ -661,18 +661,18 @@ function MonitoringSection({ serverId }: { serverId: string }) {
       )}
 
       {metrics.length === 0 ? (
-        <div className="text-center py-6 text-slate-400">
+        <div className="text-center py-6 text-zinc-400">
           <p className="text-sm">No metrics collected yet</p>
-          <p className="text-xs text-slate-300 mt-1">Click "Collect metrics" to take the first snapshot</p>
+          <p className="text-xs text-zinc-300 mt-1">Click "Collect metrics" to take the first snapshot</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* CPU Load */}
-          <div className="bg-slate-50 rounded-xl p-4">
-            <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-2">CPU Load</p>
+          <div className="bg-zinc-800 rounded-xl p-4">
+            <p className="text-xs text-zinc-400 uppercase tracking-wide font-medium mb-2">CPU Load</p>
             <div className="flex items-end gap-3 mb-2">
-              <p className="text-lg font-bold text-slate-900">{(latest.cpuLoad1 || 0).toFixed(2)}</p>
-              <div className="flex gap-2 text-[10px] text-slate-400">
+              <p className="text-lg font-bold text-zinc-100">{(latest.cpuLoad1 || 0).toFixed(2)}</p>
+              <div className="flex gap-2 text-[10px] text-zinc-400">
                 <span>5m: {(latest.cpuLoad5 || 0).toFixed(2)}</span>
                 <span>15m: {(latest.cpuLoad15 || 0).toFixed(2)}</span>
               </div>
@@ -683,17 +683,17 @@ function MonitoringSection({ serverId }: { serverId: string }) {
                 (latest.cpuLoad1 || 0) > 1.0 ? "bg-amber-500" : "bg-blue-500"
               }`} style={{ width: `${Math.min(100, ((latest.cpuLoad1 || 0) / 4) * 100)}%` }} />
             </div>
-            <p className="text-[10px] text-slate-400 mt-1">Cores: {Math.round((latest.cpuLoad1 || 0))}/4</p>
+            <p className="text-[10px] text-zinc-400 mt-1">Cores: {Math.round((latest.cpuLoad1 || 0))}/4</p>
           </div>
 
           {/* RAM with sparkline */}
-          <div className="bg-slate-50 rounded-xl p-4">
-            <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-2">RAM</p>
+          <div className="bg-zinc-800 rounded-xl p-4">
+            <p className="text-xs text-zinc-400 uppercase tracking-wide font-medium mb-2">RAM</p>
             <div className="flex items-end gap-3 mb-1">
-              <p className={`text-lg font-bold ${ramPct > 85 ? "text-red-600" : ramPct > 70 ? "text-amber-600" : "text-slate-900"}`}>
+              <p className={`text-lg font-bold ${ramPct > 85 ? "text-red-600" : ramPct > 70 ? "text-amber-600" : "text-zinc-100"}`}>
                 {latest ? `${Math.round(latest.ramUsed / 1024 * 10) / 10} / ${Math.round(latest.ramTotal / 1024 * 10) / 10} GB` : "—"}
               </p>
-              <span className={`text-xs font-medium ${ramPct > 85 ? "text-red-600" : ramPct > 70 ? "text-amber-600" : "text-slate-500"}`}>
+              <span className={`text-xs font-medium ${ramPct > 85 ? "text-red-600" : ramPct > 70 ? "text-amber-600" : "text-zinc-500"}`}>
                 {ramPct}%
               </span>
             </div>
@@ -705,13 +705,13 @@ function MonitoringSection({ serverId }: { serverId: string }) {
           </div>
 
           {/* Disk with sparkline */}
-          <div className="bg-slate-50 rounded-xl p-4">
-            <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-2">Disk</p>
+          <div className="bg-zinc-800 rounded-xl p-4">
+            <p className="text-xs text-zinc-400 uppercase tracking-wide font-medium mb-2">Disk</p>
             <div className="flex items-end gap-3 mb-1">
-              <p className={`text-lg font-bold ${diskPct > 85 ? "text-red-600" : diskPct > 70 ? "text-amber-600" : "text-slate-900"}`}>
+              <p className={`text-lg font-bold ${diskPct > 85 ? "text-red-600" : diskPct > 70 ? "text-amber-600" : "text-zinc-100"}`}>
                 {latest ? `${latest.diskUsed} / ${latest.diskTotal} GB` : "—"}
               </p>
-              <span className={`text-xs font-medium ${diskPct > 85 ? "text-red-600" : diskPct > 70 ? "text-amber-600" : "text-slate-500"}`}>
+              <span className={`text-xs font-medium ${diskPct > 85 ? "text-red-600" : diskPct > 70 ? "text-amber-600" : "text-zinc-500"}`}>
                 {diskPct}%
               </span>
             </div>
@@ -725,7 +725,7 @@ function MonitoringSection({ serverId }: { serverId: string }) {
       )}
 
       {metrics.length > 1 && (
-        <p className="text-[10px] text-slate-400 mt-3 text-center">
+        <p className="text-[10px] text-zinc-400 mt-3 text-center">
           {metrics.length} snapshots collected · {metrics.length > 1 ? `Spanning ${Math.min(metrics.length, 48)} observations` : ""}
         </p>
       )}
@@ -776,19 +776,19 @@ function DomainSection({ serverId }: { serverId: string }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 mb-6">
       <div className="flex items-center justify-between mb-2">
-        <h2 className="font-semibold text-slate-900">🌍 Domains</h2>
+        <h2 className="font-semibold text-zinc-100">🌍 Domains</h2>
         {domains && domains.length > 0 && (
-          <span className="text-xs text-slate-500">{domains.length} domain{domains.length > 1 ? "s" : ""}</span>
+          <span className="text-xs text-zinc-500">{domains.length} domain{domains.length > 1 ? "s" : ""}</span>
         )}
       </div>
-      <p className="text-sm text-slate-500 mb-4">
+      <p className="text-sm text-zinc-500 mb-4">
         Add a domain for an installed app. Caddy handles SSL automatically.
       </p>
 
       {domainsLoading && (
-        <div className="text-sm text-slate-400 mb-4">Loading domains...</div>
+        <div className="text-sm text-zinc-400 mb-4">Loading domains...</div>
       )}
 
       {domainsError && (
@@ -804,7 +804,7 @@ function DomainSection({ serverId }: { serverId: string }) {
       )}
 
       {domains && domains.length === 0 && !domainsLoading && (
-        <div className="text-sm text-slate-400 text-center py-4 mb-4 border-2 border-dashed border-slate-200 rounded-xl">
+        <div className="text-sm text-zinc-400 text-center py-4 mb-4 border-2 border-dashed border-slate-200 rounded-xl">
           No domains configured yet
         </div>
       )}
@@ -840,7 +840,7 @@ function DomainSection({ serverId }: { serverId: string }) {
       {addError && (
         <p className="text-xs text-red-500 mt-2">{addError}</p>
       )}
-      <p className="text-xs text-slate-400 mt-3">
+      <p className="text-xs text-zinc-400 mt-3">
         Configure your DNS (A record) to point to the server IP before SSL can be enabled.
       </p>
     </div>
@@ -921,12 +921,12 @@ function DomainItem({ domain, onDelete }: { domain: any; onDelete: () => void })
   const hasChecks = dnsStatus || httpStatus || sslStatus || proxyResult;
 
   return (
-    <div className="p-3 bg-slate-50 rounded-xl">
+    <div className="p-3 bg-zinc-800 rounded-xl">
       <div className="flex items-start gap-3">
         <span className="text-lg mt-0.5">🌍</span>
         <div className="flex-1 min-w-0">
-          <p className="font-mono text-sm text-slate-900 truncate">{domain.name}</p>
-          <p className="text-xs text-slate-500">
+          <p className="font-mono text-sm text-zinc-100 truncate">{domain.name}</p>
+          <p className="text-xs text-zinc-500">
             {domain.appName && <span>{domain.appName} → </span>}
             port {domain.targetPort || "—"} • SSL: {domain.sslStatus}
           </p>
@@ -975,7 +975,7 @@ function DomainItem({ domain, onDelete }: { domain: any; onDelete: () => void })
             {loading === "ssl" ? "..." : "SSL"}
           </button>
           <button onClick={runGenerateProxy} disabled={loading === "proxy"}
-            className="text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded-lg font-medium transition-colors">
+            className="text-[11px] bg-slate-100 hover:bg-slate-200 text-zinc-500 px-2 py-1 rounded-lg font-medium transition-colors">
             {loading === "proxy" ? "..." : "🔄 Proxy"}
           </button>
           {domain.sslStatus !== "active" && (
@@ -997,7 +997,7 @@ function DomainItem({ domain, onDelete }: { domain: any; onDelete: () => void })
         </p>
       )}
       {httpStatus && (
-        <p className="text-[11px] text-slate-500 mt-0.5">
+        <p className="text-[11px] text-zinc-500 mt-0.5">
           HTTP: {httpStatus.http || "—"} · HTTPS: {httpStatus.https || "—"}
         </p>
       )}
@@ -1007,9 +1007,9 @@ function DomainItem({ domain, onDelete }: { domain: any; onDelete: () => void })
         </p>
       )}
       {proxyResult && (
-        <p className="text-[11px] text-slate-500 mt-0.5">{proxyResult}</p>
+        <p className="text-[11px] text-zinc-500 mt-0.5">{proxyResult}</p>
       )}
-      {status && <p className="text-[11px] mt-0.5 text-slate-500">{status}</p>}
+      {status && <p className="text-[11px] mt-0.5 text-zinc-500">{status}</p>}
     </div>
   );
 }
@@ -1203,17 +1203,17 @@ function InstalledApps({ serverId }: { serverId: string }) {
   const apps = installations || [];
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-semibold text-slate-900">📦 Installed apps</h2>
-        {apps.length > 0 && <span className="text-xs text-slate-500">{apps.length} app{apps.length > 1 ? "s" : ""}</span>}
+        <h2 className="font-semibold text-zinc-100">📦 Installed apps</h2>
+        {apps.length > 0 && <span className="text-xs text-zinc-500">{apps.length} app{apps.length > 1 ? "s" : ""}</span>}
       </div>
 
       {apps.length === 0 ? (
-        <div className="text-sm text-slate-500 text-center py-8 border-2 border-dashed border-slate-200 rounded-xl">
+        <div className="text-sm text-zinc-500 text-center py-8 border-2 border-dashed border-slate-200 rounded-xl">
           <p className="text-2xl mb-2">📭</p>
           No installations yet.<br />
-          <span className="text-xs text-slate-400">Install an app via the catalog or ask your AI agent.</span>
+          <span className="text-xs text-zinc-400">Install an app via the catalog or ask your AI agent.</span>
         </div>
       ) : (
         <div className="space-y-2">
@@ -1238,20 +1238,20 @@ function InstalledApps({ serverId }: { serverId: string }) {
                   status === "success" ? "bg-white border-slate-200" :
                   status === "failed" ? "bg-red-50 border-red-200" :
                   status === "running" ? "bg-amber-50 border-amber-200" :
-                  "bg-slate-50 border-slate-200")}>
+                  "bg-zinc-800 border-slate-200")}>
                 <span className={"w-2.5 h-2.5 rounded-full " + (statusColors[status] || "bg-slate-400") + " shrink-0"} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="font-medium text-sm text-slate-900 group-hover:text-emerald-700 transition-colors truncate">{name}</p>
+                    <p className="font-medium text-sm text-zinc-100 group-hover:text-emerald-700 transition-colors truncate">{name}</p>
                     <span className={"text-[10px] font-medium px-1.5 py-0.5 rounded " + (
                       status === "success" ? "bg-emerald-100 text-emerald-700" :
                       status === "failed" ? "bg-red-100 text-red-700" :
                       status === "running" ? "bg-amber-100 text-amber-700" :
-                      "bg-slate-100 text-slate-500")}>
+                      "bg-slate-100 text-zinc-500")}>
                       {status === "success" ? "Active" : status === "running" ? "Busy" : status}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-zinc-500 mt-0.5">
                     {params.port && <>Port {params.port}</>}
                     {params.domain && <> &bull; {params.domain}</>}
                     {!params.port && !params.domain && container && <span className="font-mono">{container}</span>}
@@ -1260,11 +1260,11 @@ function InstalledApps({ serverId }: { serverId: string }) {
                 {appUrl && (
                   <a href={appUrl} target="_blank" rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 py-1.5 rounded-lg font-medium transition-colors shrink-0 z-10">
+                    className="text-xs bg-slate-100 hover:bg-slate-200 text-zinc-500 px-2.5 py-1.5 rounded-lg font-medium transition-colors shrink-0 z-10">
                     ↗ Open
                   </a>
                 )}
-                <span className="text-slate-300 group-hover:text-slate-500 transition-colors text-sm">→</span>
+                <span className="text-zinc-300 group-hover:text-zinc-500 transition-colors text-sm">→</span>
               </Link>
             );
           })}
@@ -1402,11 +1402,11 @@ function BackupSection({ serverId }: { serverId: string }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-semibold text-slate-900">🗄️ Backups</h2>
+        <h2 className="font-semibold text-zinc-100">🗄️ Backups</h2>
         <button onClick={handleDiscover} disabled={discover.isPending}
-          className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1">
+          className="text-xs bg-slate-100 hover:bg-slate-200 text-zinc-500 px-2.5 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1">
           <span className={discover.isPending ? "animate-pulse" : ""}>🔍</span>
           {discover.isPending ? "Scanning..." : "Discover"}
         </button>
@@ -1415,8 +1415,8 @@ function BackupSection({ serverId }: { serverId: string }) {
       {/* Create backup */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         {/* Volume backup */}
-        <div className="bg-slate-50 rounded-xl p-4">
-          <p className="text-sm font-medium text-slate-700 mb-2">💾 Backup a volume</p>
+        <div className="bg-zinc-800 rounded-xl p-4">
+          <p className="text-sm font-medium text-zinc-300 mb-2">💾 Backup a volume</p>
           {targets && targets.volumes.length > 0 ? (
             <>
               <select value={selectedVolume} onChange={(e) => setSelectedVolume(e.target.value)}
@@ -1432,13 +1432,13 @@ function BackupSection({ serverId }: { serverId: string }) {
               </button>
             </>
           ) : (
-            <p className="text-xs text-slate-400">Click Discover to scan volumes</p>
+            <p className="text-xs text-zinc-400">Click Discover to scan volumes</p>
           )}
         </div>
 
         {/* DB backup */}
-        <div className="bg-slate-50 rounded-xl p-4">
-          <p className="text-sm font-medium text-slate-700 mb-2">🐘 Backup a database</p>
+        <div className="bg-zinc-800 rounded-xl p-4">
+          <p className="text-sm font-medium text-zinc-300 mb-2">🐘 Backup a database</p>
           {targets && targets.dbContainers.length > 0 ? (
             <>
               <select value={selectedDb.container}
@@ -1468,7 +1468,7 @@ function BackupSection({ serverId }: { serverId: string }) {
               </button>
             </>
           ) : (
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-zinc-400">
               {targets ? "No DB containers found (postgres/mysql/mongo/redis)" : "Click Discover to scan containers"}
             </p>
           )}
@@ -1488,10 +1488,10 @@ function BackupSection({ serverId }: { serverId: string }) {
 
       {/* History */}
       <div>
-        <h3 className="text-sm font-medium text-slate-700 mb-2">History</h3>
-        {isLoading && <div className="text-sm text-slate-400 text-center py-3">Loading backups...</div>}
+        <h3 className="text-sm font-medium text-zinc-300 mb-2">History</h3>
+        {isLoading && <div className="text-sm text-zinc-400 text-center py-3">Loading backups...</div>}
         {!isLoading && (!backups || backups.length === 0) && (
-          <div className="text-sm text-slate-400 text-center py-4 border-2 border-dashed border-slate-200 rounded-xl">
+          <div className="text-sm text-zinc-400 text-center py-4 border-2 border-dashed border-slate-200 rounded-xl">
             No backups yet. Discover volumes or DB containers and click Backup.
           </div>
         )}
@@ -1507,13 +1507,13 @@ function BackupSection({ serverId }: { serverId: string }) {
                   <div className="flex items-center gap-3 p-3">
                     <span className="text-base">{typeIcons[b.type] || "💾"}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-900 truncate">
+                      <p className="text-sm font-medium text-zinc-100 truncate">
                         {b.humanName || b.targetName}
                       </p>
-                      <p className="text-[11px] text-slate-500 mt-0.5 font-mono truncate">
+                      <p className="text-[11px] text-zinc-500 mt-0.5 font-mono truncate">
                         {b.filename}
                       </p>
-                      <p className="text-[11px] text-slate-400 mt-0.5">
+                      <p className="text-[11px] text-zinc-400 mt-0.5">
                         {formatSize(b.sizeBytes)} · {formatDate(b.createdAt)}
                         {isRunning && <span className="ml-2 text-blue-600">⏳ Running</span>}
                         {isFailed && <span className="ml-2 text-red-600">❌ Failed</span>}

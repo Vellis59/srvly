@@ -5,10 +5,10 @@ import { signIn } from "next-auth/react";
 export default function SignInPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
-      <div className="bg-white rounded-3xl p-10 w-full max-w-sm shadow-2xl text-center">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-10 w-full max-w-sm shadow-2xl text-center">
         <p className="text-5xl mb-4">♜</p>
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">srvly</h1>
-        <p className="text-sm text-slate-500 mb-8">
+        <h1 className="text-2xl font-bold text-zinc-100 mb-2">srvly</h1>
+        <p className="text-sm text-zinc-500 mb-8">
           AI-Powered Server Management
         </p>
         <button
@@ -20,10 +20,10 @@ export default function SignInPage() {
           </svg>
           Sign in with GitHub
         </button>
-        <p className="text-xs text-slate-400 mt-6">
+        <p className="text-xs text-zinc-500 mt-6">
           Secured by GitHub OAuth
         </p>
-        <div className="flex justify-center gap-4 mt-4 text-xs text-slate-400">
+        <div className="flex justify-center gap-4 mt-4 text-xs text-zinc-500">
           <a href="/terms" className="hover:text-emerald-500 transition-colors">Terms</a>
           <a href="/privacy" className="hover:text-emerald-500 transition-colors">Privacy</a>
         </div>

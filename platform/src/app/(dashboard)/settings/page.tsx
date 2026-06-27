@@ -131,26 +131,26 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-slate-900 mb-6">Settings</h1>
+      <h1 className="text-2xl font-bold text-zinc-100 mb-6">Settings</h1>
 
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
-        <h2 className="font-semibold text-slate-900 mb-4">Profile</h2>
-        <p className="text-sm text-slate-600">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl  p-6 mb-6">
+        <h2 className="font-semibold text-zinc-100 mb-4">Profile</h2>
+        <p className="text-sm text-zinc-500">
           Signed in as <strong>{session.user?.name || session.user?.email}</strong>
         </p>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
-        <h2 className="font-semibold text-slate-900 mb-1">API Token</h2>
-        <p className="text-sm text-slate-500 mb-4">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl  p-6 mb-6">
+        <h2 className="font-semibold text-zinc-100 mb-1">API Token</h2>
+        <p className="text-sm text-zinc-500 mb-4">
           Use this token to connect your AI agent (Hermes, OpenCLAW...) to srvly.
         </p>
 
         {isLoading ? (
-          <div className="text-sm text-slate-400">Loading...</div>
+          <div className="text-sm text-zinc-400">Loading...</div>
         ) : (
           <>
-            <div className="bg-slate-900 rounded-xl p-4 mb-4">
+            <div className="text-zinc-950 rounded-xl p-4 mb-4">
               <div className="flex items-center justify-between gap-4">
                 <code className="text-sm font-mono text-emerald-400 break-all flex-1">
                   {tokenData?.token || "---"}
@@ -165,7 +165,7 @@ export default function SettingsPage() {
             </div>
 
             <div className="flex items-center justify-between">
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-zinc-400">
                 Do not share this token. Regenerate it if you think it leaked.
               </p>
               <button
@@ -181,7 +181,7 @@ export default function SettingsPage() {
       </div>
 
       {tokenData?.token && (
-        <div className="bg-slate-900 rounded-2xl p-6 mb-6">
+        <div className="text-zinc-950 rounded-2xl p-6 mb-6">
           <h2 className="text-sm font-semibold text-slate-200 mb-3">Prompt for your agent</h2>
           <pre className="text-sm font-mono text-slate-100 whitespace-pre-wrap break-words leading-relaxed mb-4">{promptText}</pre>
           <button

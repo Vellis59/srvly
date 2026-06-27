@@ -2,7 +2,7 @@ export default function TermsPage() {
   return (
     <>
       <h1>Terms of Service</h1>
-      <p className="text-sm text-slate-500">Last updated: June 27, 2026</p>
+      <p className="text-sm text-zinc-500">Last updated: June 27, 2026</p>
 
       <h2>1. Acceptance of Terms</h2>
       <p>

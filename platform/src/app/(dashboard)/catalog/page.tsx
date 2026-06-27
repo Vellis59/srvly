@@ -24,12 +24,12 @@ function AppCard({ app }: { app: { id: string; name: string; description?: strin
   return (
     <Link
       href={`/install/${app.id}`}
-      className="group bg-white rounded-xl border border-slate-200 p-4 hover:border-emerald-300 hover:shadow-md transition-all flex items-start gap-3"
+      className="group bg-zinc-900 border border-zinc-800 rounded-xl p-4 hover:border-zinc-700 hover:shadow-md transition-all flex items-start gap-3"
     >
       {hasIcon ? (
         <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 bg-slate-50 flex items-center justify-center">
           <img src={app.icon!} alt={app.name} className="w-7 h-7 object-contain"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-sm font-bold text-slate-500">${initial}</span>`; }} />
+            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-sm font-bold text-zinc-500">${initial}</span>`; }} />
         </div>
       ) : (
         <div className={`w-10 h-10 ${getColor(app.id)} rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0`}>
@@ -37,11 +37,11 @@ function AppCard({ app }: { app: { id: string; name: string; description?: strin
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <h3 className="font-medium text-sm text-slate-900 group-hover:text-emerald-700 transition-colors truncate">
+        <h3 className="font-medium text-sm text-zinc-100 group-hover:text-emerald-700 transition-colors truncate">
           {app.name}
         </h3>
         {app.description && (
-          <p className="text-xs text-slate-400 mt-0.5 line-clamp-2 leading-relaxed">
+          <p className="text-xs text-zinc-400 mt-0.5 line-clamp-2 leading-relaxed">
             {app.description.slice(0, 120)}
           </p>
         )}
@@ -119,12 +119,12 @@ export default function CatalogPage() {
     <div>
       {/* Search bar */}
       <div className="mb-4">
-        <h1 className="text-2xl font-bold text-slate-900 mb-1">
+        <h1 className="text-2xl font-bold text-zinc-100 mb-1">
           {selectedCategory
             ? categories?.find((c) => c.id === selectedCategory)?.label || "Catalogue"
             : "Application Catalog"}
         </h1>
-        <p className="text-sm text-slate-500 mb-4">
+        <p className="text-sm text-zinc-500 mb-4">
           {selectedCategory
             ? (categories?.find((c) => c.id === selectedCategory)?.description || "")
             : `${totalApps} apps available — Browse by category`}
@@ -135,9 +135,9 @@ export default function CatalogPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search for an app (Nextcloud, Nginx, Vaultwarden...)"
-            className="w-full px-5 py-3.5 pl-12 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm"
+            className="w-full px-5 py-3.5 pl-12 bg-zinc-800 border border-zinc-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm"
           />
-          <svg className="absolute left-4 top-4 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="absolute left-4 top-4 w-5 h-5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </div>
@@ -150,12 +150,12 @@ export default function CatalogPage() {
           className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
             !selectedCategory
               ? "bg-emerald-600 text-white shadow-sm"
-              : "bg-white border border-slate-200 text-slate-600 hover:border-emerald-300 hover:text-emerald-700"
+              : "bg-white border border-slate-200 text-zinc-400 hover:border-zinc-700 hover:text-emerald-700"
           }`}
         >
           <span>📋</span>
           <span>All</span>
-          <span className={`text-xs ml-1 ${!selectedCategory ? "text-emerald-200" : "text-slate-400"}`}>
+          <span className={`text-xs ml-1 ${!selectedCategory ? "text-emerald-200" : "text-zinc-400"}`}>
             {categories?.reduce((s, c) => s + (c.count || 0), 0) || 0}
           </span>
         </button>
@@ -166,13 +166,13 @@ export default function CatalogPage() {
             className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
               selectedCategory === cat.id
                 ? "bg-emerald-600 text-white shadow-sm"
-                : "bg-white border border-slate-200 text-slate-600 hover:border-emerald-300 hover:text-emerald-700"
+                : "bg-white border border-slate-200 text-zinc-400 hover:border-zinc-700 hover:text-emerald-700"
             }`}
           >
             <span>{cat.icon}</span>
             <span>{cat.label}</span>
             <span className={`text-xs ml-1 ${
-              selectedCategory === cat.id ? "text-emerald-200" : "text-slate-400"
+              selectedCategory === cat.id ? "text-emerald-200" : "text-zinc-400"
             }`}>
               {cat.count}
             </span>
@@ -190,7 +190,7 @@ export default function CatalogPage() {
               className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
                 selectedSubcategory === sub.id
                   ? "bg-emerald-100 text-emerald-700"
-                  : "bg-slate-50 text-slate-500 hover:bg-slate-100"
+                  : "bg-slate-50 text-zinc-500 hover:bg-slate-100"
               }`}
             >
               {sub.label}
@@ -244,16 +244,16 @@ export default function CatalogPage() {
                 <Link
                   key={cat.id}
                   href={`/catalog/${cat.id}`}
-                  className="bg-white rounded-xl border border-slate-200 p-4 hover:border-emerald-300 hover:shadow-sm transition-all text-left block"
+                  className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 hover:border-zinc-700 hover:shadow-sm transition-all text-left block"
                 >
                   <div className="flex items-center gap-3 mb-1">
                     <span className="text-2xl">{cat.icon}</span>
                     <div>
-                      <p className="font-medium text-sm text-slate-900">{cat.label}</p>
-                      <p className="text-xs text-slate-400">{cat.count} apps</p>
+                      <p className="font-medium text-sm text-zinc-100">{cat.label}</p>
+                      <p className="text-xs text-zinc-400">{cat.count} apps</p>
                     </div>
                   </div>
-                  <p className="text-[11px] text-slate-400 line-clamp-2 mt-1">
+                  <p className="text-[11px] text-zinc-400 line-clamp-2 mt-1">
                     {cat.description}
                   </p>
                 </Link>
@@ -265,12 +265,12 @@ export default function CatalogPage() {
         <>
           {/* App grid */}
           {appsLoading ? (
-            <div className="text-slate-400 py-8 text-center">Loading...</div>
+            <div className="text-zinc-400 py-8 text-center">Loading...</div>
           ) : filtered.length === 0 ? (
-            <div className="bg-white rounded-2xl p-12 text-center border border-slate-200">
+            <div className="bg-zinc-900 rounded-2xl p-12 text-center border border-zinc-800">
               <p className="text-5xl mb-4">🔍</p>
               <h2 className="text-lg font-semibold text-slate-700 mb-2">No results</h2>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-zinc-500">
                 {search ? "Try a different keyword" : "No apps in this category yet"}
               </p>
             </div>
@@ -279,7 +279,7 @@ export default function CatalogPage() {
               {/* Category header */}
               {selectedCategory && categoryData && (
                 <div className="flex items-center justify-between mb-4">
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-zinc-500">
                     <strong className="text-slate-700">{filtered.length}</strong> app{filtered.length !== 1 ? "s" : ""}
                     {selectedSubcategory && ` in ${subcategories.find(s => s.id === selectedSubcategory)?.label || selectedSubcategory}`}
                   </p>
@@ -293,7 +293,7 @@ export default function CatalogPage() {
                     <div key={sub.id} className="mb-6">
                       <div className="flex items-center gap-2 mb-3">
                         <h3 className="text-sm font-semibold text-slate-800">{sub.label}</h3>
-                        <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">
+                        <span className="text-xs bg-slate-100 text-zinc-500 px-2 py-0.5 rounded-full">
                           {sub.apps.length}
                         </span>
                       </div>
@@ -308,7 +308,7 @@ export default function CatalogPage() {
                     <div className="mb-6">
                       <div className="flex items-center gap-2 mb-3">
                         <h3 className="text-sm font-semibold text-slate-800">Other</h3>
-                        <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">
+                        <span className="text-xs bg-slate-100 text-zinc-500 px-2 py-0.5 rounded-full">
                           {categoryData.uncategorized.length}
                         </span>
                       </div>

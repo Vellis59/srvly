@@ -114,8 +114,8 @@ export default function InstallPage() {
     }
   };
 
-  if (isLoading) return <div className="text-slate-400 py-8">Loading...</div>;
-  if (!recipe) return <div className="text-slate-500 py-8">Application not found</div>;
+  if (isLoading) return <div className="text-zinc-400 py-8">Loading...</div>;
+  if (!recipe) return <div className="text-zinc-500 py-8">Application not found</div>;
 
   const recipeData = (recipe as any).recipe || {};
 
@@ -126,13 +126,13 @@ export default function InstallPage() {
         <button onClick={() => router.push("/catalog")} className="text-sm text-emerald-600 hover:text-emerald-700 mb-2 block">
           ← Back to catalog
         </button>
-        <h1 className="text-2xl font-bold text-slate-900">{recipe.name}</h1>
-        <p className="text-sm text-slate-500 mt-1">{recipe.description?.slice(0, 200)}</p>
+        <h1 className="text-2xl font-bold text-zinc-100">{recipe.name}</h1>
+        <p className="text-sm text-zinc-500 mt-1">{recipe.description?.slice(0, 200)}</p>
       </div>
 
       {/* Form */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6 space-y-5">
-        <h2 className="font-semibold text-slate-900">Installation parameters</h2>
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl border border-slate-200 p-6 mb-6 space-y-5">
+        <h2 className="font-semibold text-zinc-100">Installation parameters</h2>
 
         {/* Server */}
         <div>
@@ -167,7 +167,7 @@ export default function InstallPage() {
             placeholder={`${selectedServerData?.ip || "ip"}:${port || defaultPort} (default)`}
             className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
-          <p className="text-xs text-slate-400 mt-1">Leave empty to use IP and port directly.</p>
+          <p className="text-xs text-zinc-400 mt-1">Leave empty to use IP and port directly.</p>
         </div>
 
         {/* Port */}
@@ -180,7 +180,7 @@ export default function InstallPage() {
             placeholder={String(defaultPort)}
             className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
-          <p className="text-xs text-slate-400 mt-1">Default: {defaultPort}. Leave empty to use the default port.</p>
+          <p className="text-xs text-zinc-400 mt-1">Default: {defaultPort}. Leave empty to use the default port.</p>
         </div>
 
         {/* Credentials toggle */}
@@ -222,7 +222,7 @@ export default function InstallPage() {
 
         {/* Links */}
         {(recipeData as any)?.links?.length > 0 && (
-          <div className="text-xs text-slate-400">
+          <div className="text-xs text-zinc-400">
             Useful links:{" "}
             {(recipeData as any).links.map((l: any, i: number) => (
               <a key={i} href={l.url} target="_blank" className="text-emerald-600 hover:underline ml-2">
@@ -255,7 +255,7 @@ export default function InstallPage() {
       {!selectedServer && (
         <div className="bg-slate-50 rounded-2xl p-8 text-center border border-dashed border-slate-200">
           <p className="text-3xl mb-2">👆</p>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-zinc-500">
             Select a server to generate the installation prompt.
           </p>
         </div>

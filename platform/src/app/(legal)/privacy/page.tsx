@@ -2,7 +2,7 @@ export default function PrivacyPage() {
   return (
     <>
       <h1>Privacy Policy</h1>
-      <p className="text-sm text-slate-500">Last updated: June 27, 2026</p>
+      <p className="text-sm text-zinc-500">Last updated: June 27, 2026</p>
 
       <h2>1. Information We Collect</h2>
       <h3>Account Information</h3>

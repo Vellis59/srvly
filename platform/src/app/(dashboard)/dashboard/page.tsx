@@ -50,8 +50,8 @@ function statusBadge(status: string): string {
     case "success": return "bg-emerald-100 text-emerald-700";
     case "running": return "bg-blue-100 text-blue-700";
     case "failed": return "bg-red-100 text-red-700";
-    case "stopped": return "bg-slate-100 text-slate-600";
-    default: return "bg-slate-100 text-slate-600";
+    case "stopped": return "bg-slate-100 text-zinc-400";
+    default: return "bg-slate-100 text-zinc-400";
   }
 }
 
@@ -137,7 +137,7 @@ export default function DashboardPage() {
           href="/servers"
           icon="♝"
           iconBg="bg-blue-100"
-          iconColor="text-blue-600"
+          iconColor="text-zinc-400"
           value={statsLoading ? "…" : `${stats?.connectedServers || 0}/${stats?.totalServers || 0}`}
           label={_("dashboard.servers.online")}
           sub={stats?.totalServers ? `${stats.totalServers} server${stats.totalServers > 1 ? "s" : ""} total` : "No servers yet"}
@@ -189,9 +189,9 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
 
         {/* ── Servers ── */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-slate-900">♝ Servers</h2>
+            <h2 className="font-semibold text-zinc-100">♝ Servers</h2>
             <Link href="/servers" className="text-sm text-emerald-600 hover:underline">
               {_("dashboard.view.servers")} →
             </Link>
@@ -274,7 +274,7 @@ export default function DashboardPage() {
                             ? "bg-emerald-50 text-emerald-700"
                             : server.status === "pending"
                             ? "bg-yellow-50 text-yellow-700"
-                            : "bg-slate-100 text-slate-600"
+                            : "bg-slate-100 text-zinc-400"
                         }`}
                       >
                         {server.status === "connected"
@@ -293,9 +293,9 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Recent activity ── */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-slate-900">📋 Recent activity</h2>
+            <h2 className="font-semibold text-zinc-100">📋 Recent activity</h2>
           </div>
 
           {!activity || activity.length === 0 ? (
@@ -340,9 +340,9 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Errors */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
           <div className="flex items-center gap-2 mb-4">
-            <h2 className="font-semibold text-slate-900">⚠️ Apps in error</h2>
+            <h2 className="font-semibold text-zinc-100">⚠️ Apps in error</h2>
             {(stats?.installFailed || 0) > 0 && (
               <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">
                 {stats?.installFailed}
@@ -372,8 +372,8 @@ export default function DashboardPage() {
 
           {servers && servers.length === 0 && (
             <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4">
-              <p className="text-sm font-medium text-blue-800 mb-1">🚀 Welcome to srvly</p>
-              <p className="text-xs text-blue-600">
+              <p className="text-sm font-medium text-zinc-200 mb-1">🚀 Welcome to srvly</p>
+              <p className="text-xs text-zinc-400">
                 Add your first server to get started
               </p>
             </div>
@@ -381,8 +381,8 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick actions */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6">
-          <h2 className="font-semibold text-slate-900 mb-4">🚀 Quick actions</h2>
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+          <h2 className="font-semibold text-zinc-100 mb-4">🚀 Quick actions</h2>
           <div className="space-y-3">
             <Link
               href="/servers"
@@ -400,7 +400,7 @@ export default function DashboardPage() {
               href="/catalog"
               className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors"
             >
-              <div className="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 text-sm">
+              <div className="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center text-zinc-400 text-sm">
                 📦
               </div>
               <div>
@@ -424,15 +424,15 @@ export default function DashboardPage() {
         </div>
 
         {/* Infrastructure health */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6">
-          <h2 className="font-semibold text-slate-900 mb-4">📊 Infrastructure health</h2>
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+          <h2 className="font-semibold text-zinc-100 mb-4">📊 Infrastructure health</h2>
           {stats && stats.totalServers > 0 ? (
             <div className="space-y-4">
               {/* RAM bar */}
               {stats.totalRamTotal > 0 && (
                 <div>
                   <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="text-slate-600">RAM</span>
+                    <span className="text-zinc-400">RAM</span>
                     <span className="text-slate-900 font-medium">
                       {formatBytes(stats.totalRamUsed)} / {formatBytes(stats.totalRamTotal)}
                     </span>
@@ -450,7 +450,7 @@ export default function DashboardPage() {
               {stats.totalDiskTotal > 0 && (
                 <div>
                   <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="text-slate-600">Disk</span>
+                    <span className="text-zinc-400">Disk</span>
                     <span className="text-slate-900 font-medium">
                       {stats.totalDiskUsed} GB / {stats.totalDiskTotal} GB
                     </span>
