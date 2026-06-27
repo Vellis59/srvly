@@ -23,6 +23,10 @@ export default function SignInPage() {
         <p className="text-xs text-slate-400 mt-6">
           Secured by GitHub OAuth
         </p>
+        <div className="flex justify-center gap-4 mt-4 text-xs text-slate-400">
+          <a href="/terms" className="hover:text-emerald-500 transition-colors">Terms</a>
+          <a href="/privacy" className="hover:text-emerald-500 transition-colors">Privacy</a>
+        </div>
       </div>
     </div>
   );

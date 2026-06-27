@@ -192,6 +192,8 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-4 py-8 flex items-center justify-between text-sm text-slate-500">
           <span>srvly — open source MIT</span>
           <div className="flex gap-4">
+            <a href="https://console.srvly.app/terms" className="hover:text-white transition-colors">Terms</a>
+            <a href="https://console.srvly.app/privacy" className="hover:text-white transition-colors">Privacy</a>
             <a href="https://github.com/Vellis59/srvly" target="_blank" className="hover:text-white transition-colors">
               GitHub
             </a>
