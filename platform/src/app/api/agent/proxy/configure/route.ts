@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     if (!server) return error("Server not found", 404);
 
     const appDomain = domain || (inst.params as any)?.domain;
-    const appPort = port || inst.params?.port || "3000";
+    const appPort = port || (inst.params as any)?.port || "3000";
     if (!appDomain) return error("No domain configured for this app");
 
     // Build the Caddy config script
