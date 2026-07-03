@@ -1,0 +1,67 @@
+metadata:
+  name: "2FAuth"
+  description: |
+    A web-based application to manage your two-factor authentication (2FA) accounts.
+    Store and organize your TOTP tokens securely in one place, generate time-based
+    one-time passwords directly from your browser, and access them from any device
+    with a simple, clean interface. Works without a mobile phone.
+  category: security
+  tags: [Security, Authentication, Password, 2FA]
+  version: "5.3.0"
+  homepage: https://github.com/Bubka/2FAuth
+  icon: https://raw.githubusercontent.com/Bubka/2FAuth/master/public/android-chrome-192x192.png
+  license: AGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8000]
+  resources:
+    ram: 128
+    disk: 1
+
+install:
+  docker:
+    image: 2fauth/2fauth:5.3.0
+    name: 2fauth
+    port: "8000:8000"
+    volumes:
+      - /opt/2fauth:/2fauth
+    env:
+      - key: APP_KEY
+        value: ""
+        description: "Application encryption key (generate with: openssl rand -base64 32)"
+      - key: SITE_NAME
+        value: "2FAuth"
+        description: "Site name displayed in the UI"
+
+healthcheck:
+  type: http
+  port: 8000
+  path: /
+  expected: [200, 302]
+  timeout: 30
+
+params:
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8000
+    description: "Web interface port"
+
+links:
+  - label: GitHub
+    url: https://github.com/Bubka/2FAuth
+  - label: Documentation
+    url: https://docs.2fauth.app
+  - label: Docker Hub
+    url: https://hub.docker.com/r/2fauth/2fauth
+
+notes: |
+  After installation, access the web UI on the configured port.
+  The first account you create will be the admin.
+  An APP_KEY is required — generate one with: openssl rand -base64 32

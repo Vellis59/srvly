@@ -63,7 +63,7 @@ async function main() {
     )
   `);
 
-  const recipesDir = path.join(__dirname, "recipes");
+  const recipesDir = path.join(__dirname, "..", "recipes", "v2");
   if (!fs.existsSync(recipesDir)) {
     console.error("recipes/ not found at", recipesDir);
     process.exit(1);
