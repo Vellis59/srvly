@@ -27,14 +27,16 @@ export async function POST(req: NextRequest) {
       .where(and(eq(servers.id, serverId), eq(servers.userId, user.id)));
     if (!server) return error("Server not found", 404);
 
-    // Safety: prevent path traversal and dangerous paths
-    const resolved = path.resolve("/", filePath).replace(/\\/g, "/");
+    // Safety: prevent path traversal using POSIX resolution (handles windows vs linux differences)
+    const normalizedPath = filePath.replace(/\\/g, "/");
+    const resolved = path.posix.resolve("/", normalizedPath);
     // Remove leading slash for the path on the server
     const safePath = resolved.replace(/^\/+/, "");
 
-    // Block dangerous paths
+    // Block dangerous paths (including passwd, crontab, etc. for security)
     const blockedPrefixes = [
-      "etc/shadow", "etc/sudoers", "etc/ssh/",
+      "etc/shadow", "etc/passwd", "etc/sudoers", "etc/ssh/",
+      "etc/crontab", "etc/cron.", "etc/pam.d/",
       "root/.ssh/authorized_keys", ".ssh/authorized_keys",
       "boot/", "dev/", "proc/", "sys/",
     ];
@@ -44,18 +46,22 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Ensure directory exists, then write file via heredoc
+    // Escape single quotes inside paths to prevent shell injection when wrapped in single quotes
+    const escapedSafePath = safePath.replace(/'/g, "'\\''");
     const dirPath = safePath.substring(0, safePath.lastIndexOf("/"));
+    const escapedDirPath = dirPath.replace(/'/g, "'\\''");
+
+    // Ensure directory exists, then write file via heredoc (quoting all paths)
     const script = [
       `set -e`,
-      `mkdir -p /${dirPath}`,
-      `cat > /${safePath} << 'SRVLY_EOF'`,
+      dirPath ? `mkdir -p '/${escapedDirPath}'` : `true`,
+      `cat > '/${escapedSafePath}' << 'SRVLY_EOF'`,
       content,
       `SRVLY_EOF`,
     ];
 
     if (mode) {
-      script.push(`chmod ${mode} /${safePath}`);
+      script.push(`chmod ${mode} '/${escapedSafePath}'`);
     }
 
     script.push(`echo "WRITE_OK"`);

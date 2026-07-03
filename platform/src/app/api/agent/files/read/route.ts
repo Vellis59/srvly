@@ -27,18 +27,22 @@ export async function POST(req: NextRequest) {
       .where(and(eq(servers.id, serverId), eq(servers.userId, user.id)));
     if (!server) return error("Server not found", 404);
 
-    // Safety: prevent path traversal and dangerous paths
-    const resolved = path.resolve("/", filePath).replace(/\\/g, "/");
+    // Safety: prevent path traversal using POSIX resolution (handles windows vs linux differences)
+    const normalizedPath = filePath.replace(/\\/g, "/");
+    const resolved = path.posix.resolve("/", normalizedPath);
 
-    // Check file exists and get base64 content
+    // Escape single quotes inside path to prevent shell injection when wrapped in single quotes
+    const escapedPath = resolved.replace(/'/g, "'\\''");
+
+    // Check file exists and get base64 content (quoting all paths)
     const script = [
       `set -e`,
-      `if [ ! -f ${resolved} ]; then echo "FILE_NOT_FOUND"; exit 1; fi`,
+      `if [ ! -f '${escapedPath}' ]; then echo "FILE_NOT_FOUND"; exit 1; fi`,
       `echo ">>>SIZE_START"`,
-      `stat -c%s ${resolved} 2>/dev/null || echo "0"`,
+      `stat -c%s '${escapedPath}' 2>/dev/null || echo "0"`,
       `echo ">>>SIZE_END"`,
       `echo ">>>CONTENT_START"`,
-      `base64 ${resolved} 2>/dev/null || openssl base64 -in ${resolved} 2>/dev/null || od -A n -t x1 ${resolved} | tr -d ' \\n'`,
+      `base64 '${escapedPath}' 2>/dev/null || openssl base64 -in '${escapedPath}' 2>/dev/null || od -A n -t x1 '${escapedPath}' | tr -d ' \\n'`,
       `echo ">>>CONTENT_END"`,
       `echo "READ_OK"`,
     ].join("\n");
