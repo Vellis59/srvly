@@ -18,8 +18,9 @@ function getColor(id: string): string {
 }
 
 function AppCard({ app }: { app: { id: string; name: string; description?: string | null; icon?: string | null } }) {
+  const [imageError, setImageError] = useState(false);
   const initial = (app.name || app.id).charAt(0).toUpperCase();
-  const hasIcon = app.icon && (app.icon.startsWith("http") || app.icon.startsWith("data:"));
+  const hasIcon = app.icon && !imageError && (app.icon.startsWith("http") || app.icon.startsWith("data:"));
   return (
     <Link
       href={`/install/${app.id}`}
@@ -27,8 +28,12 @@ function AppCard({ app }: { app: { id: string; name: string; description?: strin
     >
       {hasIcon ? (
         <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 bg-zinc-800 flex items-center justify-center">
-          <img src={app.icon!} alt={app.name} className="w-7 h-7 object-contain"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+          <img
+            src={app.icon!}
+            alt={app.name}
+            className="w-7 h-7 object-contain"
+            onError={() => setImageError(true)}
+          />
         </div>
       ) : (
         <div className={`w-10 h-10 ${getColor(app.id)} rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0`}>
@@ -40,8 +45,8 @@ function AppCard({ app }: { app: { id: string; name: string; description?: strin
           {app.name}
         </h3>
         {app.description && (
-          <p className="text-xs text-zinc-400 mt-0.5 line-clamp-2 leading-relaxed">
-            {app.description.slice(0, 120)}
+          <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">
+            {app.description}
           </p>
         )}
       </div>
