@@ -1,0 +1,50 @@
+metadata:
+  name: "Actual Budget"
+  description: |
+    Personal finance tool designed to help you manage your finances with ease.
+    Local-first, 100% free and open-source. Syncs across devices.
+  category: finance
+  tags: [Finance, Budget]
+  version: "26.2.1"
+  homepage: https://actualbudget.org
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [5006]
+
+install:
+  docker:
+    image: ghcr.io/actualbudget/actual-server:26.2.1
+    name: actualbudget
+    port: "5006:5006"
+    volumes:
+      - /data
+
+healthcheck:
+  type: http
+  port: 5006
+  path: /
+  expected: [200, 301, 302]
+  timeout: 30
+
+params:
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5006
+
+links:
+  - label: GitHub
+    url: https://github.com/actualbudget/actual
+  - label: Documentation
+    url: https://actualbudget.github.io/docs
+
+notes: |
+  App stateless. Interface web accessible directement.
+  Données stockées dans le volume persistant /data.

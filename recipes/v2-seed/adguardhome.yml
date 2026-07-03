@@ -1,0 +1,57 @@
+metadata:
+  name: "AdGuard Home"
+  description: |
+    Bloqueur de publicités et traqueurs au niveau réseau.
+    Protège tous les appareils du réseau sans installation de logiciel.
+  category: privacy
+  tags: [Adblock, DNS, Security]
+  version: "0.107.58"
+  homepage: https://adguard.com
+  license: GPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [53, 80, 3000]
+  resources:
+    ram: 128
+    disk: 1
+
+install:
+  docker:
+    image: adguard/adguardhome:v0.107.58
+    name: adguardhome
+    port: "3000:3000"
+    volumes:
+      - /opt/adguardhome/work
+      - /opt/adguardhome/conf
+
+healthcheck:
+  type: http
+  port: 3000
+  path: /
+  expected: [200, 302]
+  timeout: 30
+
+params:
+  port:
+    type: integer
+    title: Port d'administration
+    default: 3000
+
+links:
+  - label: Site officiel
+    url: https://adguard.com
+  - label: GitHub
+    url: https://github.com/AdguardTeam/AdGuardHome
+  - label: Docker Hub
+    url: https://hub.docker.com/r/adguard/adguardhome
+
+notes: |
+  Configuration initiale sur http://IP_SERVEUR:3000.
+  Une fois configuré, l'interface passe sur le port 80.
+  Pour la fonctionnalité DHCP, ouvrir les ports 67/udp 68/tcp-udp.

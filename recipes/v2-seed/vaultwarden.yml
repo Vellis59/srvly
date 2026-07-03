@@ -1,0 +1,59 @@
+metadata:
+  name: "Vaultwarden"
+  description: |
+    Alternative légère à Bitwarden pour la gestion de mots de passe.
+    Compatible avec tous les clients Bitwarden (web, mobile, desktop, extensions).
+  category: password
+  tags: [Password, Security]
+  version: "1.33.2"
+  homepage: https://github.com/dani-garcia/vaultwarden
+  license: GPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [80]
+
+install:
+  docker:
+    image: vaultwarden/server:1.33.2
+    name: vaultwarden
+    port: "80:80"
+    volumes:
+      - /vw-data
+    env:
+      - key: SIGNUPS_ALLOWED
+        value: "true"
+        description: "Permettre les inscriptions (passer à false après création du compte)"
+      - key: ADMIN_TOKEN
+        value: ""
+        description: "Token pour l'interface d'administration (/admin)"
+
+healthcheck:
+  type: http
+  port: 80
+  path: /
+  expected: [200, 302]
+  timeout: 30
+
+params:
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+
+links:
+  - label: GitHub
+    url: https://github.com/dani-garcia/vaultwarden
+  - label: Docker Hub
+    url: https://hub.docker.com/r/vaultwarden/server
+
+notes: |
+  Après installation :
+  1. Créer un compte sur l'interface web
+  2. Désactiver SIGNUPS_ALLOWED dans l'admin
+  Compatible Bitwarden : https://vault.bitwarden.com

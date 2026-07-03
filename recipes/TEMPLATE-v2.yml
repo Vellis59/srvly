@@ -1,0 +1,106 @@
+# Recipe v2 — Format de référence
+# Chaque application dans le catalogue DOIT suivre ce format.
+# Les champs marqués REQUIS sont obligatoires.
+# Les champs marqués CI sont utilisés par le pipeline de validation automatique.
+
+metadata:
+  # --- REQUIS ---
+  name: "Actual Budget"
+  description: |
+    Description courte (2-3 phrases) de ce que fait l'application.
+  category: finance        # Voir catégories autorisées ci-dessous
+  tags: [Finance]
+
+  # --- OPTIONNEL ---
+  version: "26.2.1"               # Version testée de l'image
+  homepage: https://actualbudget.org
+  icon: https://.../icon.png
+  license: MIT
+
+  # --- INTERNE (rempli par la CI) ---
+  verified: false          # CI: passe à true après validation
+  verified_at: null        # CI: date de la dernière validation
+  verified_by: null        # CI: commit SHA qui a validé
+
+# --- PRÉREQUIS ---
+# Dit à l'agent ce qu'il doit préparer AVANT de déployer l'app.
+# L'agent vérifie si les services existent déjà, sinon les crée.
+# REQUIS
+prerequisites:
+  databases:               # Listes des bases de données nécessaires
+    postgres: true         # L'agent spin un Postgres si pas présent
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [5006]            # Port(s) nécessaire(s) → l'agent vérifie la disponibilité
+  resources:               # Optionnel : specs minimales
+    ram: 256               # Mo
+    disk: 1                # Go
+
+# --- INSTALLATION ---
+# REQUIS
+install:
+  docker:
+    image: ghcr.io/actualbudget/actual-server:26.2.1   # REQUIS
+    name: actualbudget                                    # REQUIS : nom du container
+    port: "5006:5006"                                     # REQUIS : port hôte:conteneur
+
+    volumes:                                              # Optionnel
+      - /data
+
+    env:                                                  # Optionnel
+      # Variables d'environnement. Pour les connexions BDD,
+      # utiliser $DB_* qui seront automatiquement résolues par l'agent.
+      - key: DATABASE_URL
+        value: "postgresql://$DB_USER:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME"
+        description: "URL de connexion PostgreSQL (automatique)"
+      - key: NODE_ENV
+        value: production
+        description: "Environnement d'exécution"
+
+# --- HEALTHCHECK ---
+# Comment vérifier que l'app fonctionne après déploiement.
+# REQUIS
+healthcheck:
+  type: http                    # http | tcp | script
+  port: 5006
+  path: /                       # Pour http : chemin à tester
+  expected: [200, 301, 302]    # Codes HTTP acceptables
+  timeout: 30                   # Secondes max d'attente
+
+# --- PARAMÈTRES MODIFIABLES ---
+# Champs que l'utilisateur (ou l'agent) peut personnaliser.
+# Optionnel (peut être vide si tout est dans env:)
+params:
+  port:
+    type: integer
+    title: Port HTTP
+    default: 5006
+    description: "Port d'accès à l'interface web"
+
+# --- LIENS ---
+# Optionnel
+links:
+  - label: Documentation
+    url: https://actualbudget.github.io/docs
+  - label: GitHub
+    url: https://github.com/actualbudget/actual
+  - label: Docker Hub
+    url: https://hub.docker.com/r/actualbudget/actual-server
+
+# --- NOTES D'INSTALLATION ---
+# Optionnel : infos supplémentaires pour l'agent
+notes: |
+  Actual Budget est une app Node.js stateless.
+  Aucune configuration post-install requise.
+  L'interface est accessible directement sur le port configuré.
+
+# ============================================================
+# CATÉGORIES AUTORISÉES
+# ============================================================
+# analytics, automation, backup, cms, communication, community,
+# crm, database, development, dns, documents, email, entertainment,
+# finance, gaming, iot, learning, marketing, media, monitoring,
+# networking, notes, office, password, personal, privacy, project-management,
+# proxy, recruitment, security, storage, system, web-server
+# ============================================================

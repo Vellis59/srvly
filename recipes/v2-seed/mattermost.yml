@@ -1,0 +1,75 @@
+metadata:
+  name: "Mattermost"
+  description: |
+    Plateforme de communication et collaboration pour équipes.
+    Alternative open-source à Slack avec channels, messages directs, et intégrations.
+  category: communication
+  tags: [Messaging, Team, Collaboration]
+  version: "10.4"
+  homepage: https://mattermost.com
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: true           # ← REQUIS : Postgres sera spiné automatiquement
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8065]
+  resources:
+    ram: 1024
+    disk: 10
+
+install:
+  docker:
+    image: mattermost/mattermost-team-edition:10.4
+    name: mattermost
+    port: "8065:8065"
+    volumes:
+      - /opt/mattermost/config:/mattermost/config
+      - /opt/mattermost/data:/mattermost/data
+      - /opt/mattermost/logs:/mattermost/logs
+    env:
+      - key: MM_USERNAME
+        value: "mmuser"
+        description: "Utilisateur PostgreSQL (généré automatiquement)"
+      - key: MM_PASSWORD
+        value: "$DB_PASSWORD"
+        description: "Mot de passe PostgreSQL (automatique)"
+      - key: MM_DBNAME
+        value: "mattermost"
+        description: "Nom de la base de données"
+      - key: MM_SQLSETTINGS_DATASOURCE
+        value: "postgres://$DB_USER:$DB_PASSWORD@$DB_HOST:$DB_PORT/mattermost?sslmode=disable&connect_timeout=10"
+        description: "URL de connexion PostgreSQL (remplie automatiquement par l'agent)"
+
+healthcheck:
+  type: http
+  port: 8065
+  path: /api/v4/system/ping
+  expected: [200]
+  timeout: 60
+
+params:
+  port:
+    type: integer
+    title: Port HTTP
+    default: 8065
+    description: "Port de l'interface web Mattermost"
+
+links:
+  - label: Site officiel
+    url: https://mattermost.com
+  - label: GitHub
+    url: https://github.com/mattermost/mattermost
+  - label: Docker Hub
+    url: https://hub.docker.com/r/mattermost/mattermost-team-edition
+
+notes: |
+  IMPORTANT : Mattermost nécessite PostgreSQL.
+  L'agent déploiera automatiquement un Postgres si aucun n'est trouvé.
+  Après installation :
+  1. Accéder à http://IP:8065
+  2. Créer le compte admin (premier utilisateur = admin)
+  3. Configurer SMTP pour les notifications email

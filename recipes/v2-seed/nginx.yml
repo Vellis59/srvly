@@ -1,0 +1,52 @@
+metadata:
+  name: "Nginx"
+  description: |
+    Serveur web haute performance, reverse proxy et load balancer.
+    Idéal pour servir des sites statiques ou faire proxy vers d'autres services.
+  category: web-server
+  tags: [Web, Proxy, HTTP]
+  version: "1.27"
+  homepage: https://nginx.org
+  license: BSD-2-Clause
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [80]
+
+install:
+  docker:
+    image: nginx:1.27-alpine
+    name: nginx
+    port: "80:80"
+    volumes:
+      - /opt/nginx/html:/usr/share/nginx/html
+      - /opt/nginx/conf:/etc/nginx/conf.d
+
+healthcheck:
+  type: http
+  port: 80
+  path: /
+  expected: [200, 301, 302, 403, 404]
+  timeout: 15
+
+params:
+  port:
+    type: integer
+    title: Port HTTP
+    default: 80
+
+links:
+  - label: Site officiel
+    url: https://nginx.org
+  - label: Docker Hub
+    url: https://hub.docker.com/_/nginx
+
+notes: |
+  Image officielle Nginx Alpine.
+  Placer vos fichiers statiques dans /opt/nginx/html.
+  Configuration supplémentaire dans /opt/nginx/conf.
