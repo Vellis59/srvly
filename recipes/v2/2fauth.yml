@@ -47,6 +47,10 @@ healthcheck:
   timeout: 30
 
 params:
+  image:
+    type: string
+    title: Image Docker
+    default: 2fauth/2fauth:5.3.0
   port:
     type: integer
     title: Port HTTP

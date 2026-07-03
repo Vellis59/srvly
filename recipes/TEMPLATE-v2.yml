@@ -70,8 +70,13 @@ healthcheck:
 
 # --- PARAMÈTRES MODIFIABLES ---
 # Champs que l'utilisateur (ou l'agent) peut personnaliser.
-# Optionnel (peut être vide si tout est dans env:)
+# REQUIS : au moins image et port
 params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/actualbudget/actual-server:26.2.1
+    description: "Image Docker à utiliser"
   port:
     type: integer
     title: Port HTTP

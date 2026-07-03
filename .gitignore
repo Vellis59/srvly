@@ -4,3 +4,4 @@ platform/.next/
 .env
 .env.local
 admin/
+.github/
