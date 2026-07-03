@@ -42,7 +42,7 @@ function AppCard({ app }: { app: { id: string; name: string; description?: strin
         </h3>
         {app.description && (
           <p className="text-xs text-zinc-400 mt-0.5 line-clamp-2 leading-relaxed">
-            {app.description.slice(0, 120)}
+            {app.description.slice(0, 300)}
           </p>
         )}
       </div>
