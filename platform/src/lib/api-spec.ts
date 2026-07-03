@@ -12,6 +12,8 @@ interface EndpointInfo {
   inputSchema?: z.ZodType;
   /** For GET: query params schema */
   querySchema?: z.ZodType;
+  /** Path parameters like {id} */
+  pathParams?: { name: string; description?: string; schema?: Record<string, unknown> }[];
   /** Response shape description */
   responseDescription?: string;
   authRequired: boolean;
@@ -24,7 +26,7 @@ interface EndpointInfo {
 function getEndpoints(): EndpointInfo[] {
   // We import lazily so the module can be loaded at build time
   // without requiring DB connections
-  const { dockerDeploySchema, installRegisterSchema, installListSchema, installExecSchema, installLogsSchema, proxyConfigureSchema, dispatchSchema, enableSslSchema } = require("./api-schemas");
+  const { dockerDeploySchema, installRegisterSchema, installListSchema, installExecSchema, installLogsSchema, proxyConfigureSchema, dispatchSchema, enableSslSchema, fileWriteSchema, fileReadSchema } = require("./api-schemas");
 
   return [
     {
@@ -89,6 +91,36 @@ function getEndpoints(): EndpointInfo[] {
       inputSchema: proxyConfigureSchema,
       authRequired: true,
       tags: ["Agent", "Proxy"],
+    },
+    {
+      path: "/api/agent/servers/{id}/containers",
+      method: "get",
+      summary: "List Docker containers on a server",
+      description: "Returns a structured JSON list of all Docker containers (running and stopped) on a server, along with disk and memory usage.",
+      pathParams: [
+        { name: "id", description: "Server UUID" },
+      ],
+      authRequired: true,
+      tags: ["Agent", "Docker", "Monitoring"],
+      responseDescription: "Array of containers with id, name, image, status, state, ports",
+    },
+    {
+      path: "/api/agent/files/write",
+      method: "post",
+      summary: "Write a file on a server",
+      description: "Writes content to a file using heredoc — safe from shell injection. The agent does not need to escape special characters. Blocks dangerous paths (shadow, sudoers, ssh keys).",
+      inputSchema: fileWriteSchema,
+      authRequired: true,
+      tags: ["Agent", "Files"],
+    },
+    {
+      path: "/api/agent/files/read",
+      method: "post",
+      summary: "Read a file from a server",
+      description: "Reads a file and returns its content base64-encoded, plus a decoded text preview (first 10KB).",
+      inputSchema: fileReadSchema,
+      authRequired: true,
+      tags: ["Agent", "Files"],
     },
     {
       path: "/api/deploy",
@@ -225,6 +257,22 @@ export function buildOpenApiSpec(baseUrl?: string): Record<string, unknown> {
 
     if (ep.querySchema) {
       (pathItem as any).parameters = buildParameters(ep.querySchema);
+    }
+
+    // Add path parameters (e.g. {id})
+    if (ep.pathParams) {
+      const pp = ep.pathParams.map((p) => ({
+        name: p.name,
+        in: "path",
+        required: true,
+        description: p.description || "",
+        schema: p.schema || { type: "string" },
+      }));
+      if ((pathItem as any).parameters) {
+        (pathItem as any).parameters = [...(pathItem as any).parameters, ...pp];
+      } else {
+        (pathItem as any).parameters = pp;
+      }
     }
 
     if (!paths[ep.path]) {

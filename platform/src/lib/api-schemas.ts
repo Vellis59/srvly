@@ -87,3 +87,19 @@ export const dispatchSchema = z.object({
 export const enableSslSchema = z.object({
   domainId: uuid,
 });
+
+// ─── POST /api/agent/files/write ────────────────────────
+
+export const fileWriteSchema = z.object({
+  serverId: uuid,
+  path: z.string().min(1, "path is required").max(2000),
+  content: z.string().max(50000),
+  mode: z.string().regex(/^[0-7]{3,4}$/, "Mode must be octal like 644 or 600").optional(),
+});
+
+// ─── POST /api/agent/files/read ─────────────────────────
+
+export const fileReadSchema = z.object({
+  serverId: uuid,
+  path: z.string().min(1, "path is required").max(2000),
+});
