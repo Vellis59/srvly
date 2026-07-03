@@ -9,7 +9,7 @@ metadata:
   tags: [Project Management, Kanban, Productivity, Collaboration, Task Management]
   version: "3.3.6"
   homepage: https://4gaboards.com
-  icon: https://github.com/RARgames/4gaboards/raw/main/public/favicon.ico
+  icon: https://raw.githubusercontent.com/RARgames/4gaBoards/main/client/public/favicon.ico
   license: MIT
   verified: false
 
