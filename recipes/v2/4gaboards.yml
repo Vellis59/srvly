@@ -1,0 +1,76 @@
+metadata:
+  name: "4ga Boards"
+  description: |
+    A modern, open-source project management platform inspired by Trello.
+    Features Kanban-style boards, drag-and-drop task management, custom lists,
+    cards with attachments, user avatars, and project backgrounds. Perfect for
+    teams looking for a self-hosted alternative to commercial PM tools.
+  category: project-management
+  tags: [Project Management, Kanban, Productivity, Collaboration, Task Management]
+  version: "3.3.6"
+  homepage: https://4gaboards.com
+  icon: https://github.com/RARgames/4gaboards/raw/main/public/favicon.ico
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: true
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [1337]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: ghcr.io/rargames/4gaboards:3.3.6
+    name: 4gaboards
+    port: "1337:1337"
+    volumes:
+      - /opt/4gaboards/user-avatars
+      - /opt/4gaboards/project-backgrounds
+      - /opt/4gaboards/attachments
+    env:
+      - key: DATABASE_URL
+        value: "postgresql://$DB_USER:***@$DB_HOST:$DB_PORT/4gaboards?sslmode=disable"
+        description: "URL de connexion PostgreSQL (remplie automatiquement par l'agent)"
+      - key: NODE_ENV
+        value: production
+        description: "Environnement"
+
+healthcheck:
+  type: http
+  port: 1337
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Image Docker
+    default: ghcr.io/rargames/4gaboards:3.3.6
+  port:
+    type: integer
+    title: Port HTTP
+    default: 1337
+    description: "Port de l'interface web"
+
+links:
+  - label: Website
+    url: https://4gaboards.com
+  - label: Documentation
+    url: https://docs.4gaboards.com
+  - label: GitHub
+    url: https://github.com/RARgames/4gaboards
+  - label: Docker Hub
+    url: https://ghcr.io/rargames/4gaboards
+
+notes: |
+  Default admin credentials: demo / demo
+  CHANGE THE PASSWORD AFTER FIRST LOGIN.
+  Requires PostgreSQL - the agent will spin one up automatically.
+  After installation, access the web UI on the configured port.
