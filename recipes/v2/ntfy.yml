@@ -1,0 +1,75 @@
+metadata:
+  name: "ntfy"
+  description: |
+    ntfy (pronounce "notify") is a simple HTTP-based pub-sub notification service written in Go.
+    It lets you send push notifications to your phone, desktop, or any device via simple HTTP POST or a CLI command.
+    It supports topics, priorities, scheduling, attachments, and access control. It is perfect for personal alerts, server monitoring, and home automation.
+  category: communication
+  subcategory: chat
+  tags: [Notifications, Push, Alerts, Pub-Sub]
+  version: "latest"
+  homepage: https://ntfy.sh
+  icon: https://github.com/binwiederhier.png?size=64
+  license: Apache-2.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8085]
+  resources:
+    ram: 128
+    disk: 1
+
+install:
+  docker:
+    image: binwiederhier/ntfy:latest
+    name: ntfy
+    port: "8085:80"
+    volumes:
+      - /opt/srvly/apps/ntfy/etc:/etc/ntfy
+      - /opt/srvly/apps/ntfy/cache:/var/cache/ntfy
+
+agent_install:
+  network: srvly-ntfy
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed ntfy container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 8085
+  path: /
+  expected: [200, 301, 302]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: binwiederhier/ntfy:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8085
+    description: "Host port for the ntfy web UI"
+
+links:
+  - label: Website
+    url: https://ntfy.sh
+  - label: GitHub
+    url: https://github.com/binwiederhier/ntfy
+  - label: Documentation
+    url: https://docs.ntfy.sh
+
+notes: |
+  ntfy stores its configuration and cache in persistent volumes. Edit /etc/ntfy/server.yml to set authentication, rate limits, and other options.

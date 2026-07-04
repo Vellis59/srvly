@@ -1,0 +1,80 @@
+metadata:
+  name: "Zipline"
+  description: |
+    Zipline is a fast, minimal file upload and sharing service built with Node.js and React.
+    It supports image, video, text, and any file type uploads via web UI, API, or sharing extensions. It includes URL shortening, auto-deletion, OAuth, and embed support.
+    It is well suited as a personal media hosting and sharing tool for screenshots, log snippets, and short files.
+  category: storage-backup
+  subcategory: file-sharing
+  tags: [File Upload, Screenshots, File Sharing, Media]
+  version: "latest"
+  homepage: https://zipline.diced.sh
+  icon: https://github.com/diced.png?size=64
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3005]
+  resources:
+    ram: 256
+    disk: 5
+
+install:
+  docker:
+    image: ghcr.io/diced/zipline:latest
+    name: zipline
+    port: "3005:3000"
+    volumes:
+      - /opt/srvly/apps/zipline/data:/zipline/data
+      - /opt/srvly/apps/zipline/uploads:/zipline/uploads
+    env:
+      - key: CORE_RETURN_HTTPS
+        value: "false"
+        description: "Set to true if a reverse proxy with HTTPS is configured"
+
+agent_install:
+  network: srvly-zipline
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed zipline container before retrying."
+  prerequisites: []
+  app_env:
+    CORE_RETURN_HTTPS: "false"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 3005
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/diced/zipline:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3005
+    description: "Host port for the Zipline web UI"
+
+links:
+  - label: Website
+    url: https://zipline.diced.sh
+  - label: GitHub
+    url: https://github.com/diced/zipline
+  - label: Documentation
+    url: https://zipline.diced.sh/docs
+
+notes: |
+  Zipline uses an embedded database by default. The first user is created through the web UI registration flow.

@@ -1,0 +1,111 @@
+metadata:
+  name: "Vikunja"
+  description: |
+    Vikunja is a self-hosted task management and to-do application with a clean interface.
+    It supports kanban-style boards, lists, Gantt charts, reminders, labels, attachments, teams, sharing, and iCalendar sync.
+    It is a versatile choice for teams and individuals who want to organize tasks without depending on proprietary platforms.
+  category: productivity
+  subcategory: project-management
+  tags: [Tasks, Todo, Project Management, Kanban]
+  version: "latest"
+  homepage: https://vikunja.io
+  icon: https://github.com/go-vikunja.png?size=64
+  license: GPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: true
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3456]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: vikunja/vikunja:latest
+    name: vikunja
+    port: "3456:3456"
+    volumes:
+      - /opt/srvly/apps/vikunja/files:/app/vikunja/files
+    env:
+      - key: VIKUNJA_DATABASE_HOST
+        value: "vikunja-postgres"
+        description: "PostgreSQL host"
+      - key: VIKUNJA_DATABASE_DATABASE
+        value: vikunja
+        description: "PostgreSQL database name"
+      - key: VIKUNJA_DATABASE_USERNAME
+        value: vikunja
+        description: "PostgreSQL user"
+      - key: VIKUNJA_DATABASE_PASSWORD
+        value: "***"
+        description: "PostgreSQL password"
+      - key: VIKUNJA_SERVICE_JWTSECRET
+        value: "***"
+        description: "JWT secret for authentication"
+
+agent_install:
+  network: srvly-vikunja
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed vikunja or vikunja-postgres containers before retrying."
+  prerequisites:
+    - type: postgres
+      name: vikunja-postgres
+      image: postgres:16-alpine
+      container: vikunja-postgres
+      database: vikunja
+      user: vikunja
+      password: generate
+      volume: /opt/srvly/apps/vikunja/postgres:/var/lib/postgresql/data
+      port: 5432
+      env:
+        POSTGRES_DB: vikunja
+        POSTGRES_USER: vikunja
+        POSTGRES_PASSWORD: $GENERATED_PASSWORD
+  app_env:
+    VIKUNJA_DATABASE_HOST: "vikunja-postgres"
+    VIKUNJA_DATABASE_DATABASE: "vikunja"
+    VIKUNJA_DATABASE_USERNAME: "vikunja"
+    VIKUNJA_DATABASE_PASSWORD: "***"
+    VIKUNJA_SERVICE_JWTSECRET: "***"
+  post_install:
+    - "Create the Docker network before both containers and attach Postgres and the app to it."
+    - "Start Postgres first and wait until it accepts connections before starting the app."
+    - "Generate a JWT secret (openssl rand -base64 32) and the database password at runtime, reuse both in the app env."
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 3456
+  path: /health
+  expected: [200]
+  timeout: 90
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: vikunja/vikunja:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3456
+    description: "Host port for the Vikunja web UI"
+
+links:
+  - label: Website
+    url: https://vikunja.io
+  - label: GitHub
+    url: https://github.com/go-vikunja/vikunja
+  - label: Docker Hub
+    url: https://hub.docker.com/r/vikunja/vikunja
+
+notes: |
+  Vikunja uses a JWT secret for authentication. If not set, it generates one automatically on first start which will be lost on container restart.

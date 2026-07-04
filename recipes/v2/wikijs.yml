@@ -1,0 +1,114 @@
+metadata:
+  name: "Wiki.js"
+  description: |
+    Wiki.js is a modern, open-source wiki application built on Node.js with a rich editor and a powerful search engine.
+    It supports Markdown and rich-text editing, asset management, user permissions, authentication providers, theming, and various storage backends.
+    It is a good choice for teams and organizations that need a clean, extensible documentation platform.
+  category: productivity
+  subcategory: notes-wiki
+  tags: [Wiki, Documentation, Knowledge Base, Notes]
+  version: "latest"
+  homepage: https://js.wiki
+  icon: https://github.com/requarks.png?size=64
+  license: AGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: true
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3004]
+  resources:
+    ram: 512
+    disk: 3
+
+install:
+  docker:
+    image: ghcr.io/requarks/wiki:latest
+    name: wikijs
+    port: "3004:3000"
+    volumes:
+      - /opt/srvly/apps/wikijs/data:/wiki/data
+    env:
+      - key: DB_TYPE
+        value: postgres
+        description: "Database type"
+      - key: DB_HOST
+        value: wikijs-postgres
+        description: "PostgreSQL host"
+      - key: DB_PORT
+        value: "5432"
+        description: "PostgreSQL port"
+      - key: DB_NAME
+        value: wikijs
+        description: "PostgreSQL database name"
+      - key: DB_USER
+        value: wikijs
+        description: "PostgreSQL user"
+      - key: DB_PASS
+        value: "***"
+        description: "PostgreSQL password"
+
+agent_install:
+  network: srvly-wikijs
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed wikijs or wikijs-postgres containers before retrying."
+  prerequisites:
+    - type: postgres
+      name: wikijs-postgres
+      image: postgres:16-alpine
+      container: wikijs-postgres
+      database: wikijs
+      user: wikijs
+      password: generate
+      volume: /opt/srvly/apps/wikijs/postgres:/var/lib/postgresql/data
+      port: 5432
+      env:
+        POSTGRES_DB: wikijs
+        POSTGRES_USER: wikijs
+        POSTGRES_PASSWORD: $GENERATED_PASSWORD
+  app_env:
+    DB_TYPE: "postgres"
+    DB_HOST: "wikijs-postgres"
+    DB_PORT: "5432"
+    DB_NAME: "wikijs"
+    DB_USER: "wikijs"
+    DB_PASS: "***"
+  post_install:
+    - "Create the Docker network before both containers and attach Postgres and the app to it."
+    - "Start Postgres first and wait until it accepts connections before starting the app."
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 3004
+  path: /
+  expected: [200, 301, 302]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/requarks/wiki:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3004
+    description: "Host port for the Wiki.js web UI"
+
+links:
+  - label: Website
+    url: https://js.wiki
+  - label: GitHub
+    url: https://github.com/Requarks/wiki
+  - label: Documentation
+    url: https://docs.requarks.io
+
+notes: |
+  Wiki.js initializes the database schema on first startup through the setup wizard. Access the app through a browser to complete setup.

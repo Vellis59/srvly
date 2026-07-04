@@ -1,0 +1,89 @@
+metadata:
+  name: "n8n"
+  description: |
+    n8n is a workflow automation platform that connects apps and services through a visual node-based editor.
+    It supports hundreds of integrations, custom JavaScript or Python nodes, conditional branching, error handling, webhooks, and scheduled executions.
+    It is a versatile open-source alternative to Zapier or Make for individuals and teams who want full control over their automation workflows.
+  category: automation-iot
+  subcategory: workflows
+  tags: [Automation, Workflows, No-Code, Integrations]
+  version: "latest"
+  homepage: https://n8n.io
+  icon: https://github.com/n8n-io.png?size=64
+  license: Sustainable Use License
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [5678]
+  resources:
+    ram: 512
+    disk: 2
+
+install:
+  docker:
+    image: docker.n8n.io/n8nio/n8n:latest
+    name: n8n
+    port: "5678:5678"
+    volumes:
+      - /opt/srvly/apps/n8n/data:/home/node/.n8n
+    env:
+      - key: N8N_HOST
+        value: "$PUBLIC_HOST"
+        description: "Public hostname for webhook callbacks"
+      - key: N8N_PROTOCOL
+        value: "$PUBLIC_PROTOCOL"
+        description: "Protocol (http or https)"
+      - key: N8N_PORT
+        value: "5678"
+        description: "Port used by n8n"
+
+agent_install:
+  network: srvly-n8n
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed n8n container before retrying."
+  prerequisites: []
+  app_env:
+    N8N_HOST: "$PUBLIC_HOST"
+    N8N_PROTOCOL: "$PUBLIC_PROTOCOL"
+    N8N_PORT: "5678"
+  post_install:
+    - "Set N8N_HOST and N8N_PROTOCOL to the final public URL before deployment."
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 5678
+  path: /healthz
+  expected: [200]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: docker.n8n.io/n8nio/n8n:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 5678
+    description: "Host port for the n8n web UI"
+
+links:
+  - label: Website
+    url: https://n8n.io
+  - label: GitHub
+    url: https://github.com/n8n-io/n8n
+  - label: Documentation
+    url: https://docs.n8n.io
+
+notes: |
+  n8n uses an embedded SQLite database by default. For production workloads, consider configuring Postgres.
+  The N8N_HOST and N8N_PROTOCOL env vars are needed for webhook URL generation.

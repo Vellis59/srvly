@@ -1,0 +1,72 @@
+metadata:
+  name: "Excalidraw"
+  description: |
+    Excalidraw is a virtual collaborative whiteboard for sketching diagrams, wireframes, and hand-drawn style graphics in the browser.
+    It supports end-to-end encryption for real-time collaboration, an extensive shape library, image embedding, and export to PNG or SVG.
+    It is useful for remote teams, brainstorming sessions, and quick technical sketches.
+  category: productivity
+  subcategory: project-management
+  tags: [Whiteboard, Diagrams, Collaboration, Drawing]
+  version: "latest"
+  homepage: https://excalidraw.com
+  icon: https://github.com/excalidraw.png?size=64
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8086]
+  resources:
+    ram: 256
+    disk: 1
+
+install:
+  docker:
+    image: excalidraw/excalidraw:latest
+    name: excalidraw
+    port: "8086:80"
+
+agent_install:
+  network: srvly-excalidraw
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed excalidraw container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 8086
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: excalidraw/excalidraw:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8086
+    description: "Host port for the Excalidraw web UI"
+
+links:
+  - label: Website
+    url: https://excalidraw.com
+  - label: GitHub
+    url: https://github.com/excalidraw/excalidraw
+  - label: Docker Hub
+    url: https://hub.docker.com/r/excalidraw/excalidraw
+
+notes: |
+  Excalidraw is a purely client-side application behind a static server. The Docker image serves the built frontend. No persistent storage is required.

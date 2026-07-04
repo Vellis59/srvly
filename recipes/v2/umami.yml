@@ -1,0 +1,96 @@
+metadata:
+  name: "Umami"
+  description: |
+    Umami is a self-hosted, privacy-focused web analytics tool that provides straightforward visitor insights without cookie banners or personal data collection.
+    It tracks page views, events, custom metrics, and sessions with a clean interface. It integrates with any website by adding a simple script tag.
+    It is a strong alternative to Google Analytics when you need simple, compliant analytics.
+  category: dev-infra
+  subcategory: monitoring
+  tags: [Analytics, Privacy, Web, Dashboard]
+  version: "latest"
+  homepage: https://umami.is
+  icon: https://github.com/umami-software.png?size=64
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: true
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3003]
+  resources:
+    ram: 512
+    disk: 2
+
+install:
+  docker:
+    image: ghcr.io/umami-software/umami:latest
+    name: umami
+    port: "3003:3000"
+    env:
+      - key: DATABASE_URL
+        value: "postgresql://$DB_USER:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME"
+        description: "PostgreSQL connection string"
+      - key: DATABASE_TYPE
+        value: postgresql
+        description: "Database type (postgresql, mysql)"
+
+agent_install:
+  network: srvly-umami
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed umami or umami-postgres containers before retrying."
+  prerequisites:
+    - type: postgres
+      name: umami-postgres
+      image: postgres:16-alpine
+      container: umami-postgres
+      database: umami
+      user: umami
+      password: generate
+      volume: /opt/srvly/apps/umami/postgres:/var/lib/postgresql/data
+      port: 5432
+      env:
+        POSTGRES_DB: umami
+        POSTGRES_USER: umami
+        POSTGRES_PASSWORD: $GENERATED_PASSWORD
+  app_env:
+    DATABASE_URL: "postgresql://umami:$GENERATED_PASSWORD@umami-postgres:5432/umami"
+    DATABASE_TYPE: postgresql
+  post_install:
+    - "Create the Docker network before both containers and attach Postgres and the app to it."
+    - "Start Postgres first and wait until it accepts connections before starting the app."
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 3003
+  path: /
+  expected: [200, 301, 302]
+  timeout: 90
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/umami-software/umami:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3003
+    description: "Host port for the Umami web UI"
+
+links:
+  - label: Website
+    url: https://umami.is
+  - label: GitHub
+    url: https://github.com/umami-software/umami
+  - label: Documentation
+    url: https://umami.is/docs
+
+notes: |
+  Umami requires PostgreSQL. The agent automatically provisions the database container before deploying the app.

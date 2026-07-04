@@ -41,12 +41,12 @@ function renderJson(value: unknown): string {
   return JSON.stringify(value, null, 2);
 }
 
-function applyPublicUrlPlaceholders(env: Record<string, unknown>, publicUrl: string, publicHost: string): Record<string, unknown> {
+function applyPublicUrlPlaceholders(env: Record<string, unknown>, publicUrl: string, publicHost: string, publicProtocol: string): Record<string, unknown> {
   return Object.fromEntries(
     Object.entries(env).map(([key, value]) => [
       key,
       typeof value === "string"
-        ? value.replaceAll("$PUBLIC_BASE_URL", publicUrl).replaceAll("$PUBLIC_HOST", publicHost)
+        ? value.replaceAll("$PUBLIC_BASE_URL", publicUrl).replaceAll("$PUBLIC_HOST", publicHost).replaceAll("$PUBLIC_PROTOCOL", publicProtocol)
         : value,
     ]),
   );
@@ -90,13 +90,14 @@ export default function InstallPage() {
     const hasDomain = domain.trim().length > 0;
     const publicUrl = hasDomain ? `https://${domain.trim()}` : `http://${serverIp}:${finalPort}`;
     const publicHost = hasDomain ? domain.trim() : `${serverIp}:${finalPort}`;
+    const publicProtocol = hasDomain ? "https" : "http";
     const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://srvly.app";
     const defaultImage = recipeData.params?.image?.default || docker.image || recipeId;
     const internalPort = String(docker.port || `${finalPort}:${finalPort}`).split(":").pop() || finalPort;
     const network = agentPlan.network || `srvly-${appSlug}`;
     const dockerEnv = envArrayToObject(docker.env);
     const agentEnv = agentPlan.app_env || {};
-    const appEnv = applyPublicUrlPlaceholders({ ...dockerEnv, ...agentEnv }, publicUrl, publicHost);
+    const appEnv = applyPublicUrlPlaceholders({ ...dockerEnv, ...agentEnv }, publicUrl, publicHost, publicProtocol);
     const volumes = Array.isArray(docker.volumes) ? docker.volumes : [];
     const prerequisites = Array.isArray(agentPlan.prerequisites) ? agentPlan.prerequisites : [];
     const githubLink = recipeData.links?.find?.((l: any) => l.label?.toLowerCase().includes("github"))?.url || recipeData.metadata?.homepage || "";

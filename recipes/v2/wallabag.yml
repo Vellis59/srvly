@@ -1,0 +1,120 @@
+metadata:
+  name: "Wallabag"
+  description: |
+    Wallabag is a self-hosted read-it-later application that saves and stores web pages for offline reading.
+    It extracts the main content from articles and preserves it without ads or clutter. It supports tags, annotations, search, RSS export, and mobile apps.
+    It is a standard alternative to Pocket or Instapaper when you want full control over your saved content.
+  category: productivity
+  subcategory: documents
+  tags: [Read It Later, Bookmarking, Archiving, Articles]
+  version: "latest"
+  homepage: https://wallabag.org
+  icon: https://github.com/wallabag.png?size=64
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: true
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8087]
+  resources:
+    ram: 512
+    disk: 5
+
+install:
+  docker:
+    image: wallabag/wallabag:latest
+    name: wallabag
+    port: "8087:80"
+    volumes:
+      - /opt/srvly/apps/wallabag/data:/var/www/wallabag/data
+      - /opt/srvly/apps/wallabag/images:/var/www/wallabag/web/assets/images
+    env:
+      - key: SYMFONY__ENV__DATABASE_DRIVER
+        value: pdo_pgsql
+        description: "Database driver"
+      - key: SYMFONY__ENV__DATABASE_HOST
+        value: wallabag-postgres
+        description: "PostgreSQL host"
+      - key: SYMFONY__ENV__DATABASE_PORT
+        value: "5432"
+        description: "PostgreSQL port"
+      - key: SYMFONY__ENV__DATABASE_NAME
+        value: wallabag
+        description: "PostgreSQL database name"
+      - key: SYMFONY__ENV__DATABASE_USER
+        value: wallabag
+        description: "PostgreSQL user"
+      - key: SYMFONY__ENV__DATABASE_PASSWORD
+        value: "***"
+        description: "PostgreSQL password"
+      - key: SYMFONY__ENV__DOMAIN_NAME
+        value: "$PUBLIC_BASE_URL"
+        description: "Public URL of the wallabag instance"
+
+agent_install:
+  network: srvly-wallabag
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed wallabag or wallabag-postgres containers before retrying."
+  prerequisites:
+    - type: postgres
+      name: wallabag-postgres
+      image: postgres:16-alpine
+      container: wallabag-postgres
+      database: wallabag
+      user: wallabag
+      password: generate
+      volume: /opt/srvly/apps/wallabag/postgres:/var/lib/postgresql/data
+      port: 5432
+      env:
+        POSTGRES_DB: wallabag
+        POSTGRES_USER: wallabag
+        POSTGRES_PASSWORD: $GENERATED_PASSWORD
+  app_env:
+    SYMFONY__ENV__DATABASE_DRIVER: "pdo_pgsql"
+    SYMFONY__ENV__DATABASE_HOST: "wallabag-postgres"
+    SYMFONY__ENV__DATABASE_PORT: "5432"
+    SYMFONY__ENV__DATABASE_NAME: "wallabag"
+    SYMFONY__ENV__DATABASE_USER: "wallabag"
+    SYMFONY__ENV__DATABASE_PASSWORD: "***"
+    SYMFONY__ENV__DOMAIN_NAME: "$PUBLIC_BASE_URL"
+  post_install:
+    - "Create the Docker network before both containers and attach Postgres and the app to it."
+    - "Start Postgres first and wait until it accepts connections before starting the app."
+    - "Set SYMFONY__ENV__DOMAIN_NAME to the final public URL before deployment."
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 8087
+  path: /
+  expected: [200, 301, 302]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: wallabag/wallabag:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8087
+    description: "Host port for the Wallabag web UI"
+
+links:
+  - label: Website
+    url: https://wallabag.org
+  - label: GitHub
+    url: https://github.com/wallabag/wallabag
+  - label: Documentation
+    url: https://doc.wallabag.org
+
+notes: |
+  Wallabag can take up to 2 minutes to initialize the database schema on first startup. The healthcheck has a generous timeout.
