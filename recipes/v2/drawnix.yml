@@ -1,0 +1,69 @@
+metadata:
+  name: "Drawnix"
+  description: |
+    Drawnix is a collaborative drawing and whiteboard application for real-time visual collaboration with a focus on simplicity.
+    It supports freehand drawing, shapes, text, images, and multi-user editing with live cursors.
+    It is a useful tool for remote teams needing a lightweight, self-hosted whiteboard for brainstorming and sketching.
+  category: productivity
+  subcategory: project-management
+  tags: [Whiteboard, Drawing, Collaboration, Sketching]
+  version: "latest"
+  homepage: https://drawnix.app
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=D
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3062]
+  resources:
+    ram: 256
+    disk: 1
+
+install:
+  docker:
+    image: pubuzhixing/drawnix:latest
+    name: drawnix
+    port: "3062:3000"
+    volumes:
+      - /opt/srvly/apps/drawnix/data:/data
+
+agent_install:
+  network: srvly-drawnix
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed drawnix container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 3062
+  path: /
+  expected: [200, 301, 302]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: pubuzhixing/drawnix:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3000
+    description: "Host port"
+links:
+  - label: GitHub
+    url: https://github.com/pubuzhixing/drawnix
+  - label: Documentation
+    url: https://github.com/pubuzhixing/drawnix#readme
+notes: |
+  Drawnix supports real-time collaboration. Share the room link with team members to collaborate.

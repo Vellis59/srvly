@@ -1,0 +1,94 @@
+metadata:
+  name: "Linkwarden"
+  description: |
+    Linkwarden is a self-hosted bookmark and link management service for organizing, saving, and sharing web resources.
+    It supports collections, tags, archiving, screenshots, full-text search, and collaborative collections sharing.
+    It is a modern, feature-rich alternative to Raindrop.io or Pocket for personal link organization.
+  category: productivity
+  subcategory: documents
+  tags: [Bookmarks, Links, Archiving, Organization]
+  version: "v2.9.3"
+  homepage: https://linkwarden.app
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=L
+  license: AGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: true
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3064]
+  resources:
+    ram: 512
+    disk: 2
+
+install:
+  docker:
+    image: ghcr.io/linkwarden/linkwarden:v2.9.3
+    name: linkwarden
+    port: "3064:3000"
+    volumes:
+      - /opt/srvly/apps/linkwarden/data:/data
+    env:
+      - key: DATABASE_URL
+        value: "postgres://linkwarden:***@linkwarden-postgres:5432/linkwarden"
+      - key: NEXTAUTH_SECRET
+        value: "***"
+      - key: NEXTAUTH_URL
+        value: "$PUBLIC_BASE_URL"
+
+agent_install:
+  network: srvly-linkwarden
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed linkwarden or linkwarden-postgres containers before retrying."
+  prerequisites:
+    - type: postgres
+      name: linkwarden-postgres
+      image: postgres:16-alpine
+      container: linkwarden-postgres
+      database: linkwarden
+      user: linkwarden
+      password: generate
+      volume: /opt/srvly/apps/linkwarden/postgres:/var/lib/postgresql/data
+      port: 5432
+      env:
+        POSTGRES_DB: linkwarden
+        POSTGRES_USER: linkwarden
+        POSTGRES_PASSWORD: $GENERATED_PASSWORD
+  app_env:
+    DATABASE_URL: "postgres://linkwarden:***@linkwarden-postgres:5432/linkwarden"
+    NEXTAUTH_SECRET: "***"
+    NEXTAUTH_URL: "$PUBLIC_BASE_URL"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 3064
+  path: /api/health
+  expected: [200]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/linkwarden/linkwarden:v2.9.3
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3000
+    description: "Host port"
+links:
+  - label: Website
+    url: https://linkwarden.app
+  - label: GitHub
+    url: https://github.com/linkwarden/linkwarden
+  - label: Documentation
+    url: https://linkwarden.app/docs
+notes: |
+  Linkwarden requires PostgreSQL and a NEXTAUTH_SECRET for authentication.

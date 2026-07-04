@@ -1,0 +1,71 @@
+metadata:
+  name: "Directory Lister"
+  description: |
+    Directory Lister is a clean, lightweight web-based file browser for listing and sharing files from any directory on your server.
+    It provides a modern responsive interface with file icons, search, sorting, and breadcrumb navigation.
+    It is a simple and effective tool for sharing files and directories over the web.
+  category: storage-backup
+  subcategory: file-sharing
+  tags: [File Browser, Directory, Listing, Sharing]
+  version: "latest"
+  homepage: https://www.directorylister.com
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=D
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8098]
+  resources:
+    ram: 128
+    disk: 1
+
+install:
+  docker:
+    image: directorylister/directorylister:latest
+    name: directorylister
+    port: "8098:80"
+    volumes:
+      - /opt/srvly/apps/directorylister/files:/var/www/html/uploads
+
+agent_install:
+  network: srvly-directorylister
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed directorylister container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8098
+  path: /
+  expected: [200, 301, 302]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: directorylister/directorylister:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8087
+    description: "Host port"
+links:
+  - label: Website
+    url: https://www.directorylister.com
+  - label: GitHub
+    url: https://github.com/DirectoryLister/DirectoryLister
+  - label: Documentation
+    url: https://github.com/DirectoryLister/DirectoryLister#readme
+notes: |
+  Place files to share in the /var/www/html/uploads directory mounted from the host.

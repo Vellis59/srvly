@@ -1,0 +1,67 @@
+metadata:
+  name: "Crawl4AI"
+  description: |
+    Crawl4AI is a self-hosted web crawling and AI-powered content extraction API that provides structured data from web pages.
+    It supports LLM-friendly extraction for RAG pipelines, multi-thread crawling, screenshot capture, and multiple output formats.
+    It is a practical tool for AI engineers and data scientists needing structured web data for training and analysis.
+  category: dev-infra
+  subcategory: scraping
+  tags: [Web Scraping, AI, Crawler, Data Extraction]
+  version: "latest"
+  homepage: https://crawl4ai.com
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=C
+  license: Apache-2.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8097]
+  resources:
+    ram: 1024
+    disk: 2
+
+install:
+  docker:
+    image: unclecode/crawl4ai:latest
+    name: crawl4ai
+    port: "8097:8080"
+
+agent_install:
+  network: srvly-crawl4ai
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed crawl4ai container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8097
+  path: /health
+  expected: [200]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: unclecode/crawl4ai:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8086
+    description: "Host port"
+links:
+  - label: GitHub
+    url: https://github.com/unclecode/crawl4ai
+  - label: Documentation
+    url: https://github.com/unclecode/crawl4ai#readme
+notes: |
+  Crawl4AI provides a REST API for web crawling. Send requests to /crawl with a URL parameter.

@@ -1,0 +1,69 @@
+metadata:
+  name: "Double Zero"
+  description: |
+    Double Zero is a self-hosted financial management and accounting tool for tracking personal and business finances.
+    It provides features for managing budgets, invoicing, expenses, and financial reporting with a clean web interface.
+    It is a practical tool for freelancers and small businesses who want to manage their finances without third-party services.
+  category: productivity
+  subcategory: finance
+  tags: [Finance, Accounting, Budget, Invoicing]
+  version: "0.2.1"
+  homepage: https://doublezero.app
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=D
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3061]
+  resources:
+    ram: 256
+    disk: 1
+
+install:
+  docker:
+    image: liltechnomancer/double-zero:0.2.1
+    name: doublezero
+    port: "3061:3000"
+    volumes:
+      - /opt/srvly/apps/doublezero/data:/data
+
+agent_install:
+  network: srvly-doublezero
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed doublezero container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 3061
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: liltechnomancer/double-zero:0.2.1
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3000
+    description: "Host port"
+links:
+  - label: GitHub
+    url: https://github.com/technomancy-dev/00
+  - label: Documentation
+    url: https://github.com/technomancy-dev/00#readme
+notes: |
+  Double Zero stores all financial data in the /data volume.

@@ -1,0 +1,69 @@
+metadata:
+  name: "Flatnotes"
+  description: |
+    Flatnotes is a self-hosted, minimalist note-taking application with markdown support and full-text search.
+    It provides a clean, distraction-free interface for writing and organizing notes with tags, attachments, and real-time search.
+    It is a lightweight alternative to Obsidian or Notion for users who want a simple web-based notes app.
+  category: productivity
+  subcategory: notes-wiki
+  tags: [Notes, Markdown, Writing, Knowledge Base]
+  version: "latest"
+  homepage: https://github.com/dullage/flatnotes
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=F
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8099]
+  resources:
+    ram: 256
+    disk: 1
+
+install:
+  docker:
+    image: dullage/flatnotes:latest
+    name: flatnotes
+    port: "8099:8080"
+    volumes:
+      - /opt/srvly/apps/flatnotes/data:/data
+
+agent_install:
+  network: srvly-flatnotes
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed flatnotes container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8099
+  path: /
+  expected: [200, 301, 302]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: dullage/flatnotes:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8080
+    description: "Host port"
+links:
+  - label: GitHub
+    url: https://github.com/dullage/flatnotes
+  - label: Documentation
+    url: https://github.com/dullage/flatnotes#readme
+notes: |
+  Flatnotes uses an embedded database. All notes are stored in the /data volume.

@@ -1,0 +1,70 @@
+metadata:
+  name: "Docling Serve"
+  description: |
+    Docling Serve is a self-hosted document understanding and conversion API that processes PDFs, Word docs, and images.
+    It extracts structured content including text, tables, layouts, and metadata using AI-powered document parsing.
+    It is a valuable tool for document processing pipelines and RAG systems requiring structured document extraction.
+  category: dev-infra
+  subcategory: scraping
+  tags: [Documents, PDF, OCR, AI Processing]
+  version: "latest"
+  homepage: https://docling-project.github.io
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=D
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [5002]
+  resources:
+    ram: 2048
+    disk: 5
+
+install:
+  docker:
+    image: quay.io/docling-project/docling-serve:latest
+    name: doclingserve
+    port: "5002:5000"
+    volumes:
+      - /opt/srvly/apps/doclingserve/models:/models
+
+agent_install:
+  network: srvly-doclingserve
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed doclingserve container before retrying."
+    - "Docling Serve requires significant RAM for AI model inference."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 5002
+  path: /health
+  expected: [200]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: quay.io/docling-project/docling-serve:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 5001
+    description: "Host port"
+links:
+  - label: GitHub
+    url: https://github.com/docling-project/docling-serve
+  - label: Documentation
+    url: https://github.com/docling-project/docling-serve#readme
+notes: |
+  Docling Serve requires significant RAM. The first startup downloads AI models for document processing.
