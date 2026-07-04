@@ -9,7 +9,7 @@ metadata:
   tags: [Notifications, Push, Alerts, Pub-Sub]
   version: "latest"
   homepage: https://ntfy.sh
-  icon: https://github.com/binwiederhier.png?size=64
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/ntfy.svg
   license: Apache-2.0
   verified: false
 

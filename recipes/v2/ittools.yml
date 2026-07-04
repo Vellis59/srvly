@@ -9,7 +9,7 @@ metadata:
   tags: [Developer Tools, Utilities, Converters, Toolbox]
   version: "latest"
   homepage: https://it-tools.tech
-  icon: https://github.com/CorentinTh.png?size=64
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/it-tools.svg
   license: GPL-3.0
   verified: false
 

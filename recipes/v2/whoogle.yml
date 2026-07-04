@@ -9,7 +9,7 @@ metadata:
   tags: [Search, Privacy, Google, Proxy]
   version: "0.9.3"
   homepage: https://github.com/benbusby/whoogle-search
-  icon: https://github.com/benbusby.png?size=64
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/whoogle.png
   license: MIT
   verified: false
 

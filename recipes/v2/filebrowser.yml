@@ -9,7 +9,7 @@ metadata:
   tags: [File Manager, File Sharing, Storage, Web UI]
   version: "latest"
   homepage: https://filebrowser.org
-  icon: https://github.com/filebrowser.png?size=64
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/filebrowser.svg
   license: Apache-2.0
   verified: false
 

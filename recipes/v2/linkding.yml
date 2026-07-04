@@ -9,7 +9,7 @@ metadata:
   tags: [Bookmarks, Productivity, Links, Archiving]
   version: "latest"
   homepage: https://github.com/sissbruecker/linkding
-  icon: https://github.com/sissbruecker.png?size=64
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/linkding.svg
   license: MIT
   verified: false
 

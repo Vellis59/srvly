@@ -9,7 +9,7 @@ metadata:
   tags: [Subscriptions, Finance, Tracking, Expenses]
   version: "latest"
   homepage: https://github.com/ellite/Wallos
-  icon: https://github.com/ellite.png?size=64
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/wallos.png
   license: GPL-3.0
   verified: false
 

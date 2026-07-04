@@ -9,7 +9,7 @@ metadata:
   tags: [Dashboard, Homepage, Bookmarks, Homelab]
   version: "latest"
   homepage: https://gethomepage.dev
-  icon: https://github.com/gethomepage.png?size=64
+  icon: https://raw.githubusercontent.com/gethomepage/homepage/main/public/homepage.ico
   license: GPL-3.0
   verified: false
 

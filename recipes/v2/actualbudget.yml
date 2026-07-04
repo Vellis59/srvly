@@ -9,7 +9,7 @@ metadata:
   tags: [Finance, Budget, Personal]
   version: "26.2.1"
   homepage: https://actualbudget.org
-  icon: https://avatars.githubusercontent.com/u/65203854
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/actual-budget.svg
   license: MIT
   verified: false
 

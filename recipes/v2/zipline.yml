@@ -9,7 +9,7 @@ metadata:
   tags: [File Upload, Screenshots, File Sharing, Media]
   version: "latest"
   homepage: https://zipline.diced.sh
-  icon: https://github.com/diced.png?size=64
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/zipline.svg
   license: MIT
   verified: false
 

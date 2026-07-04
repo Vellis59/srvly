@@ -9,7 +9,7 @@ metadata:
   tags: [Monitoring, Uptime, Status Page, Alerts]
   version: "2.3.2"
   homepage: https://uptime.kuma.pet
-  icon: https://github.com/louislam.png?size=64
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/uptime-kuma.svg
   license: MIT
   verified: false
 

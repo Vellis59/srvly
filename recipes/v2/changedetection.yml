@@ -9,7 +9,7 @@ metadata:
   tags: [Monitoring, Web Scraping, Alerts, Change Detection]
   version: "latest"
   homepage: https://changedetection.io
-  icon: https://github.com/dgtlmoon.png?size=64
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/changedetection.svg
   license: Apache-2.0
   verified: false
 

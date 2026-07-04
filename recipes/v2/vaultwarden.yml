@@ -9,7 +9,7 @@ metadata:
   tags: [Security, Password Manager, Bitwarden, Rust]
   version: "latest"
   homepage: https://github.com/dani-garcia/vaultwarden
-  icon: https://github.com/dani-garcia.png?size=64
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/vaultwarden.svg
   license: AGPL-3.0
   verified: false
 

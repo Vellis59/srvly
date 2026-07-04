@@ -9,7 +9,7 @@ metadata:
   tags: [Docker, Logs, Monitoring, Container]
   version: "latest"
   homepage: https://dozzle.dev
-  icon: https://github.com/amir20.png?size=64
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/dozzle.svg
   license: MIT
   verified: false
 

@@ -9,7 +9,7 @@ metadata:
   tags: [Notes, Markdown, Knowledge Base, Journal]
   version: "stable"
   homepage: https://www.usememos.com
-  icon: https://github.com/usememos.png?size=64
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/memos.svg
   license: MIT
   verified: false
 

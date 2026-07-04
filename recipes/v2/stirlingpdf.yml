@@ -9,7 +9,7 @@ metadata:
   tags: [PDF, Documents, OCR, Conversion]
   version: "latest"
   homepage: https://www.stirlingpdf.com
-  icon: https://github.com/Stirling-Tools.png?size=64
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/stirling-pdf.svg
   license: MIT
   verified: false
 
