@@ -1,0 +1,80 @@
+metadata:
+  name: "Activepieces"
+  description: |
+    Activepieces is an open-source no-code workflow automation platform that connects applications and services through a visual builder.
+    It supports hundreds of integrations, triggers, actions, branching, scheduling, and custom code steps without requiring programming skills.
+    It is a fast-growing alternative to Zapier, Make, and n8n for users who prefer a visual workflow builder.
+  category: automation-iot
+  subcategory: workflows
+  tags: [Automation, Workflows, No-Code, Integrations]
+  version: "latest"
+  homepage: https://www.activepieces.com
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/activepieces.svg
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8060]
+  resources:
+    ram: 512
+    disk: 2
+
+install:
+  docker:
+    image: ghcr.io/activepieces/activepieces:latest
+    name: activepieces
+    port: "8060:80"
+    volumes:
+      - /opt/srvly/apps/activepieces/data:/data
+    env:
+      - key: AP_ENGINE_EXECUTABLE_PATH
+        value: "dist/packages/engine/main.js"
+      - key: AP_FRONTEND_URL
+        value: "$PUBLIC_BASE_URL"
+
+agent_install:
+  network: srvly-activepieces
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed activepieces container before retrying."
+  prerequisites: []
+  app_env:
+    AP_FRONTEND_URL: "$PUBLIC_BASE_URL"
+  post_install:
+    - "Set AP_FRONTEND_URL to the final public URL before deployment."
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8060
+  path: /
+  expected: [200, 301, 302]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/activepieces/activepieces:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8060
+    description: "Host port for the Activepieces web UI"
+
+links:
+  - label: Website
+    url: https://www.activepieces.com
+  - label: GitHub
+    url: https://github.com/activepieces/activepieces
+  - label: Documentation
+    url: https://www.activepieces.com/docs
+
+notes: |
+  Activepieces uses an embedded database by default. For multi-user production use, configure PostgreSQL through environment variables.

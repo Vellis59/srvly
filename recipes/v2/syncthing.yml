@@ -1,0 +1,75 @@
+metadata:
+  name: "Syncthing"
+  description: |
+    Syncthing is a continuous file synchronization tool that securely syncs files between devices in a peer-to-peer mesh without a central server.
+    It provides encrypted transfer, version conflict handling, folder sharing, selective sync, and a web-based monitoring interface.
+    It is the gold standard for privacy-respecting file synchronization between your own devices.
+  category: storage-backup
+  subcategory: sync
+  tags: [File Sync, P2P, Backup, Sharing]
+  version: "latest"
+  homepage: https://syncthing.net
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/syncthing.svg
+  license: MPL-2.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8384]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: ghcr.io/syncthing/syncthing:latest
+    name: syncthing
+    port: "8384:8384"
+    volumes:
+      - /opt/srvly/apps/syncthing/config:/var/syncthing/config
+      - /opt/srvly/apps/syncthing/data:/var/syncthing/data
+
+agent_install:
+  network: srvly-syncthing
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed syncthing container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Access the web UI and set up folder sharing with your other devices."
+
+healthcheck:
+  type: http
+  port: 8384
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/syncthing/syncthing:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: Web UI port
+    default: 8384
+    description: "Host port for the Syncthing web UI"
+
+links:
+  - label: Website
+    url: https://syncthing.net
+  - label: GitHub
+    url: https://github.com/syncthing/syncthing
+  - label: Documentation
+    url: https://docs.syncthing.net
+
+notes: |
+  Syncthing also uses ports 22000 (TCP/UDP for sync) and 21027 (UDP for discovery). This recipe only exposes the web UI port.

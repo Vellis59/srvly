@@ -1,0 +1,108 @@
+metadata:
+  name: "Baserow"
+  description: |
+    Baserow is a self-hosted no-code database platform with a spreadsheet-like interface for building applications without programming.
+    It supports multiple table views (grid, form, kanban, gallery), formulas, filters, row comments, API access, templates, and team collaboration.
+    It is a powerful Airtable alternative designed for scalability and extensibility.
+  category: productivity
+  subcategory: documents
+  tags: [Database, No-Code, Spreadsheet, Airtable Alternative]
+  version: "latest"
+  homepage: https://baserow.io
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/baserow.svg
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: true
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8070]
+  resources:
+    ram: 1024
+    disk: 5
+
+install:
+  docker:
+    image: baserow/baserow:latest
+    name: baserow
+    port: "8070:80"
+    volumes:
+      - /opt/srvly/apps/baserow/data:/baserow/data
+    env:
+      - key: BASEROW_PUBLIC_URL
+        value: "$PUBLIC_BASE_URL"
+      - key: DATABASE_HOST
+        value: baserow-postgres
+      - key: DATABASE_PORT
+        value: "5432"
+      - key: DATABASE_NAME
+        value: baserow
+      - key: DATABASE_USER
+        value: baserow
+      - key: DATABASE_PASSWORD
+        value: "***"
+
+agent_install:
+  network: srvly-baserow
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed baserow or baserow-postgres containers before retrying."
+  prerequisites:
+    - type: postgres
+      name: baserow-postgres
+      image: postgres:16-alpine
+      container: baserow-postgres
+      database: baserow
+      user: baserow
+      password: generate
+      volume: /opt/srvly/apps/baserow/postgres:/var/lib/postgresql/data
+      port: 5432
+      env:
+        POSTGRES_DB: baserow
+        POSTGRES_USER: baserow
+        POSTGRES_PASSWORD: $GENERATED_PASSWORD
+  app_env:
+    BASEROW_PUBLIC_URL: "$PUBLIC_BASE_URL"
+    DATABASE_HOST: "baserow-postgres"
+    DATABASE_PORT: "5432"
+    DATABASE_NAME: "baserow"
+    DATABASE_USER: "baserow"
+    DATABASE_PASSWORD: "***"
+  post_install:
+    - "Create the Docker network before both containers and attach Postgres and the app to it."
+    - "Start Postgres first and wait until it accepts connections before starting the app."
+    - "Set BASEROW_PUBLIC_URL to the final public URL before deployment."
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8070
+  path: /api/user/
+  expected: [200]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: baserow/baserow:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8070
+    description: "Host port for the Baserow web UI"
+
+links:
+  - label: Website
+    url: https://baserow.io
+  - label: GitHub
+    url: https://github.com/bram2w/baserow
+  - label: Documentation
+    url: https://baserow.io/docs
+
+notes: |
+  Baserow requires PostgreSQL. It also provisions a Redis instance internally for caching and task queues.

@@ -19,7 +19,7 @@ prerequisites:
     mysql: false
     redis: false
     mongodb: false
-  ports: [8000]
+  ports: [8001]
   resources:
     ram: 128
     disk: 1
@@ -28,7 +28,7 @@ install:
   docker:
     image: ghcr.io/qdm12/ddns-updater:latest
     name: ddnsupdater
-    port: "8000:8000"
+    port: "8001:8000"
     volumes:
       - /opt/srvly/apps/ddnsupdater/data:/updater/data
     env:
@@ -50,7 +50,7 @@ agent_install:
 
 healthcheck:
   type: http
-  port: 8000
+  port: 8001
   path: /
   expected: [200, 301, 302]
   timeout: 30
@@ -64,7 +64,7 @@ params:
   port:
     type: integer
     title: HTTP port
-    default: 8000
+    default: 8001
     description: "Host port for the DDNS Updater web UI"
 
 links:

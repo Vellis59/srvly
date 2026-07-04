@@ -1,0 +1,84 @@
+metadata:
+  name: "Netdata"
+  description: |
+    Netdata is a real-time monitoring and troubleshooting platform for servers, containers, and applications with high-resolution metrics and interactive dashboards.
+    It collects thousands of metrics per second (CPU, memory, disk, network, processes, containers) and presents them in meaningful visualizations with anomaly detection.
+    It is the most popular open-source infrastructure monitoring tool for real-time observability.
+  category: dev-infra
+  subcategory: monitoring
+  tags: [Monitoring, Metrics, Dashboard, Observability]
+  version: "latest"
+  homepage: https://www.netdata.cloud
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/netdata.svg
+  license: GPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [19999]
+  resources:
+    ram: 1024
+    disk: 2
+
+install:
+  docker:
+    image: netdata/netdata:latest
+    name: netdata
+    port: "19999:19999"
+    volumes:
+      - /opt/srvly/apps/netdata/config:/etc/netdata
+      - /opt/srvly/apps/netdata/lib:/var/lib/netdata
+      - /opt/srvly/apps/netdata/cache:/var/cache/netdata
+      - /etc/passwd:/host/etc/passwd:ro
+      - /etc/group:/host/etc/group:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+    env:
+      - key: DOCKER_HOSTNAME
+        value: "$PUBLIC_HOST"
+        description: "Hostname for the monitored server"
+
+agent_install:
+  network: srvly-netdata
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed netdata container before retrying."
+  prerequisites: []
+  app_env:
+    DOCKER_HOSTNAME: "$PUBLIC_HOST"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 19999
+  path: /api/v1/info
+  expected: [200]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: netdata/netdata:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 19999
+    description: "Host port for the Netdata web UI"
+
+links:
+  - label: Website
+    url: https://www.netdata.cloud
+  - label: GitHub
+    url: https://github.com/netdata/netdata
+  - label: Documentation
+    url: https://learn.netdata.cloud
+
+notes: |
+  Netdata requires access to host /proc, /sys, passwd, and group for system metrics collection.

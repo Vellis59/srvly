@@ -1,0 +1,86 @@
+metadata:
+  name: "Duplicati"
+  description: |
+    Duplicati is a free backup tool that stores encrypted, incremental backups on cloud storage services and file systems.
+    It supports S3, Backblaze B2, Google Drive, OneDrive, Dropbox, SFTP, WebDAV, and many more destinations with AES-256 encryption and deduplication.
+    It is a reliable solution for automated encrypted backups of any self-hosted service.
+  category: storage-backup
+  subcategory: backup
+  tags: [Backup, Encryption, Cloud, Storage]
+  version: "latest"
+  homepage: https://www.duplicati.com
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/duplicati.svg
+  license: LGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8200]
+  resources:
+    ram: 512
+    disk: 2
+
+install:
+  docker:
+    image: lscr.io/linuxserver/duplicati:latest
+    name: duplicati
+    port: "8200:8200"
+    volumes:
+      - /opt/srvly/apps/duplicati/config:/config
+      - /opt/srvly/apps/duplicati/backups:/backups
+      - /opt/srvly/apps/duplicati/source:/source
+    env:
+      - key: PUID
+        value: "1000"
+      - key: PGID
+        value: "1000"
+      - key: TZ
+        value: "Europe/Paris"
+
+agent_install:
+  network: srvly-duplicati
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed duplicati container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Access the web UI to configure backup jobs."
+
+healthcheck:
+  type: http
+  port: 8200
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/duplicati:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8200
+    description: "Host port for the Duplicati web UI"
+
+links:
+  - label: Website
+    url: https://www.duplicati.com
+  - label: GitHub
+    url: https://github.com/duplicati/duplicati
+  - label: Documentation
+    url: https://duplicati.readthedocs.io
+
+notes: |
+  Duplicati backs up to many destinations. Mount any directories you need to back up under the source volume.

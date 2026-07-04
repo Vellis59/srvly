@@ -1,0 +1,109 @@
+metadata:
+  name: "Snipe-IT"
+  description: |
+    Snipe-IT is a comprehensive IT asset management system for tracking hardware, software, licenses, accessories, and consumables.
+    It supports check-in/check-out workflows, depreciation tracking, barcode scanning, supplier management, reports, and user notifications.
+    It is the leading open-source alternative to proprietary asset management solutions for organizations of any size.
+  category: productivity
+  subcategory: documents
+  tags: [Asset Management, IT, Inventory, Hardware]
+  version: "latest"
+  homepage: https://snipeitapp.com
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/snipe-it.png
+  license: AGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: true
+    redis: false
+    mongodb: false
+  ports: [8077]
+  resources:
+    ram: 1024
+    disk: 5
+
+install:
+  docker:
+    image: snipe/snipe-it:latest
+    name: snipeit
+    port: "8077:80"
+    volumes:
+      - /opt/srvly/apps/snipeit/data:/var/lib/snipeit
+    env:
+      - key: DB_HOST
+        value: snipeit-mariadb
+      - key: DB_DATABASE
+        value: snipeit
+      - key: DB_USERNAME
+        value: snipeit
+      - key: DB_PASSWORD
+        value: "***"
+      - key: APP_URL
+        value: "$PUBLIC_BASE_URL"
+      - key: APP_KEY
+        value: "***"
+
+agent_install:
+  network: srvly-snipeit
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed snipeit or snipeit-mariadb containers before retrying."
+  prerequisites:
+    - type: mysql
+      name: snipeit-mariadb
+      image: mariadb:11
+      container: snipeit-mariadb
+      database: snipeit
+      user: snipeit
+      password: generate
+      volume: /opt/srvly/apps/snipeit/mariadb:/var/lib/mysql
+      port: 3306
+      env:
+        MYSQL_DATABASE: snipeit
+        MYSQL_USER: snipeit
+        MYSQL_PASSWORD: $GENERATED_PASSWORD
+        MYSQL_ROOT_PASSWORD: $GENERATED_ROOT_PASSWORD
+  app_env:
+    DB_HOST: "snipeit-mariadb"
+    DB_DATABASE: "snipeit"
+    DB_USERNAME: "snipeit"
+    DB_PASSWORD: "***"
+    APP_URL: "$PUBLIC_BASE_URL"
+    APP_KEY: "***"
+  post_install:
+    - "Create the Docker network before both containers and attach MariaDB and the app to it."
+    - "Start MariaDB first and wait until it accepts connections before starting the app."
+    - "Generate APP_KEY before deployment."
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8077
+  path: /login
+  expected: [200, 301, 302]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: snipe/snipe-it:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8077
+    description: "Host port for the Snipe-IT web UI"
+
+links:
+  - label: Website
+    url: https://snipeitapp.com
+  - label: GitHub
+    url: https://github.com/snipe/snipe-it
+  - label: Documentation
+    url: https://snipe-it.readme.io
+
+notes: |
+  Snipe-IT requires MariaDB and an APP_KEY. Run the setup wizard through the web UI on first access.

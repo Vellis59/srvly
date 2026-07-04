@@ -1,0 +1,89 @@
+metadata:
+  name: "FerretDB"
+  description: |
+    FerretDB is an open-source proxy that translates MongoDB wire protocol to SQL using PostgreSQL or SQLite as the backend.
+    It allows MongoDB-compatible applications to work without a MongoDB database, using PostgreSQL for production-grade storage.
+    It is a practical way to run MongoDB-compatible workloads with the reliability and tooling of PostgreSQL.
+  category: dev-infra
+  subcategory: database
+  tags: [Database, MongoDB, PostgreSQL, SQL]
+  version: "latest"
+  homepage: https://ferretdb.io
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/ferretdb.svg
+  license: Apache-2.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: true
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [27017]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: ghcr.io/ferretdb/ferretdb:latest
+    name: ferretdb
+    port: "27017:27017"
+    env:
+      - key: FERRETDB_POSTGRESQL_URL
+        value: "postgres://ferretdb:***@ferretdb-postgres:5432/ferretdb"
+
+agent_install:
+  network: srvly-ferretdb
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed ferretdb or ferretdb-postgres containers before retrying."
+  prerequisites:
+    - type: postgres
+      name: ferretdb-postgres
+      image: postgres:16-alpine
+      container: ferretdb-postgres
+      database: ferretdb
+      user: ferretdb
+      password: generate
+      volume: /opt/srvly/apps/ferretdb/postgres:/var/lib/postgresql/data
+      port: 5432
+      env:
+        POSTGRES_DB: ferretdb
+        POSTGRES_USER: ferretdb
+        POSTGRES_PASSWORD: $GENERATED_PASSWORD
+  app_env:
+    FERRETDB_POSTGRESQL_URL: "postgres://ferretdb:***@ferretdb-postgres:5432/ferretdb"
+  post_install:
+    - "Create the Docker network before both containers and attach Postgres and FerretDB to it."
+    - "Start Postgres first and wait until it accepts connections before starting FerretDB."
+
+healthcheck:
+  type: http
+  port: 27017
+  path: /
+  expected: [200]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/ferretdb/ferretdb:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: MongoDB port
+    default: 27017
+    description: "MongoDB-compatible port"
+
+links:
+  - label: Website
+    url: https://ferretdb.io
+  - label: GitHub
+    url: https://github.com/FerretDB/FerretDB
+  - label: Documentation
+    url: https://docs.ferretdb.io
+
+notes: |
+  FerretDB translates MongoDB wire protocol to PostgreSQL. Point your MongoDB client at port 27017.

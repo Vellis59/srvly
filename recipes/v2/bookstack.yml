@@ -1,0 +1,116 @@
+metadata:
+  name: "BookStack"
+  description: |
+    BookStack is a self-hosted documentation and knowledge management platform with a simple, organized structure.
+    It organizes content into shelves, books, chapters, and pages with a WYSIWYG editor, markdown support, search, roles and permissions, and LDAP/SAML authentication.
+    It is a practical wiki alternative focused on straightforward content organization for teams of any size.
+  category: productivity
+  subcategory: notes-wiki
+  tags: [Wiki, Documentation, Knowledge Base, Collaboration]
+  version: "latest"
+  homepage: https://www.bookstackapp.com
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/bookstack.svg
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: true
+    redis: false
+    mongodb: false
+  ports: [8071]
+  resources:
+    ram: 512
+    disk: 2
+
+install:
+  docker:
+    image: lscr.io/linuxserver/bookstack:latest
+    name: bookstack
+    port: "8071:80"
+    volumes:
+      - /opt/srvly/apps/bookstack/config:/config
+    env:
+      - key: PUID
+        value: "1000"
+      - key: PGID
+        value: "1000"
+      - key: TZ
+        value: "Europe/Paris"
+      - key: DB_HOST
+        value: bookstack-mariadb
+      - key: DB_DATABASE
+        value: bookstack
+      - key: DB_USERNAME
+        value: bookstack
+      - key: DB_PASSWORD
+        value: "***"
+      - key: APP_URL
+        value: "$PUBLIC_BASE_URL"
+
+agent_install:
+  network: srvly-bookstack
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed bookstack or bookstack-mariadb containers before retrying."
+  prerequisites:
+    - type: mysql
+      name: bookstack-mariadb
+      image: mariadb:11
+      container: bookstack-mariadb
+      database: bookstack
+      user: bookstack
+      password: generate
+      volume: /opt/srvly/apps/bookstack/mariadb:/var/lib/mysql
+      port: 3306
+      env:
+        MYSQL_DATABASE: bookstack
+        MYSQL_USER: bookstack
+        MYSQL_PASSWORD: $GENERATED_PASSWORD
+        MYSQL_ROOT_PASSWORD: $GENERATED_ROOT_PASSWORD
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+    DB_HOST: "bookstack-mariadb"
+    DB_DATABASE: "bookstack"
+    DB_USERNAME: "bookstack"
+    DB_PASSWORD: "***"
+    APP_URL: "$PUBLIC_BASE_URL"
+  post_install:
+    - "Create the Docker network before both containers and attach MariaDB and the app to it."
+    - "Start MariaDB first and wait until it accepts connections before starting the app."
+    - "Set APP_URL to the final public URL before deployment."
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 8071
+  path: /
+  expected: [200, 301, 302]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/bookstack:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8071
+    description: "Host port for the BookStack web UI"
+
+links:
+  - label: Website
+    url: https://www.bookstackapp.com
+  - label: GitHub
+    url: https://github.com/BookStackApp/BookStack
+  - label: Documentation
+    url: https://www.bookstackapp.com/docs
+
+notes: |
+  BookStack requires MariaDB/MySQL. The initial admin account is created with credentials set in the app configuration.
