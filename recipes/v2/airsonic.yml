@@ -1,0 +1,84 @@
+metadata:
+  name: "Airsonic Advanced"
+  description: |
+    Airsonic Advanced is a free, web-based music streamer that gives you access to your music collection from anywhere.
+    It supports MP3, FLAC, OGG, AAC, WMA and many other formats with transcoding, playlists, podcasts, jukebox mode, and multi-user support.
+    It is the most popular open-source audio streaming server for personal music collections.
+  category: media
+  subcategory: music
+  tags: [Music, Streaming, Audio, Podcasts]
+  version: "latest"
+  homepage: https://airsonic.github.io
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=A
+  license: GPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [4040]
+  resources:
+    ram: 512
+    disk: 5
+
+install:
+  docker:
+    image: lscr.io/linuxserver/airsonic-advanced:latest
+    name: airsonic
+    port: "4040:4040"
+    volumes:
+      - /opt/srvly/apps/airsonic/config:/config
+      - /opt/srvly/apps/airsonic/music:/music
+      - /opt/srvly/apps/airsonic/playlists:/playlists
+      - /opt/srvly/apps/airsonic/podcasts:/podcasts
+    env:
+      - key: PUID
+        value: "1000"
+      - key: PGID
+        value: "1000"
+      - key: TZ
+        value: "Europe/Paris"
+
+agent_install:
+  network: srvly-airsonic
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed airsonic container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 4040
+  path: /
+  expected: [200, 301, 302]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/airsonic-advanced:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 4040
+    description: "Host port"
+links:
+  - label: Website
+    url: https://airsonic.github.io
+  - label: GitHub
+    url: https://github.com/airsonic-advanced/airsonic-advanced
+  - label: Documentation
+    url: https://airsonic.github.io/docs
+notes: |
+  Place your music files in the /music volume. Airsonic supports all major audio formats.

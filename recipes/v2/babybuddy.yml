@@ -1,0 +1,81 @@
+metadata:
+  name: "Baby Buddy"
+  description: |
+    Baby Buddy is a companion app for tracking baby care activities including feeding, diaper changes, sleep, growth, pumping, and medical notes.
+    It provides timelines, charts, and reports to help parents understand their baby's patterns and share care information with partners and caregivers.
+    It is the most popular self-hosted baby tracking application for new parents.
+  category: productivity
+  subcategory: documents
+  tags: [Baby, Kids, Activities, Tracking]
+  version: "latest"
+  homepage: https://babybuddy.app
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=B
+  license: BSD-2-Clause
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8069]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: lscr.io/linuxserver/babybuddy:latest
+    name: babybuddy
+    port: "8069:8000"
+    volumes:
+      - /opt/srvly/apps/babybuddy/config:/config
+    env:
+      - key: PUID
+        value: "1000"
+      - key: PGID
+        value: "1000"
+      - key: TZ
+        value: "Europe/Paris"
+
+agent_install:
+  network: srvly-babybuddy
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed babybuddy container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8069
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/babybuddy:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8069
+    description: "Host port"
+links:
+  - label: Website
+    url: https://babybuddy.app
+  - label: GitHub
+    url: https://github.com/babybuddy/babybuddy
+  - label: Documentation
+    url: https://docs.babybuddy.app
+notes: |
+  Baby Buddy uses SQLite by default. For production, configure PostgreSQL through environment variables.

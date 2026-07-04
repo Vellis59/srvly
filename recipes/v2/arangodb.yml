@@ -1,0 +1,75 @@
+metadata:
+  name: "ArangoDB"
+  description: |
+    ArangoDB is a multi-model database system supporting document, graph, and key-value data models with a single query language.
+    It provides AQL (ArangoDB Query Language), built-in graph traversal, full-text search, geospatial indexing, and a web-based admin interface.
+    It is a versatile NoSQL database for applications requiring flexible data modeling with high performance.
+  category: dev-infra
+  subcategory: database
+  tags: [Database, NoSQL, Graph, Document]
+  version: "latest"
+  homepage: https://arangodb.com
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=A
+  license: Apache-2.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8529]
+  resources:
+    ram: 512
+    disk: 5
+
+install:
+  docker:
+    image: arangodb:latest
+    name: arangodb
+    port: "8529:8529"
+    volumes:
+      - /opt/srvly/apps/arangodb/data:/var/lib/arangodb3
+    env:
+      - key: ARANGO_ROOT_PASSWORD
+        value: "***"
+
+agent_install:
+  network: srvly-arangodb
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed arangodb container before retrying."
+  prerequisites: []
+  app_env:
+    ARANGO_ROOT_PASSWORD: "***"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8529
+  path: /_db/_system/_admin
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: arangodb:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8529
+    description: "Database HTTP port"
+links:
+  - label: Website
+    url: https://arangodb.com
+  - label: GitHub
+    url: https://github.com/arangodb/arangodb
+  - label: Documentation
+    url: https://arangodb.com/documentation
+notes: |
+  ArangoDB provides a web UI (ArangoDB Web UI) on port 8529 for database administration.

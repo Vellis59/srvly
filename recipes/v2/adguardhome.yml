@@ -1,0 +1,74 @@
+metadata:
+  name: "AdGuard Home"
+  description: |
+    AdGuard Home is a network-wide DNS ad-blocking and privacy protection server that blocks ads, trackers, and malicious domains across all devices on your network.
+    It provides a clean dashboard with query statistics, filtering rules, client management, parental controls, and DHCP server capabilities.
+    It is the most popular self-hosted DNS-level content blocking solution.
+  category: security
+  subcategory: firewall
+  tags: [DNS, Ad-Blocking, Privacy, Network]
+  version: "latest"
+  homepage: https://adguard.com/adguard-home
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=A
+  license: GPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3080]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: adguard/adguardhome:latest
+    name: adguardhome
+    port: "3080:3000"
+    volumes:
+      - /opt/srvly/apps/adguardhome/work:/opt/adguardhome/work
+      - /opt/srvly/apps/adguardhome/conf:/opt/adguardhome/conf
+
+agent_install:
+  network: srvly-adguardhome
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed adguardhome container before retrying."
+    - "AdGuard Home also requires ports 53 (DNS), 67/68 (DHCP), and 80 for the admin interface."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Complete initial setup through the web UI at port 3000."
+
+healthcheck:
+  type: http
+  port: 3080
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: adguard/adguardhome:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: Admin port
+    default: 3080
+    description: "Admin web UI port"
+links:
+  - label: Website
+    url: https://adguard.com/adguard-home
+  - label: GitHub
+    url: https://github.com/AdguardTeam/AdGuardHome
+  - label: Documentation
+    url: https://adguard.com/adguard-home/docs
+notes: |
+  AdGuard Home requires port 53 (DNS) and optionally 67/68 (DHCP) for full functionality. This recipe only exposes the admin web UI port.

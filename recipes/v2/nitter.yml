@@ -1,0 +1,71 @@
+metadata:
+  name: "Nitter"
+  description: |
+    Nitter is a privacy-friendly frontend for Twitter/X that lets you browse tweets without JavaScript, ads, tracking, or API limitations.
+    It provides a clean, lightweight interface for viewing user timelines, search results, trends, and media without data collection.
+    It is the most popular alternative Twitter frontend for privacy-conscious users.
+  category: communication
+  subcategory: social-media
+  tags: [Twitter, Privacy, Frontend, Social Media]
+  version: "latest"
+  homepage: https://nitter.net
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=N
+  license: AGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8103]
+  resources:
+    ram: 256
+    disk: 1
+
+install:
+  docker:
+    image: ghcr.io/zedeus/nitter:latest
+    name: nitter
+    port: "8103:8080"
+    volumes:
+      - /opt/srvly/apps/nitter/data:/data
+
+agent_install:
+  network: srvly-nitter
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed nitter container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8103
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/zedeus/nitter:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8103
+    description: "Host port"
+links:
+  - label: Website
+    url: https://nitter.net
+  - label: GitHub
+    url: https://github.com/zedeus/nitter
+  - label: Documentation
+    url: https://github.com/zedeus/nitter#readme
+notes: |
+  Nitter requires Redis for caching in production. This basic configuration uses an in-memory cache.

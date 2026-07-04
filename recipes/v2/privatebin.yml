@@ -1,0 +1,71 @@
+metadata:
+  name: "PrivateBin"
+  description: |
+    PrivateBin is a minimalist, encrypted pastebin where data is encrypted and decrypted in the browser using 256-bit AES.
+    It supports expiration times, burn-after-reading, discussion threads, file upload, and cloning with no data stored on the server in plaintext.
+    It is the most popular self-hosted alternative to Pastebin with a strong focus on privacy.
+  category: productivity
+  subcategory: documents
+  tags: [Pastebin, Encryption, Privacy, Sharing]
+  version: "latest"
+  homepage: https://privatebin.info
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=P
+  license: Zlib
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8102]
+  resources:
+    ram: 128
+    disk: 1
+
+install:
+  docker:
+    image: privatebin/nginx-fpm-alpine:latest
+    name: privatebin
+    port: "8102:80"
+    volumes:
+      - /opt/srvly/apps/privatebin/data:/srv/data
+
+agent_install:
+  network: srvly-privatebin
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed privatebin container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8102
+  path: /
+  expected: [200, 301, 302]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: privatebin/nginx-fpm-alpine:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8102
+    description: "Host port"
+links:
+  - label: Website
+    url: https://privatebin.info
+  - label: GitHub
+    url: https://github.com/PrivateBin/PrivateBin
+  - label: Documentation
+    url: https://privatebin.info/documentation
+notes: |
+  PrivateBin stores encrypted pastes with zero knowledge of their content. Configuration is in the /srv/data/cfg directory.

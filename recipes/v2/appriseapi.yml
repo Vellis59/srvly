@@ -1,0 +1,79 @@
+metadata:
+  name: "Apprise API"
+  description: |
+    Apprise API is a lightweight REST API that sends notifications through over 100 supported services including Telegram, Slack, Discord, Pushover, email, SMS, and many more.
+    It provides a simple HTTP endpoint for triggering notifications from any application or script.
+    It is an essential notification hub for self-hosted infrastructure alerts and automations.
+  category: communication
+  subcategory: notifications
+  tags: [Notifications, API, Alerts, Messages]
+  version: "latest"
+  homepage: https://github.com/caronc/apprise-api
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=A
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8126]
+  resources:
+    ram: 128
+    disk: 1
+
+install:
+  docker:
+    image: lscr.io/linuxserver/apprise-api:latest
+    name: appriseapi
+    port: "8126:8000"
+    volumes:
+      - /opt/srvly/apps/appriseapi/config:/config
+    env:
+      - key: PUID
+        value: "1000"
+      - key: PGID
+        value: "1000"
+      - key: TZ
+        value: "Europe/Paris"
+
+agent_install:
+  network: srvly-appriseapi
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed appriseapi container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8126
+  path: /
+  expected: [200, 301, 302]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/apprise-api:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8126
+    description: "Host port"
+links:
+  - label: GitHub
+    url: https://github.com/caronc/apprise-api
+  - label: Documentation
+    url: https://github.com/caronc/apprise-api#readme
+notes: |
+  Apprise API stores notification configurations in the config volume. Send POST requests to /notify to trigger notifications.

@@ -1,0 +1,88 @@
+metadata:
+  name: "code-server"
+  description: |
+    code-server is VS Code running on a remote server, accessible from anywhere through a web browser.
+    It provides the full VS Code experience including extensions, terminal, debugging, Git integration, and settings sync.
+    It is the standard solution for cloud-based development environments used by millions of developers.
+  category: dev-infra
+  subcategory: ide-tools
+  tags: [IDE, VS Code, Development, Coding]
+  version: "latest"
+  homepage: https://coder.com
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=C
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8443]
+  resources:
+    ram: 1024
+    disk: 5
+
+install:
+  docker:
+    image: lscr.io/linuxserver/code-server:latest
+    name: codeserver
+    port: "8443:8443"
+    volumes:
+      - /opt/srvly/apps/codeserver/config:/config
+    env:
+      - key: PUID
+        value: "1000"
+      - key: PGID
+        value: "1000"
+      - key: TZ
+        value: "Europe/Paris"
+      - key: PASSWORD
+        value: "***"
+      - key: SUDO_PASSWORD
+        value: "***"
+
+agent_install:
+  network: srvly-codeserver
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed codeserver container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+    PASSWORD: "***"
+    SUDO_PASSWORD: "***"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Access the web UI using the configured password."
+
+healthcheck:
+  type: http
+  port: 8443
+  path: /
+  expected: [200, 301, 302]
+  timeout: 90
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/code-server:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8443
+    description: "Host port"
+links:
+  - label: Website
+    url: https://coder.com
+  - label: GitHub
+    url: https://github.com/coder/code-server
+  - label: Documentation
+    url: https://coder.com/docs/code-server
+notes: |
+  code-server provides a browser-based VS Code experience. Set a strong PASSWORD for security.
