@@ -1,0 +1,81 @@
+metadata:
+  name: "Blender"
+  description: |
+    Blender is a professional, open-source 3D creation suite supporting the entire 3D pipeline including modeling, rigging, animation, simulation, rendering, compositing, and video editing.
+    This container provides the full Blender desktop application accessible through a web browser via KasmVNC.
+    It is the industry-standard open-source tool for 3D artists and content creators.
+  category: productivity
+  subcategory: documents
+  tags: [3D, Modeling, Animation, Rendering]
+  version: "latest"
+  homepage: https://www.blender.org
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/blender.svg
+  license: GPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3001]
+  resources:
+    ram: 2048
+    disk: 5
+
+install:
+  docker:
+    image: lscr.io/linuxserver/blender:latest
+    name: blender
+    port: "3001:3000"
+    volumes:
+      - /opt/srvly/apps/blender/config:/config
+    env:
+      - key: PUID
+        value: "1000"
+      - key: PGID
+        value: "1000"
+      - key: TZ
+        value: "Europe/Paris"
+
+agent_install:
+  network: srvly-blender
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed blender container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 3001
+  path: /
+  expected: [200, 301, 302]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/blender:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3001
+    description: "Host port for the Blender web UI"
+links:
+  - label: Website
+    url: https://www.blender.org
+  - label: GitHub
+    url: https://github.com/blender/blender
+  - label: Documentation
+    url: https://docs.blender.org
+notes: |
+  Blender is accessed through a browser-based desktop via KasmVNC. It requires a GPU for hardware-accelerated rendering.

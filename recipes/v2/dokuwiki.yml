@@ -1,0 +1,84 @@
+metadata:
+  name: "DokuWiki"
+  description: |
+    DokuWiki is a versatile, easy-to-use wiki software that stores all data in plain text files without requiring a database.
+    It supports a wide range of features including ACL, plugins, templates, revision control, media management, and authentication backends.
+    It is a proven, lightweight wiki solution ideal for documentation teams and personal knowledge bases.
+  category: productivity
+  subcategory: notes-wiki
+  tags: [Wiki, Documentation, Knowledge Base, Plain Text]
+  version: "latest"
+  homepage: https://www.dokuwiki.org
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/dokuwiki.svg
+  license: GPL-2.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8095]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: lscr.io/linuxserver/dokuwiki:latest
+    name: dokuwiki
+    port: "8095:80"
+    volumes:
+      - /opt/srvly/apps/dokuwiki/config:/config
+    env:
+      - key: PUID
+        value: "1000"
+      - key: PGID
+        value: "1000"
+      - key: TZ
+        value: "Europe/Paris"
+
+agent_install:
+  network: srvly-dokuwiki
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed dokuwiki container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 8095
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/dokuwiki:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8095
+    description: "Host port for the DokuWiki web UI"
+
+links:
+  - label: Website
+    url: https://www.dokuwiki.org
+  - label: GitHub
+    url: https://github.com/dokuwiki/dokuwiki
+  - label: Documentation
+    url: https://www.dokuwiki.org/manual
+
+notes: |
+  DokuWiki stores all pages in plain text files. No database is required. The config directory contains all settings.

@@ -1,0 +1,82 @@
+metadata:
+  name: "Chevereto"
+  description: |
+    Chevereto is a powerful self-hosted image hosting solution that allows you to create your own image sharing platform.
+    It supports albums, user accounts, social sharing, embedding, bulk uploading, external storage, and multi-language interfaces.
+    It is a well-known image hosting platform used by communities and individuals who want full control over their images.
+  category: media
+  subcategory: photos
+  tags: [Image Hosting, Sharing, Gallery, Media]
+  version: "latest"
+  homepage: https://chevereto.com
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/chevereto.svg
+  license: AGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: true
+    redis: false
+    mongodb: false
+  ports: [8061]
+  resources:
+    ram: 512
+    disk: 5
+
+install:
+  docker:
+    image: lscr.io/linuxserver/chevereto:latest
+    name: chevereto
+    port: "8061:80"
+    volumes:
+      - /opt/srvly/apps/chevereto/config:/config
+      - /opt/srvly/apps/chevereto/images:/images
+    env:
+      - key: PUID
+        value: "1000"
+      - key: PGID
+        value: "1000"
+      - key: TZ
+        value: "Europe/Paris"
+
+agent_install:
+  network: srvly-chevereto
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed chevereto container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8061
+  path: /
+  expected: [200, 301, 302]
+  timeout: 90
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/chevereto:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8061
+    description: "Host port for the Chevereto web UI"
+links:
+  - label: Website
+    url: https://chevereto.com
+  - label: GitHub
+    url: https://github.com/chevereto/chevereto
+  - label: Documentation
+    url: https://chevereto.com/docs
+notes: |
+  Chevereto requires MySQL/MariaDB for production. Configure the database connection through the web UI on first setup.

@@ -1,0 +1,97 @@
+metadata:
+  name: "Coder"
+  description: |
+    Coder is a self-hosted remote development platform that provides workspaces with full IDEs accessible from any browser.
+    It supports VS Code, JetBrains, Jupyter, and any IDE running in containers, with templates, collaboration, and infrastructure management.
+    It is a powerful solution for teams that need standardized, cloud-based development environments.
+  category: dev-infra
+  subcategory: ide-tools
+  tags: [Development, IDE, Cloud, Workspaces]
+  version: "latest"
+  homepage: https://coder.com
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/coder.svg
+  license: AGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: true
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [7080]
+  resources:
+    ram: 1024
+    disk: 5
+
+install:
+  docker:
+    image: ghcr.io/coder/coder:latest
+    name: coder
+    port: "7080:3000"
+    volumes:
+      - /opt/srvly/apps/coder/data:/home/coder/coder
+    env:
+      - key: CODER_HTTP_ADDRESS
+        value: "0.0.0.0:3000"
+      - key: CODER_ACCESS_URL
+        value: "$PUBLIC_BASE_URL"
+      - key: CODER_PG_CONNECTION_URL
+        value: "postgres://coder:***@coder-postgres:5432/coder?sslmode=disable"
+
+agent_install:
+  network: srvly-coder
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed coder or coder-postgres containers before retrying."
+  prerequisites:
+    - type: postgres
+      name: coder-postgres
+      image: postgres:16-alpine
+      container: coder-postgres
+      database: coder
+      user: coder
+      password: generate
+      volume: /opt/srvly/apps/coder/postgres:/var/lib/postgresql/data
+      port: 5432
+      env:
+        POSTGRES_DB: coder
+        POSTGRES_USER: coder
+        POSTGRES_PASSWORD: $GENERATED_PASSWORD
+  app_env:
+    CODER_HTTP_ADDRESS: "0.0.0.0:3000"
+    CODER_ACCESS_URL: "$PUBLIC_BASE_URL"
+    CODER_PG_CONNECTION_URL: "postgres://coder:***@coder-postgres:5432/coder?sslmode=disable"
+  post_install:
+    - "Create the Docker network before both containers and attach Postgres and the app to it."
+    - "Start Postgres first and wait until it accepts connections before starting the app."
+    - "Set CODER_ACCESS_URL to the final public URL."
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 7080
+  path: /api/v2/buildinfo
+  expected: [200]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/coder/coder:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 7080
+    description: "Host port for the Coder web UI"
+links:
+  - label: Website
+    url: https://coder.com
+  - label: GitHub
+    url: https://github.com/coder/coder
+  - label: Documentation
+    url: https://coder.com/docs
+notes: |
+  Coder requires PostgreSQL for storing workspace metadata and user data.

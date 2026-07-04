@@ -1,0 +1,81 @@
+metadata:
+  name: "Dillinger"
+  description: |
+    Dillinger is a cloud-enabled, mobile-ready, offline-storage-compatible Markdown editor with a live preview.
+    It supports GitHub Flavored Markdown, custom CSS, export in multiple formats (HTML, PDF, Markdown), and cloud storage integration.
+    It is a convenient browser-based tool for editing Markdown documents on any device.
+  category: productivity
+  subcategory: documents
+  tags: [Markdown, Editor, Documentation, Writing]
+  version: "latest"
+  homepage: https://dillinger.io
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/dillinger.svg
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8052]
+  resources:
+    ram: 256
+    disk: 1
+
+install:
+  docker:
+    image: lscr.io/linuxserver/dillinger:latest
+    name: dillinger
+    port: "8052:80"
+    volumes:
+      - /opt/srvly/apps/dillinger/config:/config
+    env:
+      - key: PUID
+        value: "1000"
+      - key: PGID
+        value: "1000"
+      - key: TZ
+        value: "Europe/Paris"
+
+agent_install:
+  network: srvly-dillinger
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed dillinger container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8052
+  path: /
+  expected: [200, 301, 302]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/dillinger:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8052
+    description: "Host port for the Dillinger web UI"
+links:
+  - label: Website
+    url: https://dillinger.io
+  - label: GitHub
+    url: https://github.com/joemccann/dillinger
+  - label: Documentation
+    url: https://github.com/joemccann/dillinger#readme
+notes: |
+  Dillinger is a web-based Markdown editor. It does not require a database.

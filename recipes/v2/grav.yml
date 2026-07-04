@@ -1,0 +1,83 @@
+metadata:
+  name: "Grav"
+  description: |
+    Grav is a modern flat-file CMS that uses Markdown files for content, YAML for configuration, and Twig for templating without a database.
+    It features a powerful admin panel, caching, media support, taxonomy, user management, and a rich plugin/theme ecosystem.
+    It is a fast and flexible CMS ideal for portfolios, blogs, documentation, and small business sites.
+  category: productivity
+  subcategory: documents
+  tags: [CMS, Flat-File, Markdown, Blogging]
+  version: "latest"
+  homepage: https://getgrav.org
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/grav.svg
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8091]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: lscr.io/linuxserver/grav:latest
+    name: grav
+    port: "8091:80"
+    volumes:
+      - /opt/srvly/apps/grav/config:/config
+    env:
+      - key: PUID
+        value: "1000"
+      - key: PGID
+        value: "1000"
+      - key: TZ
+        value: "Europe/Paris"
+
+agent_install:
+  network: srvly-grav
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed grav container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8091
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/grav:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8091
+    description: "Host port for the Grav web UI"
+
+links:
+  - label: Website
+    url: https://getgrav.org
+  - label: GitHub
+    url: https://github.com/getgrav/grav
+  - label: Documentation
+    url: https://learn.getgrav.org
+
+notes: |
+  Grav requires no database. All content is stored as Markdown files in the user/pages directory within the config volume.

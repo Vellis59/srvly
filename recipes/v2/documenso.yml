@@ -1,0 +1,97 @@
+metadata:
+  name: "Documenso"
+  description: |
+    Documenso is an open-source document signing platform that provides legally binding electronic signatures.
+    It supports document upload, signature fields, email notifications, audit trails, and templates.
+    It is the leading open-source alternative to DocuSign and HelloSign for self-hosted document signing.
+  category: productivity
+  subcategory: documents
+  tags: [Documents, Signatures, E-Sign, PDF]
+  version: "latest"
+  homepage: https://documenso.com
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/documenso.svg
+  license: AGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: true
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8062]
+  resources:
+    ram: 512
+    disk: 2
+
+install:
+  docker:
+    image: ghcr.io/documenso/documenso:latest
+    name: documenso
+    port: "8062:3000"
+    env:
+      - key: NEXTAUTH_URL
+        value: "$PUBLIC_BASE_URL"
+      - key: NEXT_PUBLIC_WEBAPP_URL
+        value: "$PUBLIC_BASE_URL"
+      - key: DATABASE_URL
+        value: "postgres://documenso:***@documenso-postgres:5432/documenso"
+      - key: NEXTAUTH_SECRET
+        value: "***"
+
+agent_install:
+  network: srvly-documenso
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed documenso or documenso-postgres containers before retrying."
+  prerequisites:
+    - type: postgres
+      name: documenso-postgres
+      image: postgres:16-alpine
+      container: documenso-postgres
+      database: documenso
+      user: documenso
+      password: generate
+      volume: /opt/srvly/apps/documenso/postgres:/var/lib/postgresql/data
+      port: 5432
+      env:
+        POSTGRES_DB: documenso
+        POSTGRES_USER: documenso
+        POSTGRES_PASSWORD: $GENERATED_PASSWORD
+  app_env:
+    NEXTAUTH_URL: "$PUBLIC_BASE_URL"
+    NEXT_PUBLIC_WEBAPP_URL: "$PUBLIC_BASE_URL"
+    DATABASE_URL: "postgres://documenso:***@documenso-postgres:5432/documenso"
+    NEXTAUTH_SECRET: "***"
+  post_install:
+    - "Create the Docker network before both containers and attach Postgres and the app to it."
+    - "Start Postgres first and wait until it accepts connections before starting the app."
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8062
+  path: /api/health
+  expected: [200]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/documenso/documenso:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8062
+    description: "Host port for the Documenso web UI"
+links:
+  - label: Website
+    url: https://documenso.com
+  - label: GitHub
+    url: https://github.com/documenso/documenso
+  - label: Documentation
+    url: https://documenso.com/docs
+notes: |
+  Documenso requires PostgreSQL and a NEXTAUTH_SECRET for session encryption.

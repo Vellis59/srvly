@@ -1,0 +1,76 @@
+metadata:
+  name: "FlareSolverr"
+  description: |
+    FlareSolverr is a proxy server that bypasses Cloudflare protection and anti-bot challenges for automated tools.
+    It integrates with the *arr stack (Sonarr, Radarr, Lidarr, etc.) to allow indexer access through Cloudflare-protected sites.
+    It is an essential companion for media automation stacks that use Cloudflare-protected indexers.
+  category: dev-infra
+  subcategory: proxy
+  tags: [Proxy, Cloudflare, Bypass, Indexer]
+  version: "latest"
+  homepage: https://github.com/FlareSolverr/FlareSolverr
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/flaresolverr.svg
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8191]
+  resources:
+    ram: 512
+    disk: 1
+
+install:
+  docker:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    name: flaresolverr
+    port: "8191:8191"
+    env:
+      - key: LOG_LEVEL
+        value: info
+      - key: CAPTCHA_SOLVER
+        value: none
+
+agent_install:
+  network: srvly-flaresolverr
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed flaresolverr container before retrying."
+  prerequisites: []
+  app_env:
+    LOG_LEVEL: "info"
+    CAPTCHA_SOLVER: "none"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8191
+  path: /
+  expected: [200]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/flaresolverr/flaresolverr:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8191
+    description: "Host port for the FlareSolverr service"
+
+links:
+  - label: GitHub
+    url: https://github.com/FlareSolverr/FlareSolverr
+  - label: Documentation
+    url: https://github.com/FlareSolverr/FlareSolverr#readme
+
+notes: |
+  FlareSolverr is not a web UI but a proxy service used by other tools. Configure it as an HTTP proxy in Sonarr/Radarr indexer settings.

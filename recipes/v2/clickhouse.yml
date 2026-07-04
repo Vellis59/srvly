@@ -1,0 +1,81 @@
+metadata:
+  name: "ClickHouse"
+  description: |
+    ClickHouse is a high-performance, column-oriented SQL database management system for real-time analytics on large datasets.
+    It excels at querying massive volumes of data with sub-second latency using standard SQL and supports replication, partitioning, and materialized views.
+    It is the leading open-source columnar database for analytics workloads.
+  category: dev-infra
+  subcategory: database
+  tags: [Database, Analytics, SQL, Columnar]
+  version: "latest"
+  homepage: https://clickhouse.com
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/clickhouse.svg
+  license: Apache-2.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8124]
+  resources:
+    ram: 1024
+    disk: 5
+
+install:
+  docker:
+    image: clickhouse:latest
+    name: clickhouse
+    port: "8124:8123"
+    volumes:
+      - /opt/srvly/apps/clickhouse/data:/var/lib/clickhouse
+    env:
+      - key: CLICKHOUSE_DB
+        value: default
+      - key: CLICKHOUSE_USER
+        value: default
+      - key: CLICKHOUSE_PASSWORD
+        value: ""
+
+agent_install:
+  network: srvly-clickhouse
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed clickhouse container before retrying."
+  prerequisites: []
+  app_env:
+    CLICKHOUSE_DB: "default"
+    CLICKHOUSE_USER: "default"
+    CLICKHOUSE_PASSWORD: ""
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8124
+  path: /ping
+  expected: [200]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: clickhouse:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8124
+    description: "HTTP port for ClickHouse"
+links:
+  - label: Website
+    url: https://clickhouse.com
+  - label: GitHub
+    url: https://github.com/clickhouse/clickhouse
+  - label: Documentation
+    url: https://clickhouse.com/docs
+notes: |
+  ClickHouse is a database system, not a web application. The HTTP interface is available on port 8123 for SQL queries.

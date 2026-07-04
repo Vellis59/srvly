@@ -1,0 +1,83 @@
+metadata:
+  name: "Kavita"
+  description: |
+    Kavita is a fast, feature-rich manga, comic, and ebook reader server with a modern web interface.
+    It supports CBZ, CBR, EPUB, PDF, and MOBI formats with reading progress tracking, collections, bookmarks, metadata management, and OPDS.
+    It is a strong open-source alternative to Komga or commercial readers like ComiXology.
+  category: media
+  subcategory: books
+  tags: [Manga, Comics, Ebooks, Reading]
+  version: "latest"
+  homepage: https://www.kavitareader.com
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/kavita.svg
+  license: GPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [5050]
+  resources:
+    ram: 512
+    disk: 5
+
+install:
+  docker:
+    image: lscr.io/linuxserver/kavita:latest
+    name: kavita
+    port: "5050:5000"
+    volumes:
+      - /opt/srvly/apps/kavita/config:/config
+      - /opt/srvly/apps/kavita/manga:/manga
+    env:
+      - key: PUID
+        value: "1000"
+      - key: PGID
+        value: "1000"
+      - key: TZ
+        value: "Europe/Paris"
+
+agent_install:
+  network: srvly-kavita
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed kavita container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Place manga/comic files in the /manga volume."
+
+healthcheck:
+  type: http
+  port: 5050
+  path: /
+  expected: [200, 301, 302]
+  timeout: 90
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/kavita:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 5050
+    description: "Host port for the Kavita web UI"
+links:
+  - label: Website
+    url: https://www.kavitareader.com
+  - label: GitHub
+    url: https://github.com/Kareadita/Kavita
+  - label: Documentation
+    url: https://wiki.kavitareader.com
+notes: |
+  Kavita uses SQLite. Place your manga, comic, and ebook files in the /manga volume mounted from the host.

@@ -1,0 +1,71 @@
+metadata:
+  name: "Adminer"
+  description: |
+    Adminer is a full-featured database management tool in a single PHP file that supports MySQL, PostgreSQL, SQLite, MS SQL, Oracle, MongoDB, and more.
+    It provides a clean web interface for tables, views, triggers, events, imports, exports, and running SQL queries.
+    It is a lightweight alternative to phpMyAdmin with better security and support for multiple database types.
+  category: dev-infra
+  subcategory: database
+  tags: [Database, Admin, SQL, MySQL, PostgreSQL]
+  version: "latest"
+  homepage: https://www.adminer.org
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/adminer.svg
+  license: Apache-2.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8050]
+  resources:
+    ram: 128
+    disk: 1
+
+install:
+  docker:
+    image: adminer:latest
+    name: adminer
+    port: "8050:8080"
+
+agent_install:
+  network: srvly-adminer
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed adminer container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8050
+  path: /
+  expected: [200, 301, 302]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: adminer:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8050
+    description: "Host port for the Adminer web UI"
+
+links:
+  - label: Website
+    url: https://www.adminer.org
+  - label: GitHub
+    url: https://github.com/vrana/adminer
+  - label: Documentation
+    url: https://www.adminer.org/en/usage
+
+notes: |
+  Adminer connects to existing database servers. It does not include a database itself.

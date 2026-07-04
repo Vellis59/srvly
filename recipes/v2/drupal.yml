@@ -1,0 +1,74 @@
+metadata:
+  name: "Drupal"
+  description: |
+    Drupal is a powerful, flexible open-source content management framework used by millions of websites worldwide.
+    It supports custom content types, taxonomies, user roles and permissions, multilingual content, workflows, and thousands of modules and themes.
+    It is one of the most established CMS platforms, suitable for everything from personal blogs to enterprise applications.
+  category: productivity
+  subcategory: documents
+  tags: [CMS, Content Management, Websites, Blogging]
+  version: "latest"
+  homepage: https://drupal.org
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/drupal.svg
+  license: GPL-2.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: true
+    redis: false
+    mongodb: false
+  ports: [8064]
+  resources:
+    ram: 512
+    disk: 5
+
+install:
+  docker:
+    image: drupal:latest
+    name: drupal
+    port: "8064:80"
+    volumes:
+      - /opt/srvly/apps/drupal/modules:/var/www/html/modules
+      - /opt/srvly/apps/drupal/profiles:/var/www/html/profiles
+      - /opt/srvly/apps/drupal/sites:/var/www/html/sites
+
+agent_install:
+  network: srvly-drupal
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed drupal container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Complete the setup wizard through the web UI, choosing MySQL/MariaDB as the database type."
+
+healthcheck:
+  type: http
+  port: 8064
+  path: /
+  expected: [200, 301, 302]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: drupal:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8064
+    description: "Host port for the Drupal web UI"
+links:
+  - label: Website
+    url: https://drupal.org
+  - label: GitHub
+    url: https://github.com/drupal/drupal
+  - label: Documentation
+    url: https://drupal.org/docs
+notes: |
+  Drupal requires MySQL/MariaDB. The database setup is done through the web UI installation wizard.

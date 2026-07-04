@@ -1,0 +1,81 @@
+metadata:
+  name: "Papermerge"
+  description: |
+    Papermerge is a document management system designed for archiving and retrieving digital documents.
+    It supports OCR, tagging, folder organization, full-text search, versioning, and automatic document classification.
+    It is a practical tool for organizing scanned documents, invoices, contracts, and personal records.
+  category: productivity
+  subcategory: documents
+  tags: [Documents, OCR, Archiving, Scanning]
+  version: "latest"
+  homepage: https://papermerge.com
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/papermerge.svg
+  license: Apache-2.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: true
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8073]
+  resources:
+    ram: 512
+    disk: 5
+
+install:
+  docker:
+    image: lscr.io/linuxserver/papermerge:latest
+    name: papermerge
+    port: "8073:80"
+    volumes:
+      - /opt/srvly/apps/papermerge/config:/config
+    env:
+      - key: PUID
+        value: "1000"
+      - key: PGID
+        value: "1000"
+      - key: TZ
+        value: "Europe/Paris"
+
+agent_install:
+  network: srvly-papermerge
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed papermerge container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8073
+  path: /
+  expected: [200, 301, 302]
+  timeout: 90
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/papermerge:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8073
+    description: "Host port for the Papermerge web UI"
+links:
+  - label: Website
+    url: https://papermerge.com
+  - label: GitHub
+    url: https://github.com/ciur/papermerge
+  - label: Documentation
+    url: https://papermerge.com/docs
+notes: |
+  Papermerge stores documents in the config volume. For production, use an external PostgreSQL database.

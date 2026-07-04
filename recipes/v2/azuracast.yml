@@ -1,0 +1,71 @@
+metadata:
+  name: "AzuraCast"
+  description: |
+    AzuraCast is a self-hosted web radio management toolkit that makes it easy to start and manage your own internet radio station.
+    It supports multiple stations, auto-DJ, live broadcasting, playlist management, request systems, podcasting, and analytics.
+    It is the most popular open-source web radio platform for self-hosters.
+  category: media
+  subcategory: music
+  tags: [Radio, Streaming, Music, Broadcasting]
+  version: "latest"
+  homepage: https://www.azuracast.com
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/azuracast.svg
+  license: AGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: true
+    redis: false
+    mongodb: false
+  ports: [8072]
+  resources:
+    ram: 1024
+    disk: 5
+
+install:
+  docker:
+    image: ghcr.io/azuracast/azuracast:latest
+    name: azuracast
+    port: "8072:80"
+    volumes:
+      - /opt/srvly/apps/azuracast/data:/data
+
+agent_install:
+  network: srvly-azuracast
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed azuracast container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8072
+  path: /
+  expected: [200, 301, 302]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/azuracast/azuracast:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8072
+    description: "Host port for the AzuraCast web UI"
+links:
+  - label: Website
+    url: https://www.azuracast.com
+  - label: GitHub
+    url: https://github.com/AzuraCast/AzuraCast
+  - label: Documentation
+    url: https://www.azuracast.com/docs
+notes: |
+  AzuraCast provisions its own MariaDB and Redis on first startup. It requires a significant amount of RAM.

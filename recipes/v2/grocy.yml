@@ -1,0 +1,81 @@
+metadata:
+  name: "Grocy"
+  description: |
+    Grocy is a self-hosted household management and grocery tracking application.
+    It helps manage pantry inventory, track expiration dates, create shopping lists, plan meals, and reduce food waste through barcode scanning and automated stock chore tracking.
+    It is a practical tool for anyone wanting to organize their household supplies digitally.
+  category: productivity
+  subcategory: finance
+  tags: [Household, Grocery, Inventory, Meal Planning]
+  version: "latest"
+  homepage: https://grocy.info
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/grocy.svg
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [9283]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: lscr.io/linuxserver/grocy:latest
+    name: grocy
+    port: "9283:80"
+    volumes:
+      - /opt/srvly/apps/grocy/config:/config
+    env:
+      - key: PUID
+        value: "1000"
+      - key: PGID
+        value: "1000"
+      - key: TZ
+        value: "Europe/Paris"
+
+agent_install:
+  network: srvly-grocy
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed grocy container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 9283
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/grocy:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 9283
+    description: "Host port for the Grocy web UI"
+links:
+  - label: Website
+    url: https://grocy.info
+  - label: GitHub
+    url: https://github.com/grocy/grocy
+  - label: Documentation
+    url: https://grocy.info/ documentation
+notes: |
+  Grocy uses SQLite by default. All data is stored in the config volume.
