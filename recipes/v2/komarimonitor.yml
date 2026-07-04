@@ -1,0 +1,67 @@
+metadata:
+  name: "Komari Monitor"
+  description: |
+    Komari Monitor is a lightweight server monitoring and alerting tool with a clean dashboard for tracking system metrics.
+    It supports CPU, memory, disk, network monitoring with customizable alerts and notification channels.
+    It is a practical tool for keeping an eye on server health and performance.
+  category: dev-infra
+  subcategory: monitoring
+  tags: [Monitoring, Server, Metrics, Alerts]
+  version: "latest"
+  homepage: https://komari-monitor.dev
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=K
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3088]
+  resources:
+    ram: 128
+    disk: 1
+
+install:
+  docker:
+    image: ghcr.io/komari-monitor/komari:latest
+    name: komarimonitor
+    port: "3088:8080"
+    volumes:
+      - /opt/srvly/apps/komarimonitor/data:/data
+
+agent_install:
+  network: srvly-komarimonitor
+  preflight:
+    - "Check that the host port is free."
+    - "Remove any failed komarimonitor container."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering."
+
+healthcheck:
+  type: http
+  port: 3088
+  path: /
+  expected: [200, 301, 302]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/komari-monitor/komari:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3088
+    description: "Host port"
+links:
+  - label: GitHub
+    url: https://github.com/komari-monitor/komari
+notes: |
+  Komari Monitor provides real-time system monitoring with a web dashboard.

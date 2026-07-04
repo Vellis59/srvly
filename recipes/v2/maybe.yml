@@ -1,0 +1,88 @@
+metadata:
+  name: "Maybe"
+  description: |
+    Maybe is a comprehensive personal finance and wealth management application for tracking investments, net worth, and financial goals.
+    It provides portfolio tracking, investment analytics, transaction management, budgeting, and financial planning tools.
+    It is the leading open-source personal finance platform for self-hosted financial management.
+  category: productivity
+  subcategory: finance
+  tags: [Finance, Investments, Portfolio, Wealth]
+  version: "latest"
+  homepage: https://maybe.co
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=M
+  license: AGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: true
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3084]
+  resources:
+    ram: 512
+    disk: 2
+
+install:
+  docker:
+    image: ghcr.io/maybe-finance/maybe:sha-68c570eed8810fd59b5b33cca51bbad5eabb4cb4
+    name: maybe
+    port: "3084:3000"
+    volumes:
+      - /opt/srvly/apps/maybe/data:/data
+    env:
+      - key: DATABASE_URL
+        value: "postgres://maybe:***@maybe-postgres:5432/maybe"
+
+agent_install:
+  network: srvly-maybe
+  preflight:
+    - "Check that the host port is free."
+    - "Remove any failed maybe or maybe-postgres containers."
+  prerequisites:
+    - type: postgres
+      name: maybe-postgres
+      image: postgres:16-alpine
+      container: maybe-postgres
+      database: maybe
+      user: maybe
+      password: generate
+      volume: /opt/srvly/apps/maybe/postgres:/var/lib/postgresql/data
+      port: 5432
+      env:
+        POSTGRES_DB: maybe
+        POSTGRES_USER: maybe
+        POSTGRES_PASSWORD: $GENERATED_PASSWORD
+  app_env:
+    DATABASE_URL: "postgres://maybe:***@maybe-postgres:5432/maybe"
+  post_install:
+    - "Run the HTTP healthcheck before registering."
+
+healthcheck:
+  type: http
+  port: 3084
+  path: /health
+  expected: [200]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/maybe-finance/maybe:sha-68c570eed8810fd59b5b33cca51bbad5eabb4cb4
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3084
+    description: "Host port"
+links:
+  - label: Website
+    url: https://maybe.co
+  - label: GitHub
+    url: https://github.com/maybe-finance/maybe
+  - label: Documentation
+    url: https://maybe.co/docs
+notes: |
+  Maybe requires PostgreSQL for financial data storage.

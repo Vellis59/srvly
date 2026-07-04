@@ -1,0 +1,67 @@
+metadata:
+  name: "Kokoro Web"
+  description: |
+    Kokoro Web is a self-hosted text-to-speech web interface using AI models for natural-sounding voice synthesis.
+    It supports multiple languages and voices, with adjustable speed and pitch controls.
+    It is a practical self-hosted TTS solution for accessibility, content creation, and automation.
+  category: dev-infra
+  subcategory: ai-ml
+  tags: [TTS, Voice, Audio, AI]
+  version: "latest"
+  homepage: https://kokoro-web.app
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=K
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3082]
+  resources:
+    ram: 2048
+    disk: 2
+
+install:
+  docker:
+    image: ghcr.io/eduardolat/kokoro-web:latest
+    name: kokoroweb
+    port: "3082:8000"
+    volumes:
+      - /opt/srvly/apps/kokoroweb/data:/data
+
+agent_install:
+  network: srvly-kokoroweb
+  preflight:
+    - "Check that the selected host port is free."
+    - "Remove any failed kokoroweb container."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run HTTP healthcheck before registering."
+
+healthcheck:
+  type: http
+  port: 3082
+  path: /
+  expected: [200, 301, 302]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/eduardolat/kokoro-web:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3082
+    description: "Host port"
+links:
+  - label: GitHub
+    url: https://github.com/eduardolat/kokoro-web
+notes: |
+  Kokoro Web downloads AI models on first startup. Requires significant RAM.

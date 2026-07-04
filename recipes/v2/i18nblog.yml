@@ -1,0 +1,67 @@
+metadata:
+  name: "i18n Blog"
+  description: |
+    i18n Blog (Kuno) is a multilingual blogging platform with built-in translation management for creating content in multiple languages.
+    It provides a clean writing interface, translation workflow, category management, and RSS feed generation.
+    It is a useful tool for bloggers who publish content in multiple languages.
+  category: productivity
+  subcategory: documents
+  tags: [Blog, Multilingual, Translation, CMS]
+  version: "latest"
+  homepage: https://kuno.blog
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=K
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3083]
+  resources:
+    ram: 256
+    disk: 1
+
+install:
+  docker:
+    image: ictrun/kuno:latest
+    name: i18nblog
+    port: "3083:8080"
+    volumes:
+      - /opt/srvly/apps/i18nblog/data:/data
+
+agent_install:
+  network: srvly-i18nblog
+  preflight:
+    - "Check that the selected host port is free."
+    - "Remove any failed i18nblog container."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run HTTP healthcheck before registering."
+
+healthcheck:
+  type: http
+  port: 3083
+  path: /
+  expected: [200, 301, 302]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ictrun/kuno:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3083
+    description: "Host port"
+links:
+  - label: GitHub
+    url: https://github.com/ictrun/kuno
+notes: |
+  i18n Blog supports multilingual content with built-in translation management.

@@ -1,0 +1,71 @@
+metadata:
+  name: "I Hate Money"
+  description: |
+    I Hate Money is a shared expense tracking and budget management application for groups, roommates, and trips.
+    It supports expense splitting, bill tracking, balance calculations, settlements, and multi-user project management.
+    It is a practical Flask-based tool for managing shared finances with friends or colleagues.
+  category: productivity
+  subcategory: finance
+  tags: [Finance, Expenses, Splitting, Budget]
+  version: "latest"
+  homepage: https://ihatemoney.org
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=I
+  license: BSD-3-Clause
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3081]
+  resources:
+    ram: 128
+    disk: 1
+
+install:
+  docker:
+    image: ihatemoney/ihatemoney:latest
+    name: ihatemoney
+    port: "3081:8000"
+    volumes:
+      - /opt/srvly/apps/ihatemoney/data:/data
+
+agent_install:
+  network: srvly-ihatemoney
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed ihatemoney container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 3081
+  path: /
+  expected: [200, 301, 302]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ihatemoney/ihatemoney:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3081
+    description: "Host port"
+links:
+  - label: Website
+    url: https://ihatemoney.org
+  - label: GitHub
+    url: https://github.com/spiral-project/ihatemoney
+  - label: Documentation
+    url: https://ihatemoney.readthedocs.io
+notes: |
+  I Hate Money uses SQLite by default. For production, configure MySQL through environment variables.

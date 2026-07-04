@@ -1,0 +1,94 @@
+metadata:
+  name: "Inngest"
+  description: |
+    Inngest is a serverless event-driven platform for building durable background jobs, scheduled tasks, and workflow orchestrations.
+    It provides event queues, retries, scheduling, observability, and a development dashboard for managing background processes.
+    It is a powerful alternative to Celery or BullMQ for building reliable background job systems.
+  category: dev-infra
+  subcategory: api-backend
+  tags: [Background Jobs, Serverless, Events, Workflows]
+  version: "v1.12.1"
+  homepage: https://www.inngest.com
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=I
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: true
+    mysql: false
+    redis: true
+    mongodb: false
+  ports: [8288]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: inngest/inngest:v1.12.1
+    name: inngest
+    port: "8288:8288"
+    volumes:
+      - /opt/srvly/apps/inngest/data:/data
+    env:
+      - key: INNGEST_DATABASE_URL
+        value: "postgres://inngest:***@inngest-postgres:5432/inngest"
+
+agent_install:
+  network: srvly-inngest
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed inngest or inngest-postgres containers before retrying."
+  prerequisites:
+    - type: postgres
+      name: inngest-postgres
+      image: postgres:16-alpine
+      container: inngest-postgres
+      database: inngest
+      user: inngest
+      password: generate
+      volume: /opt/srvly/apps/inngest/postgres:/var/lib/postgresql/data
+      port: 5432
+      env:
+        POSTGRES_DB: inngest
+        POSTGRES_USER: inngest
+        POSTGRES_PASSWORD: $GENERATED_PASSWORD
+    - type: redis
+      name: inngest-redis
+      image: redis:7-alpine
+      container: inngest-redis
+      volume: /opt/srvly/apps/inngest/redis:/data
+      port: 6379
+  app_env:
+    INNGEST_DATABASE_URL: "postgres://inngest:***@inngest-postgres:5432/inngest"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8288
+  path: /health
+  expected: [200]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: inngest/inngest:v1.12.1
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8288
+    description: "Host port"
+links:
+  - label: Website
+    url: https://www.inngest.com
+  - label: GitHub
+    url: https://github.com/inngest/inngest
+  - label: Documentation
+    url: https://www.inngest.com/docs
+notes: |
+  Inngest requires PostgreSQL and Redis for event storage and job processing.

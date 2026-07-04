@@ -1,0 +1,67 @@
+metadata:
+  name: "MediaFetch"
+  description: |
+    MediaFetch is a self-hosted media download and management tool for fetching videos, audio, and images from various online sources.
+    It provides a web interface for downloading media with format selection, metadata extraction, and organized storage.
+    It is a practical tool for archiving online media content.
+  category: media
+  subcategory: video
+  tags: [Download, Media, Video, Archiving]
+  version: "latest"
+  homepage: https://mediafetch.app
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=M
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3086]
+  resources:
+    ram: 256
+    disk: 5
+
+install:
+  docker:
+    image: lukedunsmoto/mediafetch:latest
+    name: mediafetch
+    port: "3086:8080"
+    volumes:
+      - /opt/srvly/apps/mediafetch/downloads:/downloads
+
+agent_install:
+  network: srvly-mediafetch
+  preflight:
+    - "Check that the host port is free."
+    - "Remove any failed mediafetch container."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering."
+
+healthcheck:
+  type: http
+  port: 3086
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lukedunsmoto/mediafetch:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3086
+    description: "Host port"
+links:
+  - label: GitHub
+    url: https://github.com/lukedunsmoto/mediafetch
+notes: |
+  MediaFetch downloads media files to the /downloads volume.
