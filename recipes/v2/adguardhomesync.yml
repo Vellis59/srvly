@@ -1,0 +1,80 @@
+metadata:
+  name: "AdGuardHome Sync"
+  description: |
+    AdGuardHome Sync synchronizes AdGuard Home configurations across multiple instances automatically.
+    It ensures consistent filtering rules, custom rules, settings, DHCP configuration, and client settings across all AdGuard Home servers.
+    It is an essential tool for running redundant AdGuard Home instances with automatic configuration replication.
+  category: dev-infra
+  subcategory: server-management
+  tags: [DNS, Sync, AdGuard, Configuration]
+  version: "latest"
+  homepage: https://adguardhome-sync.sync
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=A
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8090]
+  resources:
+    ram: 128
+    disk: 1
+
+install:
+  docker:
+    image: lscr.io/linuxserver/adguardhome-sync:latest
+    name: adguardhomesync
+    port: "8090:8080"
+    volumes:
+      - /opt/srvly/apps/adguardhomesync/config:/config
+    env:
+      - key: PUID
+        value: "1000"
+      - key: PGID
+        value: "1000"
+      - key: TZ
+        value: "Europe/Paris"
+
+agent_install:
+  network: srvly-adguardhomesync
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed adguardhomesync container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Configure AdGuard Home instances in the config file."
+
+healthcheck:
+  type: http
+  port: 8090
+  path: /
+  expected: [200, 301, 302]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/adguardhome-sync:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8090
+    description: "Host port"
+links:
+  - label: GitHub
+    url: https://github.com/bakito/adguard-home-sync
+  - label: Documentation
+    url: https://adguardhome-sync.sync
+notes: |
+  AdGuardHome Sync requires configuration files to connect to your AdGuard Home instances.

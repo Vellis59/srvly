@@ -1,0 +1,69 @@
+metadata:
+  name: "BookOrbit"
+  description: |
+    BookOrbit is a self-hosted book management and reading tracker for personal library cataloging.
+    It helps organize your book collection, track reading progress, manage wishlists, and keep notes on books you have read.
+    It is a practical tool for avid readers who want to maintain a digital catalog of their personal library.
+  category: media
+  subcategory: books
+  tags: [Books, Reading, Library, Tracking]
+  version: "latest"
+  homepage: https://bookorbit.com
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=B
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8092]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: ghcr.io/bookorbit/bookorbit:latest
+    name: bookorbit
+    port: "8092:8000"
+    volumes:
+      - /opt/srvly/apps/bookorbit/data:/data
+
+agent_install:
+  network: srvly-bookorbit
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed bookorbit container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8092
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/bookorbit/bookorbit:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8092
+    description: "Host port"
+links:
+  - label: GitHub
+    url: https://github.com/bookorbit/bookorbit
+  - label: Documentation
+    url: https://bookorbit.com/docs
+notes: |
+  BookOrbit uses SQLite for storage. All data is persisted in the /data volume.

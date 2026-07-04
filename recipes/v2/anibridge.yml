@@ -1,0 +1,69 @@
+metadata:
+  name: "AniBridge"
+  description: |
+    AniBridge is a self-hosted anime and manga management tool for tracking watched episodes, reading progress, and maintaining personal collections.
+    It provides a clean web interface for organizing and discovering new content.
+    It is a practical tool for anime enthusiasts who want a self-hosted tracking solution.
+  category: media
+  subcategory: books
+  tags: [Anime, Manga, Tracking, Media]
+  version: "latest"
+  homepage: https://anibridge.app
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=A
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8093]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: ghcr.io/anibridge/anibridge:latest
+    name: anibridge
+    port: "8093:8080"
+    volumes:
+      - /opt/srvly/apps/anibridge/data:/data
+
+agent_install:
+  network: srvly-anibridge
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed anibridge container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8093
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/anibridge/anibridge:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8093
+    description: "Host port"
+links:
+  - label: GitHub
+    url: https://github.com/anibridge/anibridge
+  - label: Documentation
+    url: https://github.com/anibridge/anibridge#readme
+notes: |
+  AniBridge stores all data in the /data volume.

@@ -1,0 +1,69 @@
+metadata:
+  name: "ChartDB"
+  description: |
+    ChartDB is a web-based database diagramming and visualization tool for designing and documenting database schemas.
+    It supports multiple database types including PostgreSQL, MySQL, MariaDB, SQL Server, and SQLite with visual entity-relationship diagrams.
+    It is a useful tool for developers and DBAs to visualize and document database structures.
+  category: dev-infra
+  subcategory: database
+  tags: [Database, Diagrams, Schema, Visualization]
+  version: "latest"
+  homepage: https://chartdb.io
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=C
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8095]
+  resources:
+    ram: 256
+    disk: 1
+
+install:
+  docker:
+    image: ghcr.io/chartdb/chartdb:latest
+    name: chartdb
+    port: "8095:3000"
+    volumes:
+      - /opt/srvly/apps/chartdb/data:/data
+
+agent_install:
+  network: srvly-chartdb
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed chartdb container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8095
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/chartdb/chartdb:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8095
+    description: "Host port"
+links:
+  - label: GitHub
+    url: https://github.com/chartdb/chartdb
+  - label: Documentation
+    url: https://github.com/chartdb/chartdb#readme
+notes: |
+  ChartDB is a web-based database diagramming tool. Connect it to your database to visualize schemas.
