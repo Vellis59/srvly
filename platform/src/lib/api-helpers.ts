@@ -3,6 +3,36 @@ import { db } from "@/server/db";
 import { eq } from "drizzle-orm";
 import type { z } from "zod";
 
+// ─── Rate limiter (in-memory, per-token) ───
+
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+/**
+ * Simple in-memory rate limiter.
+ * Limits to `maxRequests` per `windowMs` per token.
+ */
+export function checkRateLimit(token: string, maxRequests = 30, windowMs = 60_000): { allowed: boolean; remaining: number } {
+  const now = Date.now();
+  const entry = rateLimitMap.get(token);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(token, { count: 1, resetAt: now + windowMs });
+    return { allowed: true, remaining: maxRequests - 1 };
+  }
+  entry.count++;
+  if (entry.count > maxRequests) {
+    return { allowed: false, remaining: 0 };
+  }
+  return { allowed: true, remaining: maxRequests - entry.count };
+}
+
+// Clean up stale entries every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  rateLimitMap.forEach((val, key) => {
+    if (now > val.resetAt) rateLimitMap.delete(key);
+  });
+}, 300_000);
+
 // ─── Auth ────────────────────────────────────────────────
 
 /**

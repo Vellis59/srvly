@@ -3,6 +3,7 @@
 import { trpc } from "@/lib/trpc";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
+import Link from "next/link";
 
 function copyToClipboard(text: string): boolean {
   // Fallback for HTTP (navigator.clipboard requires HTTPS)
@@ -30,6 +31,7 @@ function copyToClipboard(text: string): boolean {
 export default function SettingsPage() {
   const { data: session } = useSession();
   const { data: tokenData, isLoading, refetch } = trpc.user.getToken.useQuery();
+  const { data: plan } = trpc.user.getPlan.useQuery();
   const regenerate = trpc.user.regenerateToken.useMutation();
   const [copiedToken, setCopiedToken] = useState(false);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
@@ -152,11 +154,34 @@ export default function SettingsPage() {
     <div className="max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold text-zinc-100 mb-6">Settings</h1>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl  p-6 mb-6">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 mb-6">
         <h2 className="font-semibold text-zinc-100 mb-4">Profile</h2>
         <p className="text-sm text-zinc-500">
           Signed in as <strong>{session.user?.name || session.user?.email}</strong>
         </p>
+      </div>
+
+      {/* Plan */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 mb-6">
+        <h2 className="font-semibold text-zinc-100 mb-4">Plan</h2>
+        {plan ? (
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-zinc-300">
+                <span className="capitalize font-medium text-zinc-100">{plan.plan}</span> plan
+              </p>
+              <p className="text-xs text-zinc-500 mt-1">
+                {plan.currentServers} / {plan.maxServers} server{plan.maxServers !== 1 ? "s" : ""} used
+              </p>
+            </div>
+            <Link href="/pricing"
+              className="text-xs bg-zinc-800 hover:bg-zinc-700 text-emerald-400 px-3 py-1.5 rounded-lg font-medium transition-colors">
+              {plan.plan === "free" && plan.currentServers >= plan.maxServers ? "Upgrade →" : "Compare plans"}
+            </Link>
+          </div>
+        ) : (
+          <div className="text-sm text-zinc-400">Loading...</div>
+        )}
       </div>
 
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl  p-6 mb-6">

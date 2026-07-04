@@ -157,6 +157,7 @@
   "ssh.failed": "Failed",
 
   "nav.domains": "Domains",
+  "nav.pricing": "Pricing",
 
   "domains.title": "Domains",
   "domains.desc": "All domains across your servers",

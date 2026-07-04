@@ -3,7 +3,7 @@ import { executeRaw, executeOnServer } from "@/lib/ssh";
 import { db } from "@/server/db";
 import { servers } from "@/server/db/schema";
 import { eq, and } from "drizzle-orm";
-import { authUser, error, ok, validateBody } from "@/lib/api-helpers";
+import { authUser, checkRateLimit, error, ok, validateBody } from "@/lib/api-helpers";
 import { dispatchSchema } from "@/lib/api-schemas";
 import { decryptKey } from "@/lib/crypto";
 
@@ -18,6 +18,11 @@ export async function POST(req: NextRequest) {
     // Require Bearer token auth
     const user = await authUser(req);
     if (!user) return error("Invalid token", 401);
+
+    // Rate limit: 20 requests per minute per token
+    const token = (req.headers.get("authorization") || "").slice(7).trim();
+    const rl = checkRateLimit(token, 20, 60_000);
+    if (!rl.allowed) return error("Rate limit exceeded", 429);
 
     const validation = await validateBody(req, dispatchSchema);
     if (!validation.valid) return validation.response;

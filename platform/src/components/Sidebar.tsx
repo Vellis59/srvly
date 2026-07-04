@@ -10,6 +10,7 @@ const navItems = [
   { href: "/servers", label: "nav.servers", icon: "♝" },
   { href: "/domains", label: "nav.domains", icon: "🌍" },
   { href: "/catalog", label: "nav.catalog", icon: "♞" },
+  { href: "/pricing", label: "nav.pricing", icon: "💳" },
   { href: "/settings", label: "nav.settings", icon: "⚙" },
 ];
 
