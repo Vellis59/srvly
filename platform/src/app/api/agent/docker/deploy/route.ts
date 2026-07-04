@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { db } from "@/server/db";
 import { installations, servers, domains } from "@/server/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { executeOnServer } from "@/lib/ssh";
 import { authUser, error, ok, validateBody } from "@/lib/api-helpers";
 import { dockerDeploySchema } from "@/lib/api-schemas";
@@ -206,22 +206,68 @@ export async function POST(req: NextRequest) {
     const domainReady = /(^|\n)DOMAIN_READY(\n|$)/.test(output);
     const success = result.success && appReady && (!domain || domainReady);
 
-    const [inst] = await db
-      .insert(installations)
-      .values({
-        serverId,
-        recipeId: "app",
-        status: success ? "success" : "failed",
-        params: { name, port: appPort, containerPort: appContainerPort, domain, image: imageName, containerName, network, healthcheckPath: checkPath, healthcheckExpected: expectedCodes },
-        result: { output, error: result.error },
-        logs: output,
-      })
-      .returning();
+    const params = { name, port: appPort, containerPort: appContainerPort, domain, image: imageName, containerName, network, healthcheckPath: checkPath, healthcheckExpected: expectedCodes };
 
+    // Dedup: check if an installation with the same name already exists on this server
+    const [existing] = await db
+      .select()
+      .from(installations)
+      .where(
+        and(
+          eq(installations.serverId, serverId),
+          sql`params->>'name' = ${name}`,
+        ),
+      )
+      .limit(1);
+
+    let inst;
+    if (existing) {
+      // Update existing installation (don't create duplicates on retry)
+      [inst] = await db
+        .update(installations)
+        .set({
+          recipeId: "app",
+          status: success ? "success" : "failed",
+          params,
+          result: { output, error: result.error },
+          logs: output,
+          updatedAt: new Date(),
+        })
+        .where(eq(installations.id, existing.id))
+        .returning();
+    } else {
+      // Create new installation
+      [inst] = await db
+        .insert(installations)
+        .values({
+          serverId,
+          recipeId: "app",
+          status: success ? "success" : "failed",
+          params,
+          result: { output, error: result.error },
+          logs: output,
+        })
+        .returning();
+    }
+
+    // Dedup domains too: update existing or insert new
     if (domain) {
-      await db.insert(domains).values({
-        serverId, name: domain, targetPort: appPort, targetApp: name, sslStatus: "pending",
-      }).catch(() => {});
+      const [existingDomain] = await db
+        .select()
+        .from(domains)
+        .where(
+          and(
+            eq(domains.serverId, serverId),
+            eq(domains.name, domain),
+          ),
+        )
+        .limit(1);
+
+      if (!existingDomain) {
+        await db.insert(domains).values({
+          serverId, name: domain, targetPort: appPort, targetApp: name, sslStatus: "pending",
+        }).catch(() => {});
+      }
     }
 
     return ok({

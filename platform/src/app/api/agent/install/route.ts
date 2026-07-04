@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { db } from "@/server/db";
 import { installations, servers } from "@/server/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { authUser, error, ok, validateBody } from "@/lib/api-helpers";
 import { installRegisterSchema, installListSchema } from "@/lib/api-schemas";
 
@@ -21,17 +21,44 @@ export async function POST(req: NextRequest) {
       .where(and(eq(servers.id, serverId), eq(servers.userId, user.id)));
     if (!server) return error("Server not found", 404);
 
-    const [inst] = await db
-      .insert(installations)
-      .values({
-        serverId,
-        recipeId: "app",
-        status: "success",
-        params: { name, port, domain, image, containerName, notes },
-        result: {},
-        logs: "",
-      })
-      .returning();
+    // Dedup: update existing installation if same name on server, else create
+    const [existing] = await db
+      .select()
+      .from(installations)
+      .where(
+        and(
+          eq(installations.serverId, serverId),
+          sql`params->>'name' = ${name}`,
+        ),
+      )
+      .limit(1);
+
+    let inst;
+    if (existing) {
+      [inst] = await db
+        .update(installations)
+        .set({
+          status: "success",
+          params: { name, port, domain, image, containerName, notes },
+          result: {},
+          logs: "",
+          updatedAt: new Date(),
+        })
+        .where(eq(installations.id, existing.id))
+        .returning();
+    } else {
+      [inst] = await db
+        .insert(installations)
+        .values({
+          serverId,
+          recipeId: "app",
+          status: "success",
+          params: { name, port, domain, image, containerName, notes },
+          result: {},
+          logs: "",
+        })
+        .returning();
+    }
 
     return ok({ id: inst.id, message: `${name} registered` });
   } catch (err: any) {
