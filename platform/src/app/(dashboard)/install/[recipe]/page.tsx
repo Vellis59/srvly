@@ -98,6 +98,7 @@ export default function InstallPage() {
       name: appSlug,
       image: defaultImage,
       port: parseInt(finalPort, 10) || defaultPort,
+      network,
       env: appEnv,
       volumes,
     };
@@ -140,7 +141,7 @@ export default function InstallPage() {
     if (prerequisites.length === 0) {
       fullPrompt += "No external database/cache prerequisite is required for this app.\n\n";
     } else {
-      fullPrompt += "Create these prerequisites before the app container. Use `POST /api/dispatch` with `{ serverId, script, timeout }` to create networks and prerequisite containers.\n";
+      fullPrompt += "Create these prerequisites before the app container. Use `POST /api/dispatch` with `{ serverId, script, timeout }` to create networks and prerequisite containers. Use `timeout: 120` by default for Docker pulls or database/cache prerequisites.\n";
       fullPrompt += "Do not use `/api/agent/install/exec` for pre-install prerequisites: it requires an existing installationId.\n";
       fullPrompt += "Generate every value marked `generate` yourself at runtime and reuse it in the app env mapping.\n";
       fullPrompt += `\`\`\`json\n${renderJson(prerequisites)}\n\`\`\`\n\n`;
@@ -160,6 +161,8 @@ export default function InstallPage() {
     fullPrompt += `URL: http://${serverIp}:${finalPort}${healthcheck.path || "/"}\n`;
     fullPrompt += `Expected status: ${(healthcheck.expected || [200]).join(", ")}\n`;
     fullPrompt += `Timeout: ${healthcheck.timeout || 60}s\n`;
+    fullPrompt += "After docker/deploy returns, run an independent post-deploy healthcheck yourself instead of relying only on the API response. Retry for slow-starting apps.\n";
+    if (hasDomain) fullPrompt += `Also verify HTTPS externally: https://${domain.trim()} must return a real HTTP status before reporting success.\n`;
     fullPrompt += "If the healthcheck fails, fetch logs, fix the root cause, retry, and only then report back.\n\n";
 
     fullPrompt += "## Final response\n";

@@ -21,6 +21,7 @@ export const dockerDeploySchema = z.object({
   image: z.string().min(1, "Image is required").max(500),
   port: portNumber.optional().default(3000),
   domain: domainName.optional(),
+  network: z.string().min(1).max(100).regex(/^[a-zA-Z0-9_.-]+$/, "Invalid Docker network name").optional(),
   env: z.record(z.string(), z.string()).optional(),
   volumes: z
     .array(

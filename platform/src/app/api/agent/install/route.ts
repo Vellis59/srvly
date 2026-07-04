@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// ─── GET /api/agent/install/list?serverId=xxx ───
+// ─── GET /api/agent/install?serverId=xxx ───
 export async function GET(req: NextRequest) {
   try {
     const user = await authUser(req);

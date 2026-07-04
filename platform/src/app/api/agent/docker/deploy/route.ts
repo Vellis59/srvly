@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
 
     const validation = await validateBody(req, dockerDeploySchema);
     if (!validation.valid) return validation.response;
-    const { serverId, name, image, port, domain, env, volumes } = validation.data;
+    const { serverId, name, image, port, domain, network, env, volumes } = validation.data;
 
     const [server] = await db
       .select()
@@ -32,6 +32,9 @@ export async function POST(req: NextRequest) {
     }
     if (!/^[a-zA-Z0-9_-]+$/.test(containerName)) {
       return error("Invalid container name format", 400);
+    }
+    if (network && !/^[a-zA-Z0-9_.-]+$/.test(network)) {
+      return error("Invalid Docker network name", 400);
     }
 
     const appDir = "/opt/srvly/" + containerName;
@@ -71,7 +74,14 @@ export async function POST(req: NextRequest) {
       `echo ">>> RUN"`
     );
 
+    if (network) {
+      s.push(`docker network create ${network} 2>/dev/null || true`);
+    }
+
     let runCmd = `docker run -d --name ${containerName} --restart unless-stopped -p ${appPort}:${appPort}`;
+    if (network) {
+      runCmd += ` --network ${network}`;
+    }
     if (envLines) {
       runCmd += ` --env-file "${envFilePath}"`;
     }
@@ -99,12 +109,17 @@ export async function POST(req: NextRequest) {
     }
 
     s.push("", `echo ">>> WAIT"`, "sleep 3", "", `echo ">>> CHECK"`);
-    s.push("for i in 1 2 3 4 5; do");
-    s.push(`  CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${appPort} 2>/dev/null || echo '000')`);
+    s.push("READY=0");
+    s.push("for i in 1 2 3 4 5 6 7 8 9 10; do");
+    s.push(`  CODE=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 5 http://127.0.0.1:${appPort} 2>/dev/null || true)`);
+    s.push('  [ -z "$CODE" ] && CODE=000');
     s.push('  echo "  Attempt $i: HTTP $CODE"');
-    s.push('  [ "$CODE" != "000" ] && echo "READY" && break');
+    s.push('  case "$CODE" in 2*|3*) READY=1; echo "READY"; break ;; esac');
     s.push("  sleep 3");
     s.push("done");
+    s.push('if [ "$READY" != "1" ]; then');
+    s.push('  echo "ERROR: App did not become ready after 10 healthcheck attempts"');
+    s.push("fi");
 
     // ── Reverse proxy (Caddy or nginx) with dedup ──
     if (domain) {
@@ -129,6 +144,16 @@ export async function POST(req: NextRequest) {
       s.push('    caddy reload --config "$CFG" 2>&1 || systemctl reload caddy 2>&1 || true');
       s.push('  fi');
       s.push('  echo "CADDY_OK"');
+      s.push(`  echo ">>> HTTPS CHECK"`);
+      s.push('  DOMAIN_READY=0');
+      s.push('  for i in 1 2 3 4 5 6 7 8 9 10; do');
+      s.push(`    DOMAIN_CODE=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 8 https://${domain} 2>/dev/null || true)`);
+      s.push('    [ -z "$DOMAIN_CODE" ] && DOMAIN_CODE=000');
+      s.push('    echo "  HTTPS attempt $i: HTTP $DOMAIN_CODE"');
+      s.push('    case "$DOMAIN_CODE" in 2*|3*) DOMAIN_READY=1; echo "DOMAIN_READY"; break ;; esac');
+      s.push('    sleep 5');
+      s.push('  done');
+      s.push('  if [ "$DOMAIN_READY" != "1" ]; then echo "ERROR: HTTPS domain did not become ready"; fi');
 
       // nginx branch
       s.push('elif command -v nginx &>/dev/null; then');
@@ -162,7 +187,10 @@ export async function POST(req: NextRequest) {
 
     const script = s.join("\n");
     const result = await executeOnServer(serverId, script, 180);
-    const success = result.success && (result.output || "").includes("READY");
+    const output = result.output || "";
+    const appReady = /(^|\n)READY(\n|$)/.test(output);
+    const domainReady = /(^|\n)DOMAIN_READY(\n|$)/.test(output);
+    const success = result.success && appReady && (!domain || domainReady);
 
     const [inst] = await db
       .insert(installations)
@@ -170,9 +198,9 @@ export async function POST(req: NextRequest) {
         serverId,
         recipeId: "app",
         status: success ? "success" : "failed",
-        params: { name, port: appPort, domain, image: imageName, containerName },
-        result: { output: result.output, error: result.error },
-        logs: result.output || "",
+        params: { name, port: appPort, domain, image: imageName, containerName, network },
+        result: { output, error: result.error },
+        logs: output,
       })
       .returning();
 
@@ -185,7 +213,7 @@ export async function POST(req: NextRequest) {
     return ok({
       id: inst.id, containerName, port: appPort, domain,
       status: success ? "success" : "failed",
-      output: result.output?.slice(0, 3000),
+      output: output.slice(0, 3000),
       error: result.error,
       message: success
         ? `${name} installed on port ${appPort}${domain ? ` with ${domain}` : ""}`
