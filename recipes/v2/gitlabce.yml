@@ -1,0 +1,80 @@
+metadata:
+  name: "GitLab CE"
+  description: |
+    GitLab CE is a comprehensive DevOps platform for source code management, CI/CD, package registry, and project collaboration.
+    It provides Git repositories, issue tracking, code review, CI/CD pipelines, container registry, wiki, and project management.
+    It is one of the most powerful self-hosted alternatives to GitHub for enterprise-grade source code management.
+  category: dev-infra
+  subcategory: git-code
+  tags: [Git, CI/CD, DevOps, Source Control]
+  version: "latest"
+  homepage: https://about.gitlab.com
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=G
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: true
+    mysql: false
+    redis: true
+    mongodb: false
+  ports: [8929]
+  resources:
+    ram: 4096
+    disk: 50
+
+install:
+  docker:
+    image: gitlab/gitlab-ce:latest
+    name: gitlabce
+    port: "8929:8929"
+    volumes:
+      - /opt/srvly/apps/gitlabce/config:/etc/gitlab
+      - /opt/srvly/apps/gitlabce/logs:/var/log/gitlab
+      - /opt/srvly/apps/gitlabce/data:/var/opt/gitlab
+    env:
+      - key: GITLAB_OMNIBUS_CONFIG
+        value: "external_url 'http://$PUBLIC_HOST:$PUBLIC_PORT'"
+
+agent_install:
+  network: srvly-gitlabce
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "GitLab requires at least 4GB RAM and significant disk space."
+    - "Remove any failed gitlabce container before retrying."
+  prerequisites: []
+  app_env:
+    GITLAB_OMNIBUS_CONFIG: "external_url 'http://$PUBLIC_HOST:$PUBLIC_PORT'"
+  post_install:
+    - "GitLab takes 3-5 minutes to start on first boot as it initializes all services."
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "The initial root password is stored in /etc/gitlab/initial_root_password."
+
+healthcheck:
+  type: http
+  port: 8929
+  path: /users/sign_in
+  expected: [200, 301, 302]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: gitlab/gitlab-ce:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8929
+    description: "Host port"
+links:
+  - label: Website
+    url: https://about.gitlab.com
+  - label: GitHub
+    url: https://gitlab.com/gitlab-org/gitlab-ce
+  - label: Documentation
+    url: https://docs.gitlab.com
+notes: |
+  GitLab CE requires significant system resources (4GB+ RAM, 50GB+ disk). Postgres and Redis are bundled in the omnibus image.

@@ -1,0 +1,69 @@
+metadata:
+  name: "go2rtc"
+  description: |
+    go2rtc is a lightweight WebRTC and RTSP streaming server for converting and streaming video from IP cameras.
+    It supports RTSP, RTMP, HLS, WebRTC, and MPEG-TS protocols with minimal latency and hardware acceleration.
+    It is a practical streaming server for home surveillance and video monitoring applications.
+  category: media
+  subcategory: video
+  tags: [Streaming, WebRTC, RTSP, Video]
+  version: "1.9.14"
+  homepage: https://github.com/AlexxIT/go2rtc
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=G
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [1984]
+  resources:
+    ram: 128
+    disk: 1
+
+install:
+  docker:
+    image: alexxit/go2rtc:1.9.14
+    name: go2rtc
+    port: "1984:1984"
+    volumes:
+      - /opt/srvly/apps/go2rtc/data:/config
+
+agent_install:
+  network: srvly-go2rtc
+  preflight:
+    - "Check that the selected host port is free."
+    - "Remove any failed go2rtc container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering."
+
+healthcheck:
+  type: http
+  port: 1984
+  path: /
+  expected: [200, 301, 302]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: alexxit/go2rtc:1.9.14
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 1984
+    description: "Host port"
+links:
+  - label: GitHub
+    url: https://github.com/AlexxIT/go2rtc
+  - label: Documentation
+    url: https://github.com/AlexxIT/go2rtc#readme
+notes: |
+  go2rtc provides WebRTC streaming from RTSP camera feeds.

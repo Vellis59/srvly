@@ -1,0 +1,67 @@
+metadata:
+  name: "CookieCloud"
+  description: |
+    CookieCloud is a self-hosted browser cookie synchronization tool that securely syncs cookies and session data across devices.
+    It provides encrypted storage and synchronization of browser cookies for seamless session sharing between browsers and devices.
+    It is a useful tool for managing browser sessions and login states across multiple machines.
+  category: productivity
+  subcategory: documents
+  tags: [Cookies, Sync, Browser, Sessions]
+  version: "latest"
+  homepage: https://github.com/easychen/cookiecloud
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=C
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8096]
+  resources:
+    ram: 128
+    disk: 1
+
+install:
+  docker:
+    image: easychen/cookiecloud:latest
+    name: cookiecloud
+    port: "8096:80"
+
+agent_install:
+  network: srvly-cookiecloud
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed cookiecloud container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8096
+  path: /
+  expected: [200, 301, 302]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: easychen/cookiecloud:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8088
+    description: "Host port"
+links:
+  - label: GitHub
+    url: https://github.com/easychen/cookiecloud
+  - label: Documentation
+    url: https://github.com/easychen/cookiecloud#readme
+notes: |
+  CookieCloud stores encrypted cookies. Use the browser extension to sync cookies.

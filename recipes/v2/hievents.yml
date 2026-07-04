@@ -1,0 +1,99 @@
+metadata:
+  name: "Hi.Events"
+  description: |
+    Hi.Events is a self-hosted event management and ticketing platform for creating and managing events.
+    It supports event creation, ticket sales, checkout, attendee management, QR check-ins, and analytics.
+    It is a feature-rich alternative to Eventbrite for self-hosted event management.
+  category: productivity
+  subcategory: documents
+  tags: [Events, Ticketing, Registration, Tickets]
+  version: "v0.8.0"
+  homepage: https://hi.events
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=H
+  license: AGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: true
+    redis: false
+    mongodb: false
+  ports: [8078]
+  resources:
+    ram: 512
+    disk: 2
+
+install:
+  docker:
+    image: daveearley/hi.events-all-in-one:v0.8.0-beta.1
+    name: hievents
+    port: "8078:80"
+    volumes:
+      - /opt/srvly/apps/hievents/data:/app/data
+    env:
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        value: hievents-mariadb
+      - key: DB_DATABASE
+        value: hievents
+      - key: DB_USERNAME
+        value: hievents
+      - key: DB_PASSWORD
+        value: "***"
+
+agent_install:
+  network: srvly-hievents
+  preflight:
+    - "Check the host port is free."
+    - "Remove any failed containers before retrying."
+  prerequisites:
+    - type: mysql
+      name: hievents-mariadb
+      image: mariadb:11
+      container: hievents-mariadb
+      database: hievents
+      user: hievents
+      password: generate
+      volume: /opt/srvly/apps/hievents/mariadb:/var/lib/mysql
+      port: 3306
+      env:
+        MYSQL_DATABASE: hievents
+        MYSQL_USER: hievents
+        MYSQL_PASSWORD: $GENERATED_PASSWORD
+        MYSQL_ROOT_PASSWORD: $GENERATED_ROOT_PASSWORD
+  app_env:
+    DB_CONNECTION: "mysql"
+    DB_HOST: "hievents-mariadb"
+    DB_DATABASE: "hievents"
+    DB_USERNAME: "hievents"
+    DB_PASSWORD: "***"
+  post_install:
+    - "Run the HTTP healthcheck before registering."
+
+healthcheck:
+  type: http
+  port: 8078
+  path: /
+  expected: [200, 301, 302]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: daveearley/hi.events-all-in-one:v0.8.0-beta.1
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8080
+    description: "Host port"
+links:
+  - label: Website
+    url: https://hi.events
+  - label: GitHub
+    url: https://github.com/hi-events/hi-events
+notes: |
+  Hi.Events requires MySQL/MariaDB. The all-in-one image includes both frontend and backend.

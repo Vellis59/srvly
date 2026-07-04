@@ -1,0 +1,81 @@
+metadata:
+  name: "Habitica"
+  description: |
+    Habitica is a gamified productivity and habit tracking application that turns your goals into a role-playing game.
+    It supports daily habits, to-do lists, recurring tasks, rewards, character leveling, equipment, and party quests.
+    It makes goal achievement fun and engaging through game mechanics and social accountability.
+  category: productivity
+  subcategory: documents
+  tags: [Habits, Gamification, Productivity, Goals]
+  version: "latest"
+  homepage: https://habitica.com
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=H
+  license: GPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: true
+  ports: [3077]
+  resources:
+    ram: 512
+    disk: 2
+
+install:
+  docker:
+    image: docker.io/awinterstein/habitica-server:latest
+    name: habitica
+    port: "3077:3000"
+    volumes:
+      - /opt/srvly/apps/habitica/data:/data
+    env:
+      - key: MONGO_URI
+        value: "mongodb://habitica-mongo:27017/habitica"
+
+agent_install:
+  network: srvly-habitica
+  preflight:
+    - "Remove any failed habitica or habitica-mongo containers before retrying."
+  prerequisites:
+    - type: mongodb
+      name: habitica-mongo
+      image: mongo:7
+      container: habitica-mongo
+      volume: /opt/srvly/apps/habitica/mongo:/data/db
+      port: 27017
+  app_env:
+    MONGO_URI: "mongodb://habitica-mongo:27017/habitica"
+  post_install:
+    - "Start MongoDB first before starting the app."
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 3077
+  path: /
+  expected: [200, 301, 302]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: docker.io/awinterstein/habitica-server:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3000
+    description: "Host port"
+links:
+  - label: Website
+    url: https://habitica.com
+  - label: GitHub
+    url: https://github.com/HabitRPG/habitica
+  - label: Documentation
+    url: https://habitica.com/apidoc
+notes: |
+  Habitica requires MongoDB for user and task data storage.

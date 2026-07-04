@@ -1,0 +1,70 @@
+metadata:
+  name: "WhatsApp API"
+  description: |
+    WhatsApp API is a self-hosted REST API for WhatsApp messaging that enables automated messaging, chatbots, and integrations.
+    It supports sending and receiving messages, media, documents, group management, webhook notifications, and multi-device connections.
+    It is a practical tool for businesses needing WhatsApp integration without third-party API costs.
+  category: communication
+  subcategory: chat
+  tags: [WhatsApp, Messaging, API, Chatbot]
+  version: "latest"
+  homepage: https://github.com/aldinokemal/go-whatsapp-web-multidevice
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=W
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3091]
+  resources:
+    ram: 256
+    disk: 1
+
+install:
+  docker:
+    image: aldinokemal2104/go-whatsapp-web-multidevice
+    name: gowhatsapp
+    port: "3091:8080"
+    volumes:
+      - /opt/srvly/apps/gowhatsapp/data:/app/data
+
+agent_install:
+  network: srvly-gowhatsapp
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed gowhatsapp container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Scan the QR code displayed in the logs to connect your WhatsApp account."
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 3091
+  path: /health
+  expected: [200]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: aldinokemal2104/go-whatsapp-web-multidevice
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3091
+    description: "Host port"
+links:
+  - label: GitHub
+    url: https://github.com/aldinokemal/go-whatsapp-web-multidevice
+  - label: Documentation
+    url: https://github.com/aldinokemal/go-whatsapp-web-multidevice#readme
+notes: |
+  Scan the QR code from the container logs with your WhatsApp to link your account.

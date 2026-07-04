@@ -1,0 +1,69 @@
+metadata:
+  name: "Conduit"
+  description: |
+    Conduit is a lightweight, efficient Matrix chat server implementation for federated instant messaging.
+    It provides a full Matrix homeserver implementation with support for end-to-end encryption, rooms, direct messages, and bridges.
+    It is a resource-efficient alternative to Synapse for self-hosted Matrix communication.
+  category: communication
+  subcategory: chat
+  tags: [Matrix, Chat, Messaging, Federated]
+  version: "v0.9.0"
+  homepage: https://conduit.mattt.be
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=C
+  license: Apache-2.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [6167]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: registry.gitlab.com/famedly/conduit/matrix-conduit:v0.9.0
+    name: conduit
+    port: "6167:6167"
+    volumes:
+      - /opt/srvly/apps/conduit/data:/var/lib/conduit
+
+agent_install:
+  network: srvly-conduit
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed conduit container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 6167
+  path: /_matrix/health
+  expected: [200]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: registry.gitlab.com/famedly/conduit/matrix-conduit:v0.9.0
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 6167
+    description: "Host port"
+links:
+  - label: GitHub
+    url: https://gitlab.com/famedly/conduit
+  - label: Documentation
+    url: https://conduit.mattt.be
+notes: |
+  Conduit is a Matrix homeserver. Configure federation through the config file in the data volume.

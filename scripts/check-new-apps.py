@@ -18,10 +18,12 @@ kn = {norm(s) for s in known}
 new = [a for a in data if a['id'].lower() not in known and norm(a['id'].lower()) not in kn]
 print(f"Total remaining: {len(new)}")
 
-# Skip infrastructure/game servers
+# Skip infrastructure/game servers/no-port apps
 skip = {'dragonfly-db','emqx','enshrouded','fivem','flatnotes-totp','frappe-hr','frappe-lending',
         'erpnext','garage','garage-with-ui','gitea-mirror','gitea-mysql','gitea-postgres','gitea-sqlite',
-        'grafana-loki','grafana-tempo','grafana-mimir','hadoop','n8n'}
+        'grafana-loki','grafana-tempo','grafana-mimir','hadoop','n8n',
+        'cloudflare-ddns','cloudflared','colanode','couchdb','datalens','discord-tickets',
+        'dokploy-prom-monitoring-extension'}
 
 found = []
 for a in new:

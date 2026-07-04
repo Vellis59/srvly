@@ -1,0 +1,69 @@
+metadata:
+  name: "FMD Server"
+  description: |
+    FMD Server is a file management and download server that provides a web interface for managing, organizing, and sharing files.
+    It supports file uploads, downloads, directory browsing, sharing links, and user access controls.
+    It is a practical tool for managing files on a remote server through a modern browser interface.
+  category: storage-backup
+  subcategory: file-sharing
+  tags: [File Manager, Downloads, Sharing, Storage]
+  version: "v0.11.0"
+  homepage: https://fmd-server.app
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=F
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8880]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: registry.gitlab.com/fmd-foss/fmd-server:v0.11.0
+    name: fmdserver
+    port: "8880:8000"
+    volumes:
+      - /opt/srvly/apps/fmdserver/files:/files
+
+agent_install:
+  network: srvly-fmdserver
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed fmdserver container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8880
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: registry.gitlab.com/fmd-foss/fmd-server:v0.11.0
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8880
+    description: "Host port"
+links:
+  - label: GitHub
+    url: https://gitlab.com/fmd-foss/fmd-server
+  - label: Documentation
+    url: https://gitlab.com/fmd-foss/fmd-server#readme
+notes: |
+  FMD Server manages files stored in the /files volume. Files can be uploaded through the web UI.
