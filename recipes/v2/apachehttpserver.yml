@@ -1,14 +1,14 @@
 metadata:
-  name: "IT Tools"
+  name: "Apache HTTP Server"
   description: |
-    Collection of handy online developer tools. JSON formatter, UUID generator, base64 encoder, and many more utilities in one app.
+    The Apache HTTP Server is a secure, efficient and extensible web server providing HTTP services. The most popular web server since 1996.
   category: dev-infra
-  subcategory: ide-tools
-  tags: [Developer Tools, Utilities]
+  subcategory: reverse-proxy
+  tags: [Web Server, HTTP, Apache]
   version: "latest"
-  homepage: https://it-tools.tech
-  icon: https://www.google.com/s2/favicons?domain=it-tools.tech&sz=64
-  license: GPL-3.0
+  homepage: https://httpd.apache.org/
+  icon: https://www.google.com/s2/favicons?domain=httpd.apache.org&sz=64
+  license: Apache-2.0
   verified: false
 prerequisites:
   databases:
@@ -22,17 +22,17 @@ prerequisites:
     disk: 1
 install:
   docker:
-    image: ghcr.io/corentinth/it-tools:latest
-    name: ittools
+    image: httpd:latest
+    name: apachehttpserver
     port: "80:80"
     volumes:
-      - /opt/srvly/apps/ittools/data:/data
+      - /opt/srvly/apps/apachehttpserver/data:/data
     env: []
 agent_install:
-  network: srvly-ittools
+  network: srvly-apachehttpserver
   preflight:
     - "Check that the selected host port is free before deploying."
-    - "Remove any failed ittools container before retrying."
+    - "Remove any failed apachehttpserver container before retrying."
   prerequisites: []
   app_env: {}
   post_install:
@@ -47,7 +47,7 @@ params:
   image:
     type: string
     title: Docker image
-    default: ghcr.io/corentinth/it-tools:latest
+    default: httpd:latest
     description: "Docker image to deploy"
   port:
     type: integer
@@ -56,6 +56,6 @@ params:
     description: "Host port for the web UI"
 links:
   - label: Website
-    url: https://it-tools.tech
+    url: https://httpd.apache.org/
 notes: |
   Auto-generated recipe. Verify ports and volumes before production use.

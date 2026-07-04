@@ -1,14 +1,14 @@
 metadata:
-  name: "IT Tools"
+  name: "Appsmith"
   description: |
-    Collection of handy online developer tools. JSON formatter, UUID generator, base64 encoder, and many more utilities in one app.
+    Open-source platform to build internal tools, admin panels, and dashboards with drag-and-drop UI builder and JavaScript scripting.
   category: dev-infra
-  subcategory: ide-tools
-  tags: [Developer Tools, Utilities]
+  subcategory: api-backend
+  tags: [Low-code, Internal Tools]
   version: "latest"
-  homepage: https://it-tools.tech
-  icon: https://www.google.com/s2/favicons?domain=it-tools.tech&sz=64
-  license: GPL-3.0
+  homepage: https://www.appsmith.com/
+  icon: https://www.google.com/s2/favicons?domain=www.appsmith.com&sz=64
+  license: Apache-2.0
   verified: false
 prerequisites:
   databases:
@@ -22,17 +22,17 @@ prerequisites:
     disk: 1
 install:
   docker:
-    image: ghcr.io/corentinth/it-tools:latest
-    name: ittools
+    image: ghcr.io/appsmithorg/appsmith:latest
+    name: appsmith
     port: "80:80"
     volumes:
-      - /opt/srvly/apps/ittools/data:/data
+      - /opt/srvly/apps/appsmith/data:/data
     env: []
 agent_install:
-  network: srvly-ittools
+  network: srvly-appsmith
   preflight:
     - "Check that the selected host port is free before deploying."
-    - "Remove any failed ittools container before retrying."
+    - "Remove any failed appsmith container before retrying."
   prerequisites: []
   app_env: {}
   post_install:
@@ -47,7 +47,7 @@ params:
   image:
     type: string
     title: Docker image
-    default: ghcr.io/corentinth/it-tools:latest
+    default: ghcr.io/appsmithorg/appsmith:latest
     description: "Docker image to deploy"
   port:
     type: integer
@@ -56,6 +56,6 @@ params:
     description: "Host port for the web UI"
 links:
   - label: Website
-    url: https://it-tools.tech
+    url: https://www.appsmith.com/
 notes: |
   Auto-generated recipe. Verify ports and volumes before production use.

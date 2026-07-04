@@ -1,14 +1,14 @@
 metadata:
-  name: "IT Tools"
+  name: "Plane"
   description: |
-    Collection of handy online developer tools. JSON formatter, UUID generator, base64 encoder, and many more utilities in one app.
-  category: dev-infra
-  subcategory: ide-tools
-  tags: [Developer Tools, Utilities]
+    Open-source project management tool for issues, epics, and product roadmaps. Modern alternative to JIRA, Linear, and Height.
+  category: productivity
+  subcategory: project-management
+  tags: [Project Management, Issues]
   version: "latest"
-  homepage: https://it-tools.tech
-  icon: https://www.google.com/s2/favicons?domain=it-tools.tech&sz=64
-  license: GPL-3.0
+  homepage: https://plane.so
+  icon: https://www.google.com/s2/favicons?domain=plane.so&sz=64
+  license: AGPL-3.0
   verified: false
 prerequisites:
   databases:
@@ -22,17 +22,17 @@ prerequisites:
     disk: 1
 install:
   docker:
-    image: ghcr.io/corentinth/it-tools:latest
-    name: ittools
+    image: ghcr.io/makeplane/plane:latest
+    name: plane
     port: "80:80"
     volumes:
-      - /opt/srvly/apps/ittools/data:/data
+      - /opt/srvly/apps/plane/data:/data
     env: []
 agent_install:
-  network: srvly-ittools
+  network: srvly-plane
   preflight:
     - "Check that the selected host port is free before deploying."
-    - "Remove any failed ittools container before retrying."
+    - "Remove any failed plane container before retrying."
   prerequisites: []
   app_env: {}
   post_install:
@@ -47,7 +47,7 @@ params:
   image:
     type: string
     title: Docker image
-    default: ghcr.io/corentinth/it-tools:latest
+    default: ghcr.io/makeplane/plane:latest
     description: "Docker image to deploy"
   port:
     type: integer
@@ -56,6 +56,6 @@ params:
     description: "Host port for the web UI"
 links:
   - label: Website
-    url: https://it-tools.tech
+    url: https://plane.so
 notes: |
   Auto-generated recipe. Verify ports and volumes before production use.

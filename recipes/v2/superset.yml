@@ -1,14 +1,14 @@
 metadata:
-  name: "IT Tools"
+  name: "Superset"
   description: |
-    Collection of handy online developer tools. JSON formatter, UUID generator, base64 encoder, and many more utilities in one app.
-  category: dev-infra
-  subcategory: ide-tools
-  tags: [Developer Tools, Utilities]
+    Modern data exploration and visualization platform. Create interactive dashboards with rich visualizations. Enterprise BI.
+  category: productivity
+  subcategory: reporting
+  tags: [Analytics, Dashboards, BI]
   version: "latest"
-  homepage: https://it-tools.tech
-  icon: https://www.google.com/s2/favicons?domain=it-tools.tech&sz=64
-  license: GPL-3.0
+  homepage: https://superset.apache.org/
+  icon: https://www.google.com/s2/favicons?domain=superset.apache.org&sz=64
+  license: Apache-2.0
   verified: false
 prerequisites:
   databases:
@@ -16,30 +16,30 @@ prerequisites:
     mysql: false
     redis: false
     mongodb: false
-  ports: [80]
+  ports: [8088]
   resources:
     ram: 256
     disk: 1
 install:
   docker:
-    image: ghcr.io/corentinth/it-tools:latest
-    name: ittools
-    port: "80:80"
+    image: ghcr.io/apache/superset:latest
+    name: superset
+    port: "8088:8088"
     volumes:
-      - /opt/srvly/apps/ittools/data:/data
+      - /opt/srvly/apps/superset/data:/data
     env: []
 agent_install:
-  network: srvly-ittools
+  network: srvly-superset
   preflight:
     - "Check that the selected host port is free before deploying."
-    - "Remove any failed ittools container before retrying."
+    - "Remove any failed superset container before retrying."
   prerequisites: []
   app_env: {}
   post_install:
     - "Run the HTTP healthcheck before registering the installation as successful."
 healthcheck:
   type: http
-  port: 80
+  port: 8088
   path: /
   expected: [200, 301, 302]
   timeout: 60
@@ -47,15 +47,15 @@ params:
   image:
     type: string
     title: Docker image
-    default: ghcr.io/corentinth/it-tools:latest
+    default: ghcr.io/apache/superset:latest
     description: "Docker image to deploy"
   port:
     type: integer
     title: HTTP port
-    default: 80
+    default: 8088
     description: "Host port for the web UI"
 links:
   - label: Website
-    url: https://it-tools.tech
+    url: https://superset.apache.org/
 notes: |
   Auto-generated recipe. Verify ports and volumes before production use.

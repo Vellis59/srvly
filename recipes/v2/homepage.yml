@@ -1,61 +1,48 @@
 metadata:
   name: "Homepage"
   description: |
-    Homepage is a highly customizable application dashboard for self-hosted services, bookmarks, widgets, and infrastructure status.
-    It supports service cards, Docker and Kubernetes integrations, search providers, and many third-party widgets for common homelab tools.
-    It is well suited as the landing page for a personal server, family portal, or operations dashboard.
-  category: productivity
-  subcategory: notes-wiki
-  tags: [Dashboard, Homepage, Bookmarks, Homelab]
+    Modern application dashboard with service widgets, quick links, weather, and system status. Highly customizable.
+  category: dev-infra
+  subcategory: server-management
+  tags: [Dashboard, Startpage]
   version: "latest"
-  homepage: https://gethomepage.dev
-  icon: https://raw.githubusercontent.com/gethomepage/homepage/main/public/homepage.ico
+  homepage: https://gethomepage.dev/
+  icon: https://www.google.com/s2/favicons?domain=gethomepage.dev&sz=64
   license: GPL-3.0
   verified: false
-
 prerequisites:
   databases:
     postgres: false
     mysql: false
     redis: false
     mongodb: false
-  ports: [3002]
+  ports: [3000]
   resources:
     ram: 256
     disk: 1
-
 install:
   docker:
     image: ghcr.io/gethomepage/homepage:latest
     name: homepage
-    port: "3002:3000"
+    port: "3000:3000"
     volumes:
-      - /opt/srvly/apps/homepage/config:/app/config
-    env:
-      - key: HOMEPAGE_ALLOWED_HOSTS
-        value: "$PUBLIC_HOST"
-        description: "Allowed host/domain for the Homepage web UI"
-
+      - /opt/srvly/apps/homepage/data:/data
+    env: []
 agent_install:
   network: srvly-homepage
   preflight:
     - "Check that the selected host port is free before deploying."
     - "Remove any failed homepage container before retrying."
   prerequisites: []
-  app_env:
-    HOMEPAGE_ALLOWED_HOSTS: "$PUBLIC_HOST"
+  app_env: {}
   post_install:
-    - "Set HOMEPAGE_ALLOWED_HOSTS to the final public hostname before deployment."
     - "Run the HTTP healthcheck before registering the installation as successful."
-    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
-
 healthcheck:
   type: http
-  port: 3002
+  port: 3000
   path: /
   expected: [200, 301, 302]
-  timeout: 90
-
+  timeout: 60
 params:
   image:
     type: string
@@ -65,16 +52,10 @@ params:
   port:
     type: integer
     title: HTTP port
-    default: 3002
-    description: "Host port for the Homepage dashboard"
-
+    default: 3000
+    description: "Host port for the web UI"
 links:
   - label: Website
-    url: https://gethomepage.dev
-  - label: GitHub
-    url: https://github.com/gethomepage/homepage
-  - label: Documentation
-    url: https://gethomepage.dev/latest/
-
+    url: https://gethomepage.dev/
 notes: |
-  Docker socket integration is intentionally not enabled by default because it grants broad host visibility and the deploy endpoint treats volume sources as directories.
+  Auto-generated recipe. Verify ports and volumes before production use.

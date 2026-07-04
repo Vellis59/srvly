@@ -1,14 +1,14 @@
 metadata:
-  name: "IT Tools"
+  name: "PostHog"
   description: |
-    Collection of handy online developer tools. JSON formatter, UUID generator, base64 encoder, and many more utilities in one app.
-  category: dev-infra
-  subcategory: ide-tools
-  tags: [Developer Tools, Utilities]
+    Product analytics, session recording, feature flags, and A/B testing. Alternative to Mixpanel, Amplitude, Heap, and HotJar.
+  category: productivity
+  subcategory: reporting
+  tags: [Analytics, Product, Events]
   version: "latest"
-  homepage: https://it-tools.tech
-  icon: https://www.google.com/s2/favicons?domain=it-tools.tech&sz=64
-  license: GPL-3.0
+  homepage: https://posthog.com
+  icon: https://www.google.com/s2/favicons?domain=posthog.com&sz=64
+  license: MIT
   verified: false
 prerequisites:
   databases:
@@ -16,30 +16,30 @@ prerequisites:
     mysql: false
     redis: false
     mongodb: false
-  ports: [80]
+  ports: [8000]
   resources:
     ram: 256
     disk: 1
 install:
   docker:
-    image: ghcr.io/corentinth/it-tools:latest
-    name: ittools
-    port: "80:80"
+    image: ghcr.io/posthog/posthog:latest
+    name: posthog
+    port: "8000:8000"
     volumes:
-      - /opt/srvly/apps/ittools/data:/data
+      - /opt/srvly/apps/posthog/data:/data
     env: []
 agent_install:
-  network: srvly-ittools
+  network: srvly-posthog
   preflight:
     - "Check that the selected host port is free before deploying."
-    - "Remove any failed ittools container before retrying."
+    - "Remove any failed posthog container before retrying."
   prerequisites: []
   app_env: {}
   post_install:
     - "Run the HTTP healthcheck before registering the installation as successful."
 healthcheck:
   type: http
-  port: 80
+  port: 8000
   path: /
   expected: [200, 301, 302]
   timeout: 60
@@ -47,15 +47,15 @@ params:
   image:
     type: string
     title: Docker image
-    default: ghcr.io/corentinth/it-tools:latest
+    default: ghcr.io/posthog/posthog:latest
     description: "Docker image to deploy"
   port:
     type: integer
     title: HTTP port
-    default: 80
+    default: 8000
     description: "Host port for the web UI"
 links:
   - label: Website
-    url: https://it-tools.tech
+    url: https://posthog.com
 notes: |
   Auto-generated recipe. Verify ports and volumes before production use.

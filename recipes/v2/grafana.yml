@@ -1,37 +1,33 @@
 metadata:
   name: "Grafana"
   description: |
-    Grafana is a leading open-source observability and data visualization platform supporting metrics, logs, and traces dashboards.
-    It connects to dozens of data sources including Prometheus, InfluxDB, PostgreSQL, Loki, Elasticsearch, and many more.
-    It is essential infrastructure for any serious monitoring setup.
+    Industry-standard analytics and monitoring platform. Create dashboards for metrics, logs, and traces from any data source.
   category: dev-infra
   subcategory: monitoring
-  tags: [Monitoring, Dashboards, Metrics, Observability]
+  tags: [Monitoring, Dashboards, Metrics]
   version: "latest"
-  homepage: https://grafana.com
-  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/grafana.svg
+  homepage: https://grafana.com/
+  icon: https://www.google.com/s2/favicons?domain=grafana.com&sz=64
   license: AGPL-3.0
   verified: false
-
 prerequisites:
   databases:
     postgres: false
     mysql: false
     redis: false
     mongodb: false
-  ports: [3006]
+  ports: [3000]
   resources:
-    ram: 512
-    disk: 2
-
+    ram: 256
+    disk: 1
 install:
   docker:
     image: grafana/grafana:latest
     name: grafana
-    port: "3006:3000"
+    port: "3000:3000"
     volumes:
-      - /opt/srvly/apps/grafana/data:/var/lib/grafana
-
+      - /opt/srvly/apps/grafana/data:/data
+    env: []
 agent_install:
   network: srvly-grafana
   preflight:
@@ -41,16 +37,12 @@ agent_install:
   app_env: {}
   post_install:
     - "Run the HTTP healthcheck before registering the installation as successful."
-    - "Default credentials: admin / admin (change on first login)."
-    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
-
 healthcheck:
   type: http
-  port: 3006
-  path: /api/health
-  expected: [200]
-  timeout: 90
-
+  port: 3000
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
 params:
   image:
     type: string
@@ -60,16 +52,10 @@ params:
   port:
     type: integer
     title: HTTP port
-    default: 3006
-    description: "Host port for the Grafana web UI"
-
+    default: 3000
+    description: "Host port for the web UI"
 links:
   - label: Website
-    url: https://grafana.com
-  - label: GitHub
-    url: https://github.com/grafana/grafana
-  - label: Documentation
-    url: https://grafana.com/docs
-
+    url: https://grafana.com/
 notes: |
-  Grafana uses SQLite by default. For production use with multiple users, configure PostgreSQL as the backend database.
+  Auto-generated recipe. Verify ports and volumes before production use.

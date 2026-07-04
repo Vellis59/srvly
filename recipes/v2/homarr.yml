@@ -1,18 +1,15 @@
 metadata:
   name: "Homarr"
   description: |
-    Homarr is a modern, feature-rich dashboard for managing and accessing your self-hosted services from a single interface.
-    It supports customizable tiles, icon packs, built-in status monitoring, search, Docker integration, weather widgets, and extensive theming.
-    It is one of the most popular dashboard choices for homelabs alongside Homepage and Heimdall.
-  category: productivity
-  subcategory: notes-wiki
-  tags: [Dashboard, Homepage, Homelab, Widgets]
+    Sleek dashboard for self-hosted services. Organize apps with widgets, monitor status, and integrate with popular self-hosted tools.
+  category: dev-infra
+  subcategory: server-management
+  tags: [Dashboard, Services]
   version: "latest"
   homepage: https://homarr.dev
-  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/homarr.svg
-  license: MIT
+  icon: https://www.google.com/s2/favicons?domain=homarr.dev&sz=64
+  license: GPL-3.0
   verified: false
-
 prerequisites:
   databases:
     postgres: false
@@ -23,17 +20,14 @@ prerequisites:
   resources:
     ram: 256
     disk: 1
-
 install:
   docker:
-    image: ghcr.io/ajnart/homarr:latest
+    image: ghcr.io/homarr-labs/homarr:latest
     name: homarr
     port: "7575:7575"
     volumes:
-      - /opt/srvly/apps/homarr/configs:/app/data/configs
-      - /opt/srvly/apps/homarr/icons:/app/public/icons
-      - /var/run/docker.sock:/var/run/docker.sock
-
+      - /opt/srvly/apps/homarr/data:/data
+    env: []
 agent_install:
   network: srvly-homarr
   preflight:
@@ -43,34 +37,25 @@ agent_install:
   app_env: {}
   post_install:
     - "Run the HTTP healthcheck before registering the installation as successful."
-    - "Access the web UI to configure services and widgets."
-
 healthcheck:
   type: http
   port: 7575
   path: /
   expected: [200, 301, 302]
   timeout: 60
-
 params:
   image:
     type: string
     title: Docker image
-    default: ghcr.io/ajnart/homarr:latest
+    default: ghcr.io/homarr-labs/homarr:latest
     description: "Docker image to deploy"
   port:
     type: integer
     title: HTTP port
     default: 7575
-    description: "Host port for the Homarr dashboard"
-
+    description: "Host port for the web UI"
 links:
   - label: Website
     url: https://homarr.dev
-  - label: GitHub
-    url: https://github.com/ajnart/homarr
-  - label: Documentation
-    url: https://homarr.dev/docs
-
 notes: |
-  Homarr mounts the Docker socket for container status widgets. Configurations are stored in the configs volume.
+  Auto-generated recipe. Verify ports and volumes before production use.
