@@ -1,0 +1,88 @@
+metadata:
+  name: "Sonarr"
+  description: |
+    Sonarr is an automated TV show management tool that monitors RSS feeds, indexes, and torrent/usenet sources for new episodes.
+    It downloads, renames, sorts, and organizes episodes with quality and size preferences. It integrates with download clients and media servers.
+    It is a standard tool in media automation stacks alongside Radarr, Bazarr, and Jellyfin/Plex.
+  category: media
+  subcategory: media-management
+  tags: [TV Shows, Automation, Media Management, Usenet, Torrent]
+  version: "latest"
+  homepage: https://sonarr.tv
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/sonarr.svg
+  license: GPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8989]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: lscr.io/linuxserver/sonarr:latest
+    name: sonarr
+    port: "8989:8989"
+    volumes:
+      - /opt/srvly/apps/sonarr/config:/config
+      - /opt/srvly/apps/sonarr/tv:/tv
+      - /opt/srvly/apps/sonarr/downloads:/downloads
+    env:
+      - key: PUID
+        value: "1000"
+        description: "User ID for file permissions"
+      - key: PGID
+        value: "1000"
+        description: "Group ID for file permissions"
+      - key: TZ
+        value: "Europe/Paris"
+        description: "Timezone"
+
+agent_install:
+  network: srvly-sonarr
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed sonarr container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8989
+  path: /
+  expected: [200, 301, 302]
+  timeout: 90
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/sonarr:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8989
+    description: "Host port for the Sonarr web UI"
+
+links:
+  - label: Website
+    url: https://sonarr.tv
+  - label: GitHub
+    url: https://github.com/Sonarr/Sonarr
+  - label: Documentation
+    url: https://wiki.servarr.com/sonarr
+
+notes: |
+  Sonarr uses SQLite and integrates with download clients (qBittorrent, Transmission, SABnzbd) and media servers (Jellyfin, Plex).

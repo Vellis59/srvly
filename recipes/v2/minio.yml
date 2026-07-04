@@ -1,0 +1,84 @@
+metadata:
+  name: "MinIO"
+  description: |
+    MinIO is a high-performance, S3-compatible object storage server for structured and unstructured data.
+    It is designed for private cloud and edge storage with features like erasure coding, bucket versioning, encryption, and identity management.
+    It is widely used as an on-premises alternative to Amazon S3 for applications that need object storage.
+  category: storage-backup
+  subcategory: cloud-storage
+  tags: [Storage, S3, Object Storage, Cloud]
+  version: "latest"
+  homepage: https://min.io
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/minio.svg
+  license: AGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [9001]
+  resources:
+    ram: 512
+    disk: 10
+
+install:
+  docker:
+    image: quay.io/minio/minio:latest
+    name: minio
+    port: "9001:9001"
+    volumes:
+      - /opt/srvly/apps/minio/data:/data
+    env:
+      - key: MINIO_ROOT_USER
+        value: "admin"
+        description: "MinIO admin username"
+      - key: MINIO_ROOT_PASSWORD
+        value: "***"
+        description: "MinIO admin password (min 8 chars)"
+
+agent_install:
+  network: srvly-minio
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed minio container before retrying."
+  prerequisites: []
+  app_env:
+    MINIO_ROOT_USER: "admin"
+    MINIO_ROOT_PASSWORD: "***"
+  post_install:
+    - "Generate a strong admin password (min 8 chars) for MINIO_ROOT_PASSWORD before deployment."
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 9001
+  path: /minio/health/live
+  expected: [200]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: quay.io/minio/minio:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: Console port
+    default: 9001
+    description: "Host port for the MinIO web console"
+
+links:
+  - label: Website
+    url: https://min.io
+  - label: GitHub
+    url: https://github.com/minio/minio
+  - label: Documentation
+    url: https://min.io/docs
+
+notes: |
+  MinIO uses two ports: 9000 (API/S3) and 9001 (web console). This recipe only exposes the web console port.

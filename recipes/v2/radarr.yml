@@ -1,0 +1,88 @@
+metadata:
+  name: "Radarr"
+  description: |
+    Radarr is an automated movie management tool that monitors RSS feeds, indexes, and torrent/usenet sources for desired movie releases.
+    It downloads, renames, improves quality, and organizes movies with customizable profiles and integration with download clients and media servers.
+    It completes the media automation toolkit together with Sonarr, Bazarr, and a media server.
+  category: media
+  subcategory: media-management
+  tags: [Movies, Automation, Media Management, Usenet, Torrent]
+  version: "latest"
+  homepage: https://radarr.video
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/radarr.svg
+  license: GPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [7878]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: lscr.io/linuxserver/radarr:latest
+    name: radarr
+    port: "7878:7878"
+    volumes:
+      - /opt/srvly/apps/radarr/config:/config
+      - /opt/srvly/apps/radarr/movies:/movies
+      - /opt/srvly/apps/radarr/downloads:/downloads
+    env:
+      - key: PUID
+        value: "1000"
+        description: "User ID for file permissions"
+      - key: PGID
+        value: "1000"
+        description: "Group ID for file permissions"
+      - key: TZ
+        value: "Europe/Paris"
+        description: "Timezone"
+
+agent_install:
+  network: srvly-radarr
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed radarr container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 7878
+  path: /
+  expected: [200, 301, 302]
+  timeout: 90
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/radarr:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 7878
+    description: "Host port for the Radarr web UI"
+
+links:
+  - label: Website
+    url: https://radarr.video
+  - label: GitHub
+    url: https://github.com/Radarr/Radarr
+  - label: Documentation
+    url: https://wiki.servarr.com/radarr
+
+notes: |
+  Radarr uses SQLite. Integrates with download clients (qBittorrent, Transmission, SABnzbd) and media servers (Jellyfin, Plex).

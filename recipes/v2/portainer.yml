@@ -1,0 +1,76 @@
+metadata:
+  name: "Portainer"
+  description: |
+    Portainer is a universal container management platform with a web-based UI for Docker, Swarm, and Kubernetes environments.
+    It provides service visibility, container logs, terminal access, image management, networks, volumes, and RBAC in one dashboard.
+    It is a common admin companion for anyone running Docker on a server.
+  category: dev-infra
+  subcategory: container-management
+  tags: [Docker, Containers, Management, Dashboard]
+  version: "latest"
+  homepage: https://www.portainer.io
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/portainer.svg
+  license: Zlib
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [9443]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: portainer/portainer-ce:latest
+    name: portainer
+    port: "9443:9443"
+    volumes:
+      - /opt/srvly/apps/portainer/data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+
+agent_install:
+  network: srvly-portainer
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed portainer container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Portainer serves HTTPS on port 9443 by default. The healthcheck checks TCP connectivity."
+    - "Create the admin user through the web UI on first access."
+    - "Fetch the rendered page and verify it loads correctly."
+
+healthcheck:
+  type: http
+  port: 9443
+  path: /
+  expected: [200, 301, 302, 401]
+  timeout: 90
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: portainer/portainer-ce:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTPS port
+    default: 9443
+    description: "Host port for the Portainer web UI"
+
+links:
+  - label: Website
+    url: https://www.portainer.io
+  - label: GitHub
+    url: https://github.com/portainer/portainer
+  - label: Documentation
+    url: https://docs.portainer.io
+
+notes: |
+  Portainer binds to the Docker socket for full container management access. The web UI is served over HTTPS on port 9443. An HTTP port (8000) is available for edge agent connections but not exposed here.

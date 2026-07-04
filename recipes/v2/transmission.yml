@@ -1,0 +1,89 @@
+metadata:
+  name: "Transmission"
+  description: |
+    Transmission is a fast, lightweight BitTorrent client available as a daemon with a web-based remote control interface.
+    It supports encryption, DHT, PEX, magnet links, bandwidth scheduling, torrent queues, and remote access via its Web UI, RPC API, or desktop clients.
+    It is a reliable choice for headless server deployments where a simple, low-resource torrent client is needed.
+  category: media
+  subcategory: media-management
+  tags: [Torrent, Download, P2P, Media]
+  version: "latest"
+  homepage: https://transmissionbt.com
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/transmission.svg
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [9091]
+  resources:
+    ram: 256
+    disk: 5
+
+install:
+  docker:
+    image: lscr.io/linuxserver/transmission:latest
+    name: transmission
+    port: "9091:9091"
+    volumes:
+      - /opt/srvly/apps/transmission/config:/config
+      - /opt/srvly/apps/transmission/downloads:/downloads
+      - /opt/srvly/apps/transmission/watch:/watch
+    env:
+      - key: PUID
+        value: "1000"
+        description: "User ID for file permissions"
+      - key: PGID
+        value: "1000"
+        description: "Group ID for file permissions"
+      - key: TZ
+        value: "Europe/Paris"
+        description: "Timezone"
+
+agent_install:
+  network: srvly-transmission
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed transmission container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 9091
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/transmission:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 9091
+    description: "Host port for the Transmission web UI"
+
+links:
+  - label: Website
+    url: https://transmissionbt.com
+  - label: GitHub
+    url: https://github.com/transmission/transmission
+  - label: Documentation
+    url: https://github.com/transmission/transmission/wiki
+
+notes: |
+  Transmission peer port (51413) is not exposed by default. If needed for P2P connectivity, expose it separately.

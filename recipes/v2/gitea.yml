@@ -1,0 +1,84 @@
+metadata:
+  name: "Gitea"
+  description: |
+    Gitea is a lightweight, self-hosted Git hosting platform with a clean web interface and minimal resource footprint.
+    It supports repository management, pull requests, code review, issue tracking, CI/CD integration, and team collaboration.
+    It is a practical self-hosted alternative to GitHub or GitLab for individuals and small teams.
+  category: dev-infra
+  subcategory: git-code
+  tags: [Git, Code Hosting, DevOps, CI/CD]
+  version: "latest"
+  homepage: https://gitea.io
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/gitea.svg
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3000]
+  resources:
+    ram: 512
+    disk: 5
+
+install:
+  docker:
+    image: gitea/gitea:latest
+    name: gitea
+    port: "3000:3000"
+    volumes:
+      - /opt/srvly/apps/gitea/data:/data
+      - /opt/srvly/apps/gitea/config:/etc/gitea
+    env:
+      - key: USER_UID
+        value: "1000"
+        description: "UID for file ownership"
+      - key: USER_GID
+        value: "1000"
+        description: "GID for file ownership"
+
+agent_install:
+  network: srvly-gitea
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed gitea container before retrying."
+  prerequisites: []
+  app_env:
+    USER_UID: "1000"
+    USER_GID: "1000"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 3000
+  path: /
+  expected: [200, 301, 302]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: gitea/gitea:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3000
+    description: "Host port for the Gitea web UI"
+
+links:
+  - label: Website
+    url: https://gitea.io
+  - label: GitHub
+    url: https://github.com/go-gitea/gitea
+  - label: Documentation
+    url: https://docs.gitea.com
+
+notes: |
+  Gitea uses an embedded SQLite database by default. For production with many users, consider migrating to PostgreSQL.

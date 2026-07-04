@@ -1,0 +1,74 @@
+metadata:
+  name: "Focalboard"
+  description: |
+    Focalboard is a self-hosted project management and collaboration platform inspired by Trello.
+    It provides kanban boards, tables, galleries, calendars, and goal tracking with markdown support, custom properties, and team sharing.
+    It is a solid choice for teams that want an open-source project management tool with a familiar board-based interface.
+  category: productivity
+  subcategory: project-management
+  tags: [Project Management, Kanban, Collaboration, Tasks]
+  version: "latest"
+  homepage: https://www.focalboard.com
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/focalboard.svg
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8000]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: mattermost/focalboard:latest
+    name: focalboard
+    port: "8000:8000"
+    volumes:
+      - /opt/srvly/apps/focalboard/data:/data
+
+agent_install:
+  network: srvly-focalboard
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed focalboard container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 8000
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: mattermost/focalboard:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8000
+    description: "Host port for the Focalboard web UI"
+
+links:
+  - label: Website
+    url: https://www.focalboard.com
+  - label: GitHub
+    url: https://github.com/mattermost-community/focalboard
+  - label: Documentation
+    url: https://www.focalboard.com/docs
+
+notes: |
+  Focalboard uses SQLite by default. For production, consider configuring PostgreSQL for multi-user reliability.
