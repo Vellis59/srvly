@@ -1,0 +1,74 @@
+metadata:
+  name: "Memos"
+  description: |
+    Memos is a lightweight, self-hosted note-taking and memo hub for short-form personal knowledge capture.
+    It supports markdown notes, tags, resources, search, and a clean timeline-oriented interface suitable for quick notes and private journaling.
+    It is a simple alternative to heavier note platforms when you want a small, fast, self-owned notes service.
+  category: productivity
+  subcategory: notes-wiki
+  tags: [Notes, Markdown, Knowledge Base, Journal]
+  version: "stable"
+  homepage: https://www.usememos.com
+  icon: https://github.com/usememos.png?size=64
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [5230]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: ghcr.io/usememos/memos:stable
+    name: memos
+    port: "5230:5230"
+    volumes:
+      - /opt/srvly/apps/memos/data:/var/opt/memos
+
+agent_install:
+  network: srvly-memos
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed memos container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 5230
+  path: /
+  expected: [200, 301, 302]
+  timeout: 90
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/usememos/memos:stable
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 5230
+    description: "Host port for the Memos web UI"
+
+links:
+  - label: Website
+    url: https://www.usememos.com
+  - label: GitHub
+    url: https://github.com/usememos/memos
+  - label: Documentation
+    url: https://www.usememos.com/docs
+
+notes: |
+  Memos uses an embedded SQLite database by default and stores data in the persistent /var/opt/memos volume.

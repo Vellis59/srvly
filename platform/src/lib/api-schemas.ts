@@ -20,14 +20,17 @@ export const dockerDeploySchema = z.object({
   name: z.string().min(1).max(100),
   image: z.string().min(1, "Image is required").max(500),
   port: portNumber.optional().default(3000),
+  containerPort: portNumber.optional(),
   domain: domainName.optional(),
   network: z.string().min(1).max(100).regex(/^[a-zA-Z0-9_.-]+$/, "Invalid Docker network name").optional(),
-  env: z.record(z.string(), z.string()).optional(),
+  env: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
   volumes: z
     .array(
       z.string().regex(/^[^:]+:.+$/, "Volume must be in format hostPath:containerPath"),
     )
     .optional(),
+  healthcheckPath: z.string().min(1).max(300).regex(/^\/[a-zA-Z0-9_./?=&%-]*$/, "Healthcheck path must start with / and contain only URL-safe characters").optional(),
+  healthcheckExpected: z.array(z.coerce.number().int().min(100).max(599)).min(1).max(20).optional(),
 });
 
 export type DockerDeployInput = z.infer<typeof dockerDeploySchema>;

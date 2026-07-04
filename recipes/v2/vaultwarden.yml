@@ -1,0 +1,85 @@
+metadata:
+  name: "Vaultwarden"
+  description: |
+    Vaultwarden is a lightweight, self-hosted implementation of the Bitwarden server API written in Rust.
+    It works with the official Bitwarden browser extensions and mobile apps while using far fewer resources than the official server stack.
+    It is a strong choice for individuals, families, and small teams that want to keep password management under their own control.
+  category: security
+  subcategory: password-manager
+  tags: [Security, Password Manager, Bitwarden, Rust]
+  version: "latest"
+  homepage: https://github.com/dani-garcia/vaultwarden
+  icon: https://github.com/dani-garcia.png?size=64
+  license: AGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8081]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: vaultwarden/server:latest
+    name: vaultwarden
+    port: "8081:80"
+    volumes:
+      - /opt/srvly/apps/vaultwarden/data:/data
+    env:
+      - key: DOMAIN
+        value: "$PUBLIC_BASE_URL"
+        description: "Public URL used by Vaultwarden clients and WebSocket/origin checks"
+      - key: SIGNUPS_ALLOWED
+        value: "true"
+        description: "Allow the first users to create accounts; disable after setup if desired"
+
+agent_install:
+  network: srvly-vaultwarden
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed vaultwarden container before retrying."
+  prerequisites: []
+  app_env:
+    DOMAIN: "$PUBLIC_BASE_URL"
+    SIGNUPS_ALLOWED: "true"
+  post_install:
+    - "Set DOMAIN to the final public URL before deployment."
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that public URL references do not point to localhost."
+
+healthcheck:
+  type: http
+  port: 8081
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: vaultwarden/server:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8081
+    description: "Host port for the Vaultwarden web UI"
+
+links:
+  - label: GitHub
+    url: https://github.com/dani-garcia/vaultwarden
+  - label: Documentation
+    url: https://github.com/dani-garcia/vaultwarden/wiki
+  - label: Docker Hub
+    url: https://hub.docker.com/r/vaultwarden/server
+
+notes: |
+  Vaultwarden stores data in SQLite by default inside the persistent /data volume.
+  Disable public signups after creating the intended users if the instance is exposed publicly.

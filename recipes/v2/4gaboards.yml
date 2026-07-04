@@ -41,6 +41,9 @@ install:
       - key: NODE_ENV
         value: production
         description: "Environnement"
+      - key: BASE_URL
+        value: "$PUBLIC_BASE_URL"
+        description: "Public URL used by Sails.js to generate frontend asset URLs"
 
 agent_install:
   network: srvly-4gaboards
@@ -62,12 +65,15 @@ agent_install:
         POSTGRES_USER: 4gaboards
         POSTGRES_PASSWORD: $GENERATED_PASSWORD
   app_env:
-    DATABASE_URL: "postgresql://4gaboards:$GENERATED_POSTGRES_PASSWORD@4gaboards-postgres:5432/4gaboards?sslmode=disable"
+    DATABASE_URL: "postgresql://4gaboards:$GENERATED_PASSWORD@4gaboards-postgres:5432/4gaboards?sslmode=disable"
     NODE_ENV: production
+    BASE_URL: "$PUBLIC_BASE_URL"
   post_install:
     - "Create the Docker network before both containers and attach Postgres and the app to it."
     - "Start Postgres first and wait until it accepts connections before starting the app."
+    - "Set BASE_URL to the final public URL before deployment (https://domain when a domain is configured, otherwise http://server-ip:host-port)."
     - "Run the HTTP healthcheck before registering the installation as successful."
+    - "After the HTTP status check passes, fetch the rendered HTML and verify that asset URLs are generated for the public URL, not localhost."
 
 healthcheck:
   type: http

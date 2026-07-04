@@ -1,0 +1,74 @@
+metadata:
+  name: "Uptime Kuma"
+  description: |
+    Uptime Kuma is a self-hosted monitoring dashboard for websites, APIs, TCP services, DNS records, certificates, and push checks.
+    It provides a polished web interface, status pages, incident visibility, and many notification integrations such as Telegram, Discord, Slack, email, and Gotify.
+    It is ideal for homelabs and small teams that need simple uptime monitoring without relying on an external SaaS.
+  category: dev-infra
+  subcategory: monitoring
+  tags: [Monitoring, Uptime, Status Page, Alerts]
+  version: "2.3.2"
+  homepage: https://uptime.kuma.pet
+  icon: https://github.com/louislam.png?size=64
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3001]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: louislam/uptime-kuma:2.3.2
+    name: uptimekuma
+    port: "3001:3001"
+    volumes:
+      - /opt/srvly/apps/uptimekuma/data:/app/data
+
+agent_install:
+  network: srvly-uptimekuma
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed uptimekuma container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 3001
+  path: /
+  expected: [200, 301, 302]
+  timeout: 90
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: louislam/uptime-kuma:2.3.2
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3001
+    description: "Host port for the Uptime Kuma web UI"
+
+links:
+  - label: Website
+    url: https://uptime.kuma.pet
+  - label: GitHub
+    url: https://github.com/louislam/uptime-kuma
+  - label: Documentation
+    url: https://github.com/louislam/uptime-kuma/wiki
+
+notes: |
+  Uptime Kuma stores its configuration and monitoring data in the persistent /app/data volume.

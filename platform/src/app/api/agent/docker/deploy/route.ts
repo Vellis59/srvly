@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
 
     const validation = await validateBody(req, dockerDeploySchema);
     if (!validation.valid) return validation.response;
-    const { serverId, name, image, port, domain, network, env, volumes } = validation.data;
+    const { serverId, name, image, port, containerPort, domain, network, env, volumes, healthcheckPath, healthcheckExpected } = validation.data;
 
     const [server] = await db
       .select()
@@ -23,6 +23,9 @@ export async function POST(req: NextRequest) {
     if (!server) return error("Server not found", 404);
 
     const appPort = port || 3000;
+    const appContainerPort = containerPort || appPort;
+    const checkPath = healthcheckPath || "/";
+    const expectedCodes = healthcheckExpected?.length ? healthcheckExpected : undefined;
     const containerName = name.toLowerCase().replace(/[^a-z0-9]/g, "-");
     const imageName = image || name.toLowerCase();
     
@@ -35,6 +38,9 @@ export async function POST(req: NextRequest) {
     }
     if (network && !/^[a-zA-Z0-9_.-]+$/.test(network)) {
       return error("Invalid Docker network name", 400);
+    }
+    if (!/^\/[a-zA-Z0-9_./?=&%-]*$/.test(checkPath)) {
+      return error("Invalid healthcheck path", 400);
     }
 
     const appDir = "/opt/srvly/" + containerName;
@@ -78,7 +84,7 @@ export async function POST(req: NextRequest) {
       s.push(`docker network create ${network} 2>/dev/null || true`);
     }
 
-    let runCmd = `docker run -d --name ${containerName} --restart unless-stopped -p ${appPort}:${appPort}`;
+    let runCmd = `docker run -d --name ${containerName} --restart unless-stopped -p ${appPort}:${appContainerPort}`;
     if (network) {
       runCmd += ` --network ${network}`;
     }
@@ -111,10 +117,14 @@ export async function POST(req: NextRequest) {
     s.push("", `echo ">>> WAIT"`, "sleep 3", "", `echo ">>> CHECK"`);
     s.push("READY=0");
     s.push("for i in 1 2 3 4 5 6 7 8 9 10; do");
-    s.push(`  CODE=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 5 http://127.0.0.1:${appPort} 2>/dev/null || true)`);
+    s.push(`  CODE=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 5 http://127.0.0.1:${appPort}${checkPath} 2>/dev/null || true)`);
     s.push('  [ -z "$CODE" ] && CODE=000');
     s.push('  echo "  Attempt $i: HTTP $CODE"');
-    s.push('  case "$CODE" in 2*|3*) READY=1; echo "READY"; break ;; esac');
+    if (expectedCodes) {
+      s.push(`  case " ${expectedCodes.join(" ")} " in *" $CODE "*) READY=1; echo "READY"; break ;; esac`);
+    } else {
+      s.push('  case "$CODE" in 2*|3*) READY=1; echo "READY"; break ;; esac');
+    }
     s.push("  sleep 3");
     s.push("done");
     s.push('if [ "$READY" != "1" ]; then');
@@ -147,10 +157,14 @@ export async function POST(req: NextRequest) {
       s.push(`  echo ">>> HTTPS CHECK"`);
       s.push('  DOMAIN_READY=0');
       s.push('  for i in 1 2 3 4 5 6 7 8 9 10; do');
-      s.push(`    DOMAIN_CODE=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 8 https://${domain} 2>/dev/null || true)`);
+      s.push(`    DOMAIN_CODE=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 8 https://${domain}${checkPath} 2>/dev/null || true)`);
       s.push('    [ -z "$DOMAIN_CODE" ] && DOMAIN_CODE=000');
       s.push('    echo "  HTTPS attempt $i: HTTP $DOMAIN_CODE"');
-      s.push('    case "$DOMAIN_CODE" in 2*|3*) DOMAIN_READY=1; echo "DOMAIN_READY"; break ;; esac');
+      if (expectedCodes) {
+        s.push(`    case " ${expectedCodes.join(" ")} " in *" $DOMAIN_CODE "*) DOMAIN_READY=1; echo "DOMAIN_READY"; break ;; esac`);
+      } else {
+        s.push('    case "$DOMAIN_CODE" in 2*|3*) DOMAIN_READY=1; echo "DOMAIN_READY"; break ;; esac');
+      }
       s.push('    sleep 5');
       s.push('  done');
       s.push('  if [ "$DOMAIN_READY" != "1" ]; then echo "ERROR: HTTPS domain did not become ready"; fi');
@@ -198,7 +212,7 @@ export async function POST(req: NextRequest) {
         serverId,
         recipeId: "app",
         status: success ? "success" : "failed",
-        params: { name, port: appPort, domain, image: imageName, containerName, network },
+        params: { name, port: appPort, containerPort: appContainerPort, domain, image: imageName, containerName, network, healthcheckPath: checkPath, healthcheckExpected: expectedCodes },
         result: { output, error: result.error },
         logs: output,
       })
@@ -211,7 +225,7 @@ export async function POST(req: NextRequest) {
     }
 
     return ok({
-      id: inst.id, containerName, port: appPort, domain,
+      id: inst.id, containerName, port: appPort, containerPort: appContainerPort, domain,
       status: success ? "success" : "failed",
       output: output.slice(0, 3000),
       error: result.error,

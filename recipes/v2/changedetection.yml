@@ -1,0 +1,74 @@
+metadata:
+  name: "changedetection.io"
+  description: |
+    changedetection.io is a self-hosted web page change monitoring service that watches websites, feeds, and documents for updates.
+    It can detect visual or text changes, send notifications, and help track price changes, availability, documentation updates, or public records.
+    It is useful when you need automated change alerts without depending on a third-party monitoring service.
+  category: automation-iot
+  subcategory: scraping
+  tags: [Monitoring, Web Scraping, Alerts, Change Detection]
+  version: "latest"
+  homepage: https://changedetection.io
+  icon: https://github.com/dgtlmoon.png?size=64
+  license: Apache-2.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [5001]
+  resources:
+    ram: 512
+    disk: 2
+
+install:
+  docker:
+    image: dgtlmoon/changedetection.io:latest
+    name: changedetection
+    port: "5001:5000"
+    volumes:
+      - /opt/srvly/apps/changedetection/data:/datastore
+
+agent_install:
+  network: srvly-changedetection
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed changedetection container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 5001
+  path: /
+  expected: [200, 301, 302]
+  timeout: 90
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: dgtlmoon/changedetection.io:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 5001
+    description: "Host port for the changedetection.io web UI"
+
+links:
+  - label: Website
+    url: https://changedetection.io
+  - label: GitHub
+    url: https://github.com/dgtlmoon/changedetection.io
+  - label: Docker Hub
+    url: https://hub.docker.com/r/dgtlmoon/changedetection.io
+
+notes: |
+  Browser-based checks may require an additional Playwright/browser container; this recipe covers the lightweight default deployment.

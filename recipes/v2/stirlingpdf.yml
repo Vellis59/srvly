@@ -1,0 +1,82 @@
+metadata:
+  name: "Stirling PDF"
+  description: |
+    Stirling PDF is a self-hosted PDF toolkit with a broad set of browser-based document operations.
+    It can merge, split, rotate, compress, convert, OCR, watermark, and reorganize PDF files without sending documents to an external service.
+    It is a strong utility app for privacy-conscious users and teams that handle documents regularly.
+  category: productivity
+  subcategory: documents
+  tags: [PDF, Documents, OCR, Conversion]
+  version: "latest"
+  homepage: https://www.stirlingpdf.com
+  icon: https://github.com/Stirling-Tools.png?size=64
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8082]
+  resources:
+    ram: 1024
+    disk: 3
+
+install:
+  docker:
+    image: stirlingtools/stirling-pdf:latest
+    name: stirlingpdf
+    port: "8082:8080"
+    volumes:
+      - /opt/srvly/apps/stirlingpdf/trainingData:/usr/share/tessdata
+      - /opt/srvly/apps/stirlingpdf/extraConfigs:/configs
+      - /opt/srvly/apps/stirlingpdf/customFiles:/customFiles
+      - /opt/srvly/apps/stirlingpdf/logs:/logs
+    env:
+      - key: DOCKER_ENABLE_SECURITY
+        value: "false"
+        description: "Disable built-in login for a simple private deployment; enable and configure for public instances"
+
+agent_install:
+  network: srvly-stirlingpdf
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed stirlingpdf container before retrying."
+  prerequisites: []
+  app_env:
+    DOCKER_ENABLE_SECURITY: "false"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 8082
+  path: /
+  expected: [200, 301, 302]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: stirlingtools/stirling-pdf:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8082
+    description: "Host port for the Stirling PDF web UI"
+
+links:
+  - label: Website
+    url: https://www.stirlingpdf.com
+  - label: GitHub
+    url: https://github.com/Stirling-Tools/Stirling-PDF
+  - label: Docker Hub
+    url: https://hub.docker.com/r/stirlingtools/stirling-pdf
+
+notes: |
+  For public deployments, enable authentication/security settings before exposing the instance.

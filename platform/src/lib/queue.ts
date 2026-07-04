@@ -32,7 +32,17 @@ const globalForQueue = globalThis as unknown as {
 
 let sshQueue: any;
 export { sshQueue };
-if (process.env.NODE_ENV !== "production") {
+
+const isNextBuild = process.env.NEXT_PHASE === "phase-production-build" || process.env.npm_lifecycle_event === "build";
+const noopQueue = {
+  add: async () => ({ id: "noop" }),
+};
+
+if (isNextBuild) {
+  // Next.js imports API/tRPC modules while collecting build metadata. Do not open
+  // a Redis socket during `next build`; production runtime still creates BullMQ.
+  sshQueue = noopQueue;
+} else if (process.env.NODE_ENV !== "production") {
   try {
     const { Queue } = require("bullmq");
     sshQueue = new Queue("ssh-tasks", {
@@ -45,9 +55,7 @@ if (process.env.NODE_ENV !== "production") {
     globalForQueue.sshQueue = sshQueue;
   } catch (e) {
     console.warn("Redis unavailable during build; using noop queue.");
-    sshQueue = {
-      add: async () => ({ id: "noop" }),
-    };
+    sshQueue = noopQueue;
   }
 } else {
   // In production, assume Redis is available.
@@ -71,7 +79,7 @@ export interface SshJobData {
 
 // Start the worker immediately when this file is imported
 let sshWorker: any;
-if (process.env.NODE_ENV !== "production") {
+if (!isNextBuild && process.env.NODE_ENV !== "production") {
   try {
     const { Worker } = require("bullmq");
     sshWorker = new (Worker as any)(

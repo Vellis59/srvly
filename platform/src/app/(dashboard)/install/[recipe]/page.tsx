@@ -41,6 +41,17 @@ function renderJson(value: unknown): string {
   return JSON.stringify(value, null, 2);
 }
 
+function applyPublicUrlPlaceholders(env: Record<string, unknown>, publicUrl: string, publicHost: string): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(env).map(([key, value]) => [
+      key,
+      typeof value === "string"
+        ? value.replaceAll("$PUBLIC_BASE_URL", publicUrl).replaceAll("$PUBLIC_HOST", publicHost)
+        : value,
+    ]),
+  );
+}
+
 export default function InstallPage() {
   const { recipe: recipeId } = useParams<{ recipe: string }>();
   const router = useRouter();
@@ -77,13 +88,15 @@ export default function InstallPage() {
     const serverIp = selectedServerData?.ip || "";
     const finalPort = port || String(defaultPort);
     const hasDomain = domain.trim().length > 0;
+    const publicUrl = hasDomain ? `https://${domain.trim()}` : `http://${serverIp}:${finalPort}`;
+    const publicHost = hasDomain ? domain.trim() : `${serverIp}:${finalPort}`;
     const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://srvly.app";
     const defaultImage = recipeData.params?.image?.default || docker.image || recipeId;
     const internalPort = String(docker.port || `${finalPort}:${finalPort}`).split(":").pop() || finalPort;
     const network = agentPlan.network || `srvly-${appSlug}`;
     const dockerEnv = envArrayToObject(docker.env);
     const agentEnv = agentPlan.app_env || {};
-    const appEnv = { ...dockerEnv, ...agentEnv };
+    const appEnv = applyPublicUrlPlaceholders({ ...dockerEnv, ...agentEnv }, publicUrl, publicHost);
     const volumes = Array.isArray(docker.volumes) ? docker.volumes : [];
     const prerequisites = Array.isArray(agentPlan.prerequisites) ? agentPlan.prerequisites : [];
     const githubLink = recipeData.links?.find?.((l: any) => l.label?.toLowerCase().includes("github"))?.url || recipeData.metadata?.homepage || "";
@@ -98,9 +111,12 @@ export default function InstallPage() {
       name: appSlug,
       image: defaultImage,
       port: parseInt(finalPort, 10) || defaultPort,
+      containerPort: parseInt(internalPort, 10) || parseInt(finalPort, 10) || defaultPort,
       network,
       env: appEnv,
       volumes,
+      healthcheckPath: healthcheck.path || "/",
+      healthcheckExpected: healthcheck.expected || [200, 301, 302],
     };
     if (hasDomain) deployPayload.domain = domain.trim();
 
@@ -112,6 +128,7 @@ export default function InstallPage() {
     fullPrompt += "- Do not modify SSH, firewall, Fail2Ban, sudoers, PAM, systemd, apt packages, or host security settings.\n";
     fullPrompt += "- Do not invent Docker images, variables, ports, or dependencies. Follow the install plan below exactly.\n";
     fullPrompt += "- Generate required secrets at runtime, keep them private, and do not print them in the final answer.\n";
+    fullPrompt += "- For Node.js/Sails.js apps, always preserve public URL environment variables from the recipe (BASE_URL, PUBLIC_URL, APP_URL, or similar).\n";
     fullPrompt += "- Do not register the installation as successful until the healthcheck passes.\n\n";
 
     fullPrompt += "## srvly API context\n";
@@ -128,6 +145,7 @@ export default function InstallPage() {
     fullPrompt += `Docker network: ${network}\n`;
     fullPrompt += `Host port: ${finalPort}\n`;
     fullPrompt += `Container port: ${internalPort}\n`;
+    fullPrompt += `Public URL: ${publicUrl}\n`;
     if (githubLink) fullPrompt += `Reference docs: ${githubLink}\n`;
     fullPrompt += "\n";
 
@@ -163,6 +181,7 @@ export default function InstallPage() {
     fullPrompt += `Timeout: ${healthcheck.timeout || 60}s\n`;
     fullPrompt += "After docker/deploy returns, run an independent post-deploy healthcheck yourself instead of relying only on the API response. Retry for slow-starting apps.\n";
     if (hasDomain) fullPrompt += `Also verify HTTPS externally: https://${domain.trim()} must return a real HTTP status before reporting success.\n`;
+    fullPrompt += `Fetch the rendered HTML from ${publicUrl}${healthcheck.path || "/"}. If it is an HTML page, inspect asset URLs and base/public URL references: they must point to ${publicUrl} or relative paths, not localhost or 127.0.0.1.\n`;
     fullPrompt += "If the healthcheck fails, fetch logs, fix the root cause, retry, and only then report back.\n\n";
 
     fullPrompt += "## Final response\n";

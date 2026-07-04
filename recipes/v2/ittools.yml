@@ -1,0 +1,72 @@
+metadata:
+  name: "IT Tools"
+  description: |
+    IT Tools is a collection of useful browser-based utilities for developers, operators, and technical users.
+    It includes converters, encoders, token tools, cryptography helpers, network calculators, JSON utilities, and many other small tools in a single interface.
+    It is lightweight, easy to host, and convenient as an internal toolbox for daily technical work.
+  category: dev-infra
+  subcategory: ide-tools
+  tags: [Developer Tools, Utilities, Converters, Toolbox]
+  version: "latest"
+  homepage: https://it-tools.tech
+  icon: https://github.com/CorentinTh.png?size=64
+  license: GPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8083]
+  resources:
+    ram: 128
+    disk: 1
+
+install:
+  docker:
+    image: corentinth/it-tools:latest
+    name: ittools
+    port: "8083:80"
+
+agent_install:
+  network: srvly-ittools
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed ittools container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 8083
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: corentinth/it-tools:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8083
+    description: "Host port for the IT Tools web UI"
+
+links:
+  - label: Website
+    url: https://it-tools.tech
+  - label: GitHub
+    url: https://github.com/CorentinTh/it-tools
+  - label: Docker Hub
+    url: https://hub.docker.com/r/corentinth/it-tools
+
+notes: |
+  IT Tools is a static web application and does not require a database or persistent volume for basic use.

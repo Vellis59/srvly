@@ -1,0 +1,74 @@
+metadata:
+  name: "Whoogle Search"
+  description: |
+    Whoogle Search is a privacy-focused metasearch frontend that retrieves Google Search results without ads, tracking scripts, cookies, or JavaScript-heavy pages.
+    It can be self-hosted as a lightweight web application and customized with instance-level preferences.
+    It is useful for users who want familiar Google-style results while reducing exposure to profiling and tracking.
+  category: security
+  subcategory: firewall
+  tags: [Search, Privacy, Google, Proxy]
+  version: "0.9.3"
+  homepage: https://github.com/benbusby/whoogle-search
+  icon: https://github.com/benbusby.png?size=64
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [5000]
+  resources:
+    ram: 256
+    disk: 1
+
+install:
+  docker:
+    image: benbusby/whoogle-search:0.9.3
+    name: whoogle
+    port: "5000:5000"
+    volumes:
+      - /opt/srvly/apps/whoogle/config:/config
+
+agent_install:
+  network: srvly-whoogle
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed whoogle container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that it does not contain localhost asset URLs."
+
+healthcheck:
+  type: http
+  port: 5000
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: benbusby/whoogle-search:0.9.3
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 5000
+    description: "Host port for the Whoogle web UI"
+
+links:
+  - label: GitHub
+    url: https://github.com/benbusby/whoogle-search
+  - label: Documentation
+    url: https://github.com/benbusby/whoogle-search#readme
+  - label: Docker Hub
+    url: https://hub.docker.com/r/benbusby/whoogle-search
+
+notes: |
+  Public instances can be rate-limited or blocked by upstream Google behavior. Prefer private or small shared deployments.
