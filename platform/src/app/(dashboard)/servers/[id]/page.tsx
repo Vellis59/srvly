@@ -733,7 +733,7 @@ function MonitoringSection({ serverId }: { serverId: string }) {
   );
 }
 
-// ─── DomainSection (Phase 5) ───
+// ─── DomainSection ───
 
 function DomainSection({ serverId }: { serverId: string }) {
   const utils = trpc.useUtils();
@@ -1014,11 +1014,22 @@ function DomainItem({ domain, onDelete }: { domain: any; onDelete: () => void })
   );
 }
 
-// ─── InstalledApps (Phase 3) ───
+// ─── InstalledApps ───
 
 function InstalledApps({ serverId }: { serverId: string }) {
   const utils = trpc.useUtils();
   const { data: installations } = trpc.install.listForServer.useQuery({ serverId });
+  const { data: categories } = trpc.category.list.useQuery();
+  const assignCategory = trpc.install.assignCategory.useMutation({
+    onSuccess: () => { utils.install.listForServer.invalidate({ serverId }); setCatMsg(""); },
+  });
+  const createCategory = trpc.category.create.useMutation({
+    onSuccess: () => { utils.category.list.invalidate(); setShowCatForm(false); setCatName(""); }
+  });
+  const deleteCategory = trpc.category.delete.useMutation({
+    onSuccess: () => utils.category.list.invalidate(),
+  });
+  const detectContainers = trpc.install.detectContainers.useMutation();
   const { data: backups } = trpc.backup.list.useQuery({ serverId, limit: 50 });
   const backupAppMutation = trpc.backup.appBackup.useMutation();
   const [backupBusy, setBackupBusy] = useState<Record<string, boolean>>({});
@@ -1038,7 +1049,7 @@ function InstalledApps({ serverId }: { serverId: string }) {
   const updateEnv = trpc.install.updateEnv.useMutation();
 
   const [actionOutput, setActionOutput] = useState<Record<string, string>>({});
-  const [openPanels, setOpenPanels] = useState<Record<string, string>>({}); // id-panel → "open" | "loading" | "loaded"
+  const [openPanels, setOpenPanels] = useState<Record<string, string>>({});
   const [containerStats, setContainerStats] = useState<Record<string, any> | null>(null);
   const [containerSizes, setContainerSizes] = useState<Record<string, string> | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
@@ -1049,6 +1060,12 @@ function InstalledApps({ serverId }: { serverId: string }) {
   const [savingEnv, setSavingEnv] = useState(false);
   const [inspectData, setInspectData] = useState<Record<string, any>>({});
   const [inspectLoading, setInspectLoading] = useState<Record<string, boolean>>({});
+  const [catMsg, setCatMsg] = useState("");
+  const [showCatForm, setShowCatForm] = useState(false);
+  const [catName, setCatName] = useState("");
+  const [catIcon, setCatIcon] = useState("📁");
+  const [expandedContainers, setExpandedContainers] = useState<Record<string, boolean>>({});
+  const [detectedContainers, setDetectedContainers] = useState<any[] | null>(null);
 
   const runAction = async (id: string, action: string, fn: any) => {
     setActionOutput((prev) => ({ ...prev, [`${id}-${action}`]: "..." }));
@@ -1127,7 +1144,7 @@ function InstalledApps({ serverId }: { serverId: string }) {
 
   const fetchInspect = async (item: any) => {
     const id = item.id;
-    if (inspectData[id]) return; // already loaded
+    if (inspectData[id]) return;
     setInspectLoading((prev) => ({ ...prev, [id]: true }));
     try {
       const result = await inspectApp.mutateAsync({ id });
@@ -1165,14 +1182,11 @@ function InstalledApps({ serverId }: { serverId: string }) {
   };
 
   const startEditEnv = (item: any) => {
-    // Parse the env output into a record
     const raw = actionOutput[`${item.id}-env`] || "";
     const env: Record<string, string> = {};
     for (const line of raw.split("\n")) {
       const eqIdx = line.indexOf("=");
-      if (eqIdx > 0) {
-        env[line.substring(0, eqIdx)] = line.substring(eqIdx + 1);
-      }
+      if (eqIdx > 0) env[line.substring(0, eqIdx)] = line.substring(eqIdx + 1);
     }
     setEditingEnv(item.id);
     setEditValues(env);
@@ -1200,14 +1214,65 @@ function InstalledApps({ serverId }: { serverId: string }) {
     return val.slice(0, 2) + "****" + val.slice(-2);
   };
 
+  const handleScanContainers = async () => {
+    try {
+      const result = await detectContainers.mutateAsync({ serverId });
+      if (result.success) setDetectedContainers(result.containers);
+    } catch {}
+  };
+
+  const handleCreateCategory = async () => {
+    if (!catName.trim()) return;
+    await createCategory.mutateAsync({ name: catName.trim(), icon: catIcon });
+  };
+
+  // Group installations by category
   const apps = installations || [];
+  const catMap = new Map<string, any>();
+  for (const c of categories || []) catMap.set(c.id, c);
+
+  const grouped: Record<string, { category: any | null; items: any[] }> = { _uncat: { category: null, items: [] } };
+  for (const c of categories || []) grouped[c.id] = { category: c, items: [] };
+  for (const app of apps) {
+    const catId = app.categoryId;
+    if (catId && grouped[catId]) grouped[catId].items.push(app);
+    else grouped._uncat.items.push(app);
+  }
 
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-semibold text-zinc-100">📦 Installed apps</h2>
-        {apps.length > 0 && <span className="text-xs text-zinc-500">{apps.length} app{apps.length > 1 ? "s" : ""}</span>}
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-zinc-500">{apps.length} app{apps.length !== 1 ? "s" : ""}</span>
+          <button onClick={handleScanContainers} disabled={detectContainers.isPending}
+            className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-500 px-2.5 py-1.5 rounded-lg font-medium transition-colors">
+            {detectContainers.isPending ? "..." : "🐳 Scan"}
+          </button>
+          <button onClick={() => setShowCatForm(!showCatForm)}
+            className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-500 px-2.5 py-1.5 rounded-lg font-medium transition-colors">
+            {showCatForm ? "✕" : "📁 +"}
+          </button>
+        </div>
       </div>
+
+      {/* Category creation form */}
+      {showCatForm && (
+        <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-3 mb-4 flex items-center gap-2">
+          <input value={catIcon} onChange={(e) => setCatIcon(e.target.value)}
+            className="w-10 text-center px-2 py-1.5 bg-zinc-900 border border-zinc-700 rounded-lg text-sm" />
+          <input value={catName} onChange={(e) => setCatName(e.target.value)}
+            placeholder="Category name"
+            className="flex-1 px-3 py-1.5 bg-zinc-900 border border-zinc-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            onKeyDown={(e) => e.key === "Enter" && handleCreateCategory()} />
+          <button onClick={handleCreateCategory} disabled={createCategory.isPending || !catName.trim()}
+            className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-medium hover:bg-emerald-700 disabled:opacity-50">
+            {createCategory.isPending ? "..." : "Add"}
+          </button>
+        </div>
+      )}
+
+      {catMsg && <p className="text-xs text-emerald-400 mb-3">{catMsg}</p>}
 
       {apps.length === 0 ? (
         <div className="text-sm text-zinc-500 text-center py-8 border-2 border-dashed border-zinc-700 rounded-xl">
@@ -1216,56 +1281,172 @@ function InstalledApps({ serverId }: { serverId: string }) {
           <span className="text-xs text-zinc-400">Install an app via the catalog or ask your AI agent.</span>
         </div>
       ) : (
-        <div className="space-y-2">
-          {apps.map((item: any) => {
-            const params = (item.params || {}) as any;
-            const status = item.status || "unknown";
-            const name = params.name || item.recipeId || "App";
-            const container = params.containerName || params.name || item.recipeId;
-
-            const statusColors: Record<string, string> = {
-              success: "bg-emerald-500", running: "bg-amber-400",
-              failed: "bg-red-500", stopped: "bg-slate-400",
-            };
-
-            let appUrl = "";
-            if (params.domain) appUrl = "https://" + params.domain;
-            else if (params.port) appUrl = "http://server-ip:" + params.port;
-
+        <div className="space-y-4">
+          {Object.entries(grouped).map(([groupId, group]) => {
+            if (group.items.length === 0) return null;
+            const cat = group.category;
+            const isUncat = groupId === "_uncat";
             return (
-              <Link key={item.id} href={"/servers/" + serverId + "/apps/" + item.id}
-                className={"flex items-center gap-3 p-3 border rounded-xl transition-all hover:shadow-sm group " + (
-                  status === "success" ? "bg-zinc-900 border-zinc-700" :
-                  status === "failed" ? "bg-zinc-800 border-red-200" :
-                  status === "running" ? "bg-zinc-800 border-amber-200" :
-                  "bg-zinc-800 border-zinc-700")}>
-                <span className={"w-2.5 h-2.5 rounded-full " + (statusColors[status] || "bg-slate-400") + " shrink-0"} />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-sm text-zinc-100 group-hover:text-emerald-400 transition-colors truncate">{name}</p>
-                    <span className={"text-[10px] font-medium px-1.5 py-0.5 rounded " + (
-                      status === "success" ? "bg-zinc-700 text-emerald-400" :
-                      status === "failed" ? "bg-zinc-700 text-red-400" :
-                      status === "running" ? "bg-zinc-700 text-amber-400" :
-                      "bg-zinc-800 text-zinc-500")}>
-                      {status === "success" ? "Active" : status === "running" ? "Busy" : status}
-                    </span>
-                  </div>
-                  <p className="text-xs text-zinc-500 mt-0.5">
-                    {params.port && <>Port {params.port}</>}
-                    {params.domain && <> &bull; {params.domain}</>}
-                    {!params.port && !params.domain && container && <span className="font-mono">{container}</span>}
-                  </p>
+              <div key={groupId}>
+                {/* Category header */}
+                <div className="flex items-center gap-2 mb-2 px-1">
+                  <span className="text-base">{isUncat ? "📦" : cat.icon}</span>
+                  <h3 className="text-sm font-semibold text-zinc-300">
+                    {isUncat ? "Uncategorized" : cat.name}
+                  </h3>
+                  <span className="text-[10px] bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded-full font-medium">
+                    {group.items.length}
+                  </span>
+                  {!isUncat && (
+                    <button onClick={() => { if (confirm(`Delete category "${cat.name}"?`)) deleteCategory.mutate({ id: cat.id }); }}
+                      className="text-[10px] text-zinc-600 hover:text-red-400 transition-colors ml-auto">
+                      ✕
+                    </button>
+                  )}
                 </div>
-                {appUrl && (
-                  <a href={appUrl} target="_blank" rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="text-xs bg-zinc-800 hover:bg-slate-200 text-zinc-500 px-2.5 py-1.5 rounded-lg font-medium transition-colors shrink-0 z-10">
-                    ↗ Open
-                  </a>
-                )}
-                <span className="text-zinc-300 group-hover:text-zinc-500 transition-colors text-sm">→</span>
-              </Link>
+
+                {/* Apps in this category */}
+                <div className="space-y-1.5">
+                  {group.items.map((item: any) => {
+                    const params = (item.params || {}) as any;
+                    const status = item.status || "unknown";
+                    const name = params.name || item.recipeId || "App";
+                    const container = params.containerName || params.name || item.recipeId;
+
+                    const statusColors: Record<string, string> = {
+                      success: "bg-emerald-500", running: "bg-amber-400",
+                      failed: "bg-red-500", stopped: "bg-slate-400",
+                    };
+
+                    let appUrl = "";
+                    if (params.domain) appUrl = "https://" + params.domain;
+                    else if (params.port) appUrl = "http://server-ip:" + params.port;
+
+                    return (
+                      <div key={item.id} className="border border-zinc-800 rounded-xl overflow-hidden">
+                        {/* Main app row */}
+                        <Link href={"/servers/" + serverId + "/apps/" + item.id}
+                          className={"flex items-center gap-3 p-3 transition-all hover:shadow-sm group " + (
+                            status === "success" ? "bg-zinc-900 border-b border-zinc-800" :
+                            status === "failed" ? "bg-zinc-800 border-b border-red-200" :
+                            status === "running" ? "bg-zinc-800 border-b border-amber-200" :
+                            "bg-zinc-800 border-b border-zinc-700")}>
+                          <span className={"w-2.5 h-2.5 rounded-full " + (statusColors[status] || "bg-slate-400") + " shrink-0"} />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium text-sm text-zinc-100 group-hover:text-emerald-400 transition-colors truncate">{name}</p>
+                              <span className={"text-[10px] font-medium px-1.5 py-0.5 rounded " + (
+                                status === "success" ? "bg-zinc-700 text-emerald-400" :
+                                status === "failed" ? "bg-zinc-700 text-red-400" :
+                                status === "running" ? "bg-zinc-700 text-amber-400" :
+                                "bg-zinc-700 text-zinc-500")}>
+                                {status === "success" ? "Active" : status === "running" ? "Busy" : status}
+                              </span>
+                            </div>
+                            <p className="text-xs text-zinc-500 mt-0.5">
+                              {params.port && <>Port {params.port}</>}
+                              {params.domain && <> &bull; {params.domain}</>}
+                              {!params.port && !params.domain && container && <span className="font-mono">{container}</span>}
+                            </p>
+                          </div>
+                          {appUrl && (
+                            <a href={appUrl} target="_blank" rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-xs bg-zinc-800 hover:bg-slate-200 text-zinc-500 px-2.5 py-1.5 rounded-lg font-medium transition-colors shrink-0 z-10">
+                              ↗ Open
+                            </a>
+                          )}
+                          <span className="text-zinc-300 group-hover:text-zinc-500 transition-colors text-sm">→</span>
+                        </Link>
+
+                        {/* Category selector + container toggle */}
+                        <div className="flex items-center gap-2 px-3 py-2 bg-zinc-800/30 border-t border-zinc-800">
+                          {/* Category selector */}
+                          <select
+                            value={item.categoryId || ""}
+                            onChange={(e) => {
+                              assignCategory.mutate({ id: item.id, categoryId: e.target.value || null });
+                              setCatMsg(e.target.value ? "Assigned" : "Uncategorized");
+                            }}
+                            className="text-[11px] bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1 text-zinc-400 focus:outline-none"
+                          >
+                            <option value="">No category</option>
+                            {(categories || []).map((c: any) => (
+                              <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
+                            ))}
+                          </select>
+
+                          {/* Container toggle */}
+                          <button
+                            onClick={() => setExpandedContainers(prev => ({ ...prev, [item.id]: !prev[item.id] }))}
+                            className="text-[11px] bg-zinc-800 hover:bg-zinc-700 text-zinc-500 px-2 py-1 rounded-lg font-medium transition-colors"
+                          >
+                            {expandedContainers[item.id] ? "▲ Containers" : "▼ Containers"}
+                          </button>
+
+                          {actionOutput[`${item.id}-logs`] && (
+                            <span className="text-[10px] text-zinc-500 truncate flex-1 text-right">
+                              {openPanels[`${item.id}-logs`] === "loaded" ? "✓" : ""}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Expanded containers */}
+                        {expandedContainers[item.id] && (
+                          <div className="px-3 pb-3 bg-zinc-800/30 space-y-1">
+                            {detectedContainers && detectedContainers.length > 0 ? (
+                              <>
+                                {detectedContainers
+                                  .filter((c: any) => c.name.includes(container) || container.includes(c.name))
+                                  .map((c: any, i: number) => (
+                                    <div key={i} className="flex items-center gap-2 py-1.5 px-2 bg-zinc-800 rounded-lg text-xs">
+                                      <span className={`w-2 h-2 rounded-full ${c.status === "running" ? "bg-emerald-500" : "bg-slate-400"}`} />
+                                      <span className="font-mono text-zinc-300">{c.name}</span>
+                                      <span className="text-zinc-500">{c.image.split("/").pop()}</span>
+                                      {c.port && <span className="text-zinc-500">: {c.port}</span>}
+                                      <span className={`ml-auto ${c.status === "running" ? "text-emerald-400" : "text-zinc-500"}`}>
+                                        {c.status}
+                                      </span>
+                                    </div>
+                                  ))}
+                                {detectedContainers.filter((c: any) => c.name.includes(container) || container.includes(c.name)).length === 0 && (
+                                  <p className="text-[11px] text-zinc-500 py-1 text-center">No matching containers found. Click Scan to refresh.</p>
+                                )}
+                              </>
+                            ) : (
+                              <p className="text-[11px] text-zinc-500 py-1 text-center">
+                                {detectContainers.isPending ? "Scanning..." : "Click Scan to detect containers"}
+                              </p>
+                            )}
+
+                            {/* Quick actions row */}
+                            <div className="flex flex-wrap gap-1 pt-1">
+                              <button onClick={() => fetchLogs(item.id)}
+                                className="text-[10px] bg-zinc-800 hover:bg-zinc-700 text-zinc-500 px-2 py-1 rounded-lg font-medium transition-colors">
+                                📋 Logs
+                              </button>
+                              <button onClick={() => { runAction(item.id, "restart", restartApp); }}
+                                className="text-[10px] bg-zinc-800 hover:bg-zinc-700 text-amber-400 px-2 py-1 rounded-lg font-medium transition-colors">
+                                ↻ Restart
+                              </button>
+                              <button onClick={() => { runAction(item.id, "stop", stopApp); }}
+                                className="text-[10px] bg-zinc-800 hover:bg-zinc-700 text-red-400 px-2 py-1 rounded-lg font-medium transition-colors">
+                                ⏹ Stop
+                              </button>
+                              {status === "stopped" && (
+                                <button onClick={() => { runAction(item.id, "start", startApp); }}
+                                  className="text-[10px] bg-zinc-800 hover:bg-zinc-700 text-emerald-400 px-2 py-1 rounded-lg font-medium transition-colors">
+                                  ▶ Start
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             );
           })}
         </div>
@@ -1274,8 +1455,7 @@ function InstalledApps({ serverId }: { serverId: string }) {
   );
 }
 
-// ─── BackupSection (Phase 6) ───
-// ─── BackupSection (Phase 6) ───
+// ─── BackupSection ───
 
 function BackupSection({ serverId }: { serverId: string }) {
   const utils = trpc.useUtils();
@@ -1349,19 +1529,9 @@ function BackupSection({ serverId }: { serverId: string }) {
     try {
       let result;
       if (backup.type === "volume") {
-        // Extract volume name from targetName
-        result = await restoreVolume.mutateAsync({
-          serverId,
-          volumeName: backup.targetName,
-          backupFilename: backup.filename,
-        });
+        result = await restoreVolume.mutateAsync({ serverId, volumeName: backup.targetName, backupFilename: backup.filename });
       } else {
-        result = await restoreDb.mutateAsync({
-          serverId,
-          containerName: backup.targetName.split(":")[0],
-          dbType: backup.type as any,
-          backupFilename: backup.filename,
-        });
+        result = await restoreDb.mutateAsync({ serverId, containerName: backup.targetName.split(":")[0], dbType: backup.type as any, backupFilename: backup.filename });
       }
       if (result.success) {
         setActionMsg({ type: "success", text: `Restored successfully` });
@@ -1394,11 +1564,7 @@ function BackupSection({ serverId }: { serverId: string }) {
   const formatDate = (d: Date | string) => new Date(d).toLocaleString();
 
   const typeIcons: Record<string, string> = {
-    volume: "💾",
-    postgres: "🐘",
-    mysql: "🐬",
-    mongodb: "🍃",
-    redis: "🟥",
+    volume: "💾", postgres: "🐘", mysql: "🐬", mongodb: "🍃", redis: "🟥",
   };
 
   return (
@@ -1414,7 +1580,6 @@ function BackupSection({ serverId }: { serverId: string }) {
 
       {/* Create backup */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        {/* Volume backup */}
         <div className="bg-zinc-800 rounded-xl p-4">
           <p className="text-sm font-medium text-zinc-300 mb-2">💾 Backup a volume</p>
           {targets && targets.volumes.length > 0 ? (
@@ -1425,8 +1590,7 @@ function BackupSection({ serverId }: { serverId: string }) {
                   <option key={v} value={v}>{v}</option>
                 ))}
               </select>
-              <button onClick={handleVolumeBackup}
-                disabled={volumeBackup.isPending || !selectedVolume}
+              <button onClick={handleVolumeBackup} disabled={volumeBackup.isPending || !selectedVolume}
                 className="w-full px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors">
                 {volumeBackup.isPending ? "Backing up..." : "Backup"}
               </button>
@@ -1435,112 +1599,77 @@ function BackupSection({ serverId }: { serverId: string }) {
             <p className="text-xs text-zinc-400">Click Discover to scan volumes</p>
           )}
         </div>
-
-        {/* DB backup */}
         <div className="bg-zinc-800 rounded-xl p-4">
           <p className="text-sm font-medium text-zinc-300 mb-2">🐘 Backup a database</p>
           {targets && targets.dbContainers.length > 0 ? (
             <>
-              <select value={selectedDb.container}
-                onChange={(e) => setSelectedDb((p) => ({ ...p, container: e.target.value }))}
+              <select value={selectedDb.container} onChange={(e) => setSelectedDb((p) => ({ ...p, container: e.target.value }))}
                 className="w-full px-3 py-2 border border-zinc-700 rounded-lg text-sm bg-zinc-900 mb-2">
                 <option value="">Select container</option>
                 {targets.dbContainers.map((c: any) => (
                   <option key={c.name} value={c.name}>{c.name} ({c.image})</option>
                 ))}
               </select>
-              <select value={selectedDb.type}
-                onChange={(e) => setSelectedDb((p) => ({ ...p, type: e.target.value }))}
+              <select value={selectedDb.type} onChange={(e) => setSelectedDb((p) => ({ ...p, type: e.target.value }))}
                 className="w-full px-3 py-2 border border-zinc-700 rounded-lg text-sm bg-zinc-900 mb-2">
                 <option value="postgres">PostgreSQL</option>
                 <option value="mysql">MySQL / MariaDB</option>
                 <option value="mongodb">MongoDB</option>
                 <option value="redis">Redis</option>
               </select>
-              <input type="text" value={selectedDb.dbName}
-                onChange={(e) => setSelectedDb((p) => ({ ...p, dbName: e.target.value }))}
-                placeholder="DB name (optional)"
-                className="w-full px-3 py-2 border border-zinc-700 rounded-lg text-sm bg-zinc-900 mb-2" />
-              <button onClick={handleDbBackup}
-                disabled={dbBackup.isPending || !selectedDb.container}
+              <input type="text" value={selectedDb.dbName} onChange={(e) => setSelectedDb((p) => ({ ...p, dbName: e.target.value }))}
+                placeholder="DB name (optional)" className="w-full px-3 py-2 border border-zinc-700 rounded-lg text-sm bg-zinc-900 mb-2" />
+              <button onClick={handleDbBackup} disabled={dbBackup.isPending || !selectedDb.container}
                 className="w-full px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors">
                 {dbBackup.isPending ? "Backing up..." : "Backup"}
               </button>
             </>
           ) : (
-            <p className="text-xs text-zinc-400">
-              {targets ? "No DB containers found (postgres/mysql/mongo/redis)" : "Click Discover to scan containers"}
-            </p>
+            <p className="text-xs text-zinc-400">{targets ? "No DB containers found" : "Click Discover to scan containers"}</p>
           )}
         </div>
       </div>
 
-      {/* Action message */}
       {actionMsg && (
-        <div className={`text-xs px-3 py-2 rounded-lg mb-4 ${
-          actionMsg.type === "success"
-            ? "bg-zinc-800 text-emerald-400 border border-emerald-200"
-            : "bg-zinc-800 text-red-400 border border-red-200"
-        }`}>
+        <div className={`text-xs px-3 py-2 rounded-lg mb-4 ${actionMsg.type === "success" ? "bg-zinc-800 text-emerald-400 border border-emerald-200" : "bg-zinc-800 text-red-400 border border-red-200"}`}>
           {actionMsg.text}
         </div>
       )}
 
-      {/* History */}
       <div>
         <h3 className="text-sm font-medium text-zinc-300 mb-2">History</h3>
         {isLoading && <div className="text-sm text-zinc-400 text-center py-3">Loading backups...</div>}
         {!isLoading && (!backups || backups.length === 0) && (
-          <div className="text-sm text-zinc-400 text-center py-4 border-2 border-dashed border-zinc-700 rounded-xl">
-            No backups yet. Discover volumes or DB containers and click Backup.
-          </div>
+          <div className="text-sm text-zinc-400 text-center py-4 border-2 border-dashed border-zinc-700 rounded-xl">No backups yet.</div>
         )}
         {backups && backups.length > 0 && (
           <div className="space-y-2">
-            {backups.map((b: any) => {
-              const isRunning = b.status === "running";
-              const isFailed = b.status === "failed";
-              return (
-                <div key={b.id} className={`border rounded-xl overflow-hidden ${
-                  isFailed ? "border-red-200 bg-zinc-800" : "border-zinc-700 bg-zinc-900"
-                }`}>
-                  <div className="flex items-center gap-3 p-3">
-                    <span className="text-base">{typeIcons[b.type] || "💾"}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-zinc-100 truncate">
-                        {b.humanName || b.targetName}
-                      </p>
-                      <p className="text-[11px] text-zinc-500 mt-0.5 font-mono truncate">
-                        {b.filename}
-                      </p>
-                      <p className="text-[11px] text-zinc-400 mt-0.5">
-                        {formatSize(b.sizeBytes)} · {formatDate(b.createdAt)}
-                        {isRunning && <span className="ml-2 text-blue-600">⏳ Running</span>}
-                        {isFailed && <span className="ml-2 text-red-400">❌ Failed</span>}
-                      </p>
-                    </div>
-                    <div className="flex gap-1">
-                      {!isRunning && (
-                        <button onClick={() => handleRestore(b)}
-                          className="text-xs bg-zinc-800 hover:bg-zinc-700 text-emerald-400 px-2 py-1 rounded-lg font-medium">
-                          ↻ Restore
-                        </button>
-                      )}
-                      <button onClick={() => handleDelete(b.id)}
-                        disabled={deleteBackup.isPending}
-                        className="text-xs text-red-500 hover:text-red-400 px-2 py-1">
-                        ✕
-                      </button>
-                    </div>
+            {backups.map((b: any) => (
+              <div key={b.id} className={`border rounded-xl overflow-hidden ${b.status === "failed" ? "border-red-200 bg-zinc-800" : "border-zinc-700 bg-zinc-900"}`}>
+                <div className="flex items-center gap-3 p-3">
+                  <span className="text-base">{typeIcons[b.type] || "💾"}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-zinc-100 truncate">{b.humanName || b.targetName}</p>
+                    <p className="text-[11px] text-zinc-500 mt-0.5 font-mono truncate">{b.filename}</p>
+                    <p className="text-[11px] text-zinc-400 mt-0.5">
+                      {formatSize(b.sizeBytes)} · {formatDate(b.createdAt)}
+                      {b.status === "running" && <span className="ml-2 text-blue-600">⏳ Running</span>}
+                      {b.status === "failed" && <span className="ml-2 text-red-400">❌ Failed</span>}
+                    </p>
                   </div>
-                  {isFailed && b.errorMessage && (
-                    <div className="border-t border-red-200 px-3 py-2 text-xs text-red-400 font-mono break-words">
-                      {b.errorMessage}
-                    </div>
-                  )}
+                  <div className="flex gap-1">
+                    {b.status !== "running" && (
+                      <button onClick={() => handleRestore(b)} className="text-xs bg-zinc-800 hover:bg-zinc-700 text-emerald-400 px-2 py-1 rounded-lg font-medium">↻ Restore</button>
+                    )}
+                    <button onClick={() => handleDelete(b.id)} disabled={deleteBackup.isPending}
+                      className="text-xs text-red-500 hover:text-red-400 px-2 py-1">✕</button>
+                  </div>
                 </div>
-              );
-            })}
+                {b.status === "failed" && b.errorMessage && (
+                  <div className="border-t border-red-200 px-3 py-2 text-xs text-red-400 font-mono break-words">{b.errorMessage}</div>
+                )}
+              </div>
+            ))}
           </div>
         )}
       </div>

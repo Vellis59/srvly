@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, agentProcedure } from "@/server/trpc/context";
-import { servers, installations, recipes, domains, users, backups } from "@/server/db/schema";
+import { servers, installations, recipes, domains, users, backups, categories } from "@/server/db/schema";
 import { eq, and, or, ilike, inArray, sql } from "drizzle-orm";
 import { executeOnServer } from "@/lib/ssh";
 import { generateKeyPairSync, createHash } from "crypto";
@@ -1144,6 +1144,70 @@ export const installRouter = router({
         .orderBy(installations.createdAt);
     }),
 
+  assignCategory: agentProcedure
+    .input(z.object({ id: z.string(), categoryId: z.string().nullable() }))
+    .mutation(async ({ ctx, input }) => {
+      // Verify ownership: installation → server → user
+      const [row] = await ctx.db
+        .select({ installation: installations })
+        .from(installations)
+        .innerJoin(servers, eq(installations.serverId, servers.id))
+        .where(and(eq(installations.id, input.id), eq(servers.userId, ctx.user.id!)));
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+
+      // If categoryId is set, verify it belongs to user
+      if (input.categoryId) {
+        const [cat] = await ctx.db
+          .select()
+          .from(categories)
+          .where(and(eq(categories.id, input.categoryId), eq(categories.userId, ctx.user.id!)));
+        if (!cat) throw new TRPCError({ code: "NOT_FOUND", message: "Category not found" });
+      }
+
+      await ctx.db
+        .update(installations)
+        .set({ categoryId: input.categoryId })
+        .where(eq(installations.id, input.id));
+      return { success: true };
+    }),
+
+  detectContainers: agentProcedure
+    .input(z.object({ serverId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [server] = await ctx.db
+        .select()
+        .from(servers)
+        .where(and(eq(servers.id, input.serverId), eq(servers.userId, ctx.user.id!)));
+      if (!server) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const result = await executeOnServer(
+        input.serverId,
+        `docker ps -a --format '{{.Names}}|{{.Image}}|{{.Status}}|{{.Ports}}' 2>&1 | sort`,
+        15
+      );
+
+      if (!result.success) return { success: false, containers: [], error: result.error };
+
+      const lines = (result.output || "").trim().split("\n");
+      const containers = lines
+        .filter((l: string) => l.includes("|"))
+        .map((l: string) => {
+          const parts = l.split("|");
+          const ports = parts[3] || "";
+          // Extract host port from "0.0.0.0:8080->80/tcp" or "8080/tcp"
+          const hostPortMatch = ports.match(/(\d+)->/) || ports.match(/^(\d+)\/tcp/);
+          return {
+            name: parts[0],
+            image: parts[1],
+            status: parts[2]?.toLowerCase().includes("up") ? "running" : "stopped",
+            ports,
+            port: hostPortMatch ? parseInt(hostPortMatch[1]) : null,
+          };
+        });
+
+      return { success: true, containers };
+    }),
+
   get: agentProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -1880,6 +1944,59 @@ export const domainRouter = router({
     }),
 });
 
+// ─── Category router ───
+
+export const categoryRouter = router({
+  list: agentProcedure.query(async ({ ctx }) => {
+    return await ctx.db
+      .select()
+      .from(categories)
+      .where(eq(categories.userId, ctx.user.id!))
+      .orderBy(categories.sortOrder, categories.createdAt);
+  }),
+
+  create: agentProcedure
+    .input(z.object({ name: z.string().min(1).max(50), icon: z.string().optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const [cat] = await ctx.db
+        .insert(categories)
+        .values({ userId: ctx.user.id!, name: input.name, icon: input.icon || "📁" })
+        .returning();
+      return cat;
+    }),
+
+  update: agentProcedure
+    .input(z.object({ id: z.string(), name: z.string().min(1).max(50).optional(), icon: z.string().optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const [cat] = await ctx.db
+        .select()
+        .from(categories)
+        .where(and(eq(categories.id, input.id), eq(categories.userId, ctx.user.id!)));
+      if (!cat) throw new TRPCError({ code: "NOT_FOUND" });
+      const [updated] = await ctx.db
+        .update(categories)
+        .set({
+          ...(input.name ? { name: input.name } : {}),
+          ...(input.icon ? { icon: input.icon } : {}),
+        })
+        .where(eq(categories.id, input.id))
+        .returning();
+      return updated;
+    }),
+
+  delete: agentProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [cat] = await ctx.db
+        .select()
+        .from(categories)
+        .where(and(eq(categories.id, input.id), eq(categories.userId, ctx.user.id!)));
+      if (!cat) throw new TRPCError({ code: "NOT_FOUND" });
+      await ctx.db.delete(categories).where(eq(categories.id, input.id));
+      return { success: true };
+    }),
+});
+
 // ─── Main router ───
 
 export const dashboardRouter = router({
@@ -2497,6 +2614,7 @@ export const appRouter = router({
   catalog: catalogRouter,
   install: installRouter,
   domain: domainRouter,
+  category: categoryRouter,
   user: userRouter,
   dashboard: dashboardRouter,
   backup: backupRouter,

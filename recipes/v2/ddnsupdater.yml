@@ -1,0 +1,77 @@
+metadata:
+  name: "DDNS Updater"
+  description: |
+    DDNS Updater is a lightweight Docker container that automatically updates DNS records on many popular DNS providers when your IP address changes.
+    It supports Cloudflare, DuckDNS, Namecheap, DigitalOcean, Dynu, Gandi, GoDaddy, Google Domains, He.net, Infomaniak, Linode, OVH, Porkbun, and many more.
+    It is the easiest way to keep your self-hosted services reachable with a dynamic IP.
+  category: dev-infra
+  subcategory: server-management
+  tags: [DNS, DDNS, Dynamic IP, Network]
+  version: "latest"
+  homepage: https://github.com/qdm12/ddns-updater
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/ddns-updater.svg
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8000]
+  resources:
+    ram: 128
+    disk: 1
+
+install:
+  docker:
+    image: ghcr.io/qdm12/ddns-updater:latest
+    name: ddnsupdater
+    port: "8000:8000"
+    volumes:
+      - /opt/srvly/apps/ddnsupdater/data:/updater/data
+    env:
+      - key: CONFIG
+        value: "/updater/data/config.json"
+        description: "Path to config file"
+
+agent_install:
+  network: srvly-ddnsupdater
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed ddnsupdater container before retrying."
+  prerequisites: []
+  app_env:
+    CONFIG: "/updater/data/config.json"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Configure your DNS provider settings in the config file at /updater/data/config.json."
+
+healthcheck:
+  type: http
+  port: 8000
+  path: /
+  expected: [200, 301, 302]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/qdm12/ddns-updater:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8000
+    description: "Host port for the DDNS Updater web UI"
+
+links:
+  - label: GitHub
+    url: https://github.com/qdm12/ddns-updater
+  - label: Documentation
+    url: https://github.com/qdm12/ddns-updater#readme
+
+notes: |
+  Configure your DNS provider credentials in the JSON config file mounted at /updater/data/config.json.

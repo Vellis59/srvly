@@ -92,14 +92,26 @@ export const recipes = pgTable("recipes", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// ─── Categories (user-defined, cross-server) ───
+export const categories = pgTable("categories", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id").references(() => users.id).notNull(),
+  name: text("name").notNull(),
+  icon: text("icon").default("📁"),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // ─── Installations ───
 export const installations = pgTable("installations", {
   id: uuid("id").defaultRandom().primaryKey(),
   serverId: uuid("server_id").references(() => servers.id).notNull(),
   recipeId: text("recipe_id").references(() => recipes.id).notNull(),
+  categoryId: uuid("category_id").references(() => categories.id, { onDelete: "set null" }),
   status: text("status").default("pending").notNull(),
   params: jsonb("params"),
   result: jsonb("result"),
+  containers: jsonb("containers"),
   logs: text("logs"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
