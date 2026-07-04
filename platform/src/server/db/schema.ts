@@ -10,8 +10,9 @@ export const users = pgTable("users", {
   image: text("image"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   apiToken: text("api_token").unique(),
-  plan: text("plan").default("free").notNull(), // free | starter | pro | unlimited
+  plan: text("plan").default("free").notNull(),
   maxServers: integer("max_servers").default(1).notNull(),
+  webhookUrl: text("webhook_url"),
 });
 
 // ─── NextAuth adapter tables ───

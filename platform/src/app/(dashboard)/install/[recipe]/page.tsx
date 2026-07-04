@@ -58,14 +58,16 @@ export default function InstallPage() {
 
   const { data: recipe, isLoading } = trpc.catalog.get.useQuery({ id: recipeId });
   const { data: servers } = trpc.server.list.useQuery();
+  const sendToAgent = trpc.user.sendToAgent.useMutation();
 
   const [selectedServer, setSelectedServer] = useState("");
   const [domain, setDomain] = useState("");
   const [port, setPort] = useState("");
-  const [username, setUsername] = useState("admin");
-  const [password, setPassword] = useState("Changeme123");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [useCredentials, setUseCredentials] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [sendMsg, setSendMsg] = useState("");
 
   const defaultPort = useMemo(() => {
     if (!recipe) return 80;
@@ -195,6 +197,18 @@ export default function InstallPage() {
     if (copyToClipboard(prompt)) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleSendToAgent = async () => {
+    if (!prompt) return;
+    setSendMsg("Sending...");
+    try {
+      await sendToAgent.mutateAsync({ text: prompt });
+      setSendMsg("Sent to agent ✓");
+      setTimeout(() => setSendMsg(""), 3000);
+    } catch (err: any) {
+      setSendMsg("Error: " + err.message);
     }
   };
 
@@ -328,7 +342,12 @@ export default function InstallPage() {
             >
               {copied ? "Copied!" : "Copy"}
             </button>
+            <button onClick={handleSendToAgent} disabled={sendToAgent.isPending || !prompt}
+              className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center gap-1">
+              {sendToAgent.isPending ? "..." : "🤖 Send to agent"}
+            </button>
           </div>
+          {sendMsg && <p className={`text-xs mt-1 ${sendMsg.includes("Error") ? "text-red-400" : "text-emerald-400"}`}>{sendMsg}</p>}
           <pre className="text-sm font-mono text-slate-100 whitespace-pre-wrap break-words leading-relaxed">
             {prompt}
           </pre>

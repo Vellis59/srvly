@@ -32,10 +32,20 @@ export default function SettingsPage() {
   const { data: session } = useSession();
   const { data: tokenData, isLoading, refetch } = trpc.user.getToken.useQuery();
   const { data: plan } = trpc.user.getPlan.useQuery();
+  const saveWebhook = trpc.user.saveWebhookUrl.useMutation();
   const regenerate = trpc.user.regenerateToken.useMutation();
   const [copiedToken, setCopiedToken] = useState(false);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
+  const [webhookUrl, setWebhookUrl] = useState("");
+  const [webhookMsg, setWebhookMsg] = useState("");
+  const [webhookInit, setWebhookInit] = useState(false);
+
+  // Sync webhookUrl from plan when it loads
+  if (plan && !webhookInit) {
+    setWebhookUrl(plan.webhookUrl || "");
+    setWebhookInit(true);
+  }
 
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://srvly.app";
 
@@ -49,6 +59,17 @@ export default function SettingsPage() {
       await refetch();
     } catch {}
     setRegenerating(false);
+  };
+
+  const handleSaveWebhook = async () => {
+    setWebhookMsg("");
+    try {
+      await saveWebhook.mutateAsync({ url: webhookUrl.trim() || null });
+      setWebhookMsg("Webhook URL saved!");
+      setTimeout(() => setWebhookMsg(""), 3000);
+    } catch (err: any) {
+      setWebhookMsg("Error: " + err.message);
+    }
   };
 
   const handleCopyToken = () => {
@@ -182,6 +203,31 @@ export default function SettingsPage() {
         ) : (
           <div className="text-sm text-zinc-400">Loading...</div>
         )}
+      </div>
+
+      {/* Agent Webhook */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 mb-6">
+        <h2 className="font-semibold text-zinc-100 mb-1">🤖 Agent Integration</h2>
+        <p className="text-sm text-zinc-500 mb-4">
+          Set a webhook URL to send installation prompts directly to your AI agent (Mattermost, Discord, Slack, or any HTTP endpoint).
+        </p>
+        <div className="flex gap-2">
+          <input
+            type="url"
+            value={webhookUrl}
+            onChange={(e) => setWebhookUrl(e.target.value)}
+            placeholder="https://mattermost.example.com/hooks/xxx"
+            className="flex-1 px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+          <button onClick={handleSaveWebhook} disabled={saveWebhook.isPending}
+            className="px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 transition-colors shrink-0">
+            {saveWebhook.isPending ? "Saving..." : webhookUrl === plan?.webhookUrl ? "Saved ✓" : "Save"}
+          </button>
+        </div>
+        {webhookMsg && <p className={`text-xs mt-2 ${webhookMsg.includes("Error") ? "text-red-400" : "text-emerald-400"}`}>{webhookMsg}</p>}
+        <p className="text-xs text-zinc-500 mt-2">
+          <a href="https://docs.srvly.app/guide/agent-webhook" target="_blank" className="text-emerald-400 hover:underline">Learn how to set this up →</a>
+        </p>
       </div>
 
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl  p-6 mb-6">

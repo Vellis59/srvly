@@ -1547,13 +1547,14 @@ export const userRouter = router({
 
   getPlan: agentProcedure.query(async ({ ctx }) => {
     const [userRecord] = await ctx.db
-      .select({ plan: users.plan, maxServers: users.maxServers })
+      .select({ plan: users.plan, maxServers: users.maxServers, webhookUrl: users.webhookUrl })
       .from(users)
       .where(eq(users.id, ctx.user.id!))
       .limit(1);
     return {
       plan: userRecord?.plan ?? "free",
       maxServers: userRecord?.maxServers ?? 1,
+      webhookUrl: userRecord?.webhookUrl ?? null,
       currentServers: await ctx.db
         .select({ count: sql<number>`cast(count(*) as int)` })
         .from(servers)
@@ -1576,6 +1577,56 @@ export const userRouter = router({
 
     return { token };
   }),
+
+  saveWebhookUrl: agentProcedure
+    .input(z.object({ url: z.string().max(500).nullable() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .update(users)
+        .set({ webhookUrl: input.url })
+        .where(eq(users.id, ctx.user.id!));
+      return { success: true };
+    }),
+
+  sendToAgent: agentProcedure
+    .input(z.object({ text: z.string().min(1).max(10000) }))
+    .mutation(async ({ ctx, input }) => {
+      const [user] = await ctx.db
+        .select({ webhookUrl: users.webhookUrl })
+        .from(users)
+        .where(eq(users.id, ctx.user.id!))
+        .limit(1);
+
+      if (!user?.webhookUrl) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "No webhook URL configured. Set one in Settings." });
+      }
+
+      const payload = {
+        text: input.text,
+        username: "srvly",
+        icon_url: "https://srvly.app/favicon.ico",
+      };
+
+      try {
+        const res = await fetch(user.webhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          signal: AbortSignal.timeout(10000),
+        });
+
+        if (!res.ok) {
+          throw new Error(`Webhook responded with ${res.status}: ${await res.text().catch(() => "unknown")}`);
+        }
+
+        return { success: true };
+      } catch (err: any) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to send to agent: ${err.message}`,
+        });
+      }
+    }),
 });
 
 export const domainRouter = router({
