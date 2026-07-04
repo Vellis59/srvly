@@ -1,0 +1,79 @@
+metadata:
+  name: "Telegraf"
+  description: |
+    Telegraf is a plugin-driven server agent for collecting and sending metrics and events from databases, systems, and IoT sensors.
+    It supports 300+ input and output plugins for metrics from CPU, memory, disk, network, Docker, Kubernetes, databases, MQTT, and more.
+    It is the standard data collection agent for the TICK stack (Telegraf, InfluxDB, Chronograf, Kapacitor).
+  category: dev-infra
+  subcategory: monitoring
+  tags: [Monitoring, Metrics, Collection, Agent]
+  version: "latest"
+  homepage: https://www.influxdata.com/time-series-platform/telegraf
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/telegraf.svg
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8125]
+  resources:
+    ram: 128
+    disk: 1
+
+install:
+  docker:
+    image: telegraf:latest
+    name: telegraf
+    port: "8125:8125"
+    volumes:
+      - /opt/srvly/apps/telegraf/config:/etc/telegraf
+    env:
+      - key: HOST_PROC
+        value: /rootfs/proc
+      - key: HOST_SYS
+        value: /rootfs/sys
+
+agent_install:
+  network: srvly-telegraf
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed telegraf container before retrying."
+  prerequisites: []
+  app_env:
+    HOST_PROC: "/rootfs/proc"
+    HOST_SYS: "/rootfs/sys"
+  post_install:
+    - "Configure Telegraf by editing the telegraf.conf file in the config volume."
+    - "Telegraf does not provide a web UI; it sends metrics to InfluxDB or other outputs."
+
+healthcheck:
+  type: http
+  port: 8125
+  path: /
+  expected: [200]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: telegraf:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: StatsD port
+    default: 8125
+    description: "UDP port"
+links:
+  - label: Website
+    url: https://www.influxdata.com/time-series-platform/telegraf
+  - label: GitHub
+    url: https://github.com/influxdata/telegraf
+  - label: Documentation
+    url: https://docs.influxdata.com/telegraf
+notes: |
+  Telegraf is a metrics collection agent, not a web application. It sends data to InfluxDB or other supported outputs.

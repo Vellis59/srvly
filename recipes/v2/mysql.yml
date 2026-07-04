@@ -1,0 +1,78 @@
+metadata:
+  name: "MySQL"
+  description: |
+    MySQL is the world's most popular open-source relational database management system, widely used for web applications and data storage.
+    This container provides the MySQL server with persistent storage, ready for application connections.
+    It is a foundational database for many self-hosted applications and content management systems.
+  category: dev-infra
+  subcategory: database
+  tags: [Database, MySQL, SQL, Relational]
+  version: "latest"
+  homepage: https://www.mysql.com
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/mysql.svg
+  license: GPL-2.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3306]
+  resources:
+    ram: 512
+    disk: 5
+
+install:
+  docker:
+    image: mysql:latest
+    name: mysql
+    port: "3306:3306"
+    volumes:
+      - /opt/srvly/apps/mysql/data:/var/lib/mysql
+    env:
+      - key: MYSQL_ROOT_PASSWORD
+        value: "***"
+      - key: MYSQL_DATABASE
+        value: default
+
+agent_install:
+  network: srvly-mysql
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed mysql container before retrying."
+  prerequisites: []
+  app_env:
+    MYSQL_ROOT_PASSWORD: "***"
+    MYSQL_DATABASE: "default"
+  post_install:
+    - "Run the healthcheck to confirm the database is accepting connections."
+
+healthcheck:
+  type: http
+  port: 3306
+  path: /
+  expected: [200]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: mysql:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: MySQL port
+    default: 3306
+    description: "Database port"
+links:
+  - label: Website
+    url: https://www.mysql.com
+  - label: GitHub
+    url: https://github.com/mysql/mysql-server
+  - label: Documentation
+    url: https://dev.mysql.com/doc
+notes: |
+  MySQL is a database server, not a web application. It serves as a dependency for other applications.

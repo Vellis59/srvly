@@ -1,0 +1,71 @@
+metadata:
+  name: "Redis"
+  description: |
+    Redis is an in-memory data structure store used as a database, cache, message broker, and streaming engine for high-performance applications.
+    It supports strings, hashes, lists, sets, sorted sets, streams, and pub/sub messaging with built-in replication and persistence.
+    It is the most popular open-source caching solution and a critical dependency for many self-hosted applications.
+  category: dev-infra
+  subcategory: database
+  tags: [Cache, Database, In-Memory, Redis]
+  version: "latest"
+  homepage: https://redis.io
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/redis.svg
+  license: BSD-3-Clause
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [6379]
+  resources:
+    ram: 256
+    disk: 1
+
+install:
+  docker:
+    image: redis:latest
+    name: redis
+    port: "6379:6379"
+    volumes:
+      - /opt/srvly/apps/redis/data:/data
+
+agent_install:
+  network: srvly-redis
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed redis container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the healthcheck to confirm Redis is accepting connections."
+
+healthcheck:
+  type: http
+  port: 6379
+  path: /
+  expected: [200]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: redis:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: Redis port
+    default: 6379
+    description: "Database port"
+links:
+  - label: Website
+    url: https://redis.io
+  - label: GitHub
+    url: https://github.com/redis/redis
+  - label: Documentation
+    url: https://redis.io/documentation
+notes: |
+  Redis is an in-memory data store, not a web application. It serves as a dependency for other applications.

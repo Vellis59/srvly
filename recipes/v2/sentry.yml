@@ -1,0 +1,115 @@
+metadata:
+  name: "Sentry"
+  description: |
+    Sentry is a real-time error tracking and performance monitoring platform for developers that helps identify, triage, and resolve application issues.
+    It supports multiple languages and frameworks with automatic error grouping, source maps, stack traces, performance traces, and release tracking.
+    It is the industry standard for application monitoring used by millions of developers worldwide.
+  category: dev-infra
+  subcategory: monitoring
+  tags: [Error Tracking, Performance, Monitoring, Debugging]
+  version: "latest"
+  homepage: https://sentry.io
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/sentry.svg
+  license: BSL-1.1
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: true
+    mysql: false
+    redis: true
+    mongodb: false
+  ports: [9000]
+  resources:
+    ram: 2048
+    disk: 10
+
+install:
+  docker:
+    image: sentry:latest
+    name: sentry
+    port: "9000:9000"
+    volumes:
+      - /opt/srvly/apps/sentry/data:/var/lib/sentry/files
+    env:
+      - key: SENTRY_SECRET_KEY
+        value: "***"
+      - key: SENTRY_POSTGRES_HOST
+        value: sentry-postgres
+      - key: SENTRY_DB_NAME
+        value: sentry
+      - key: SENTRY_DB_USER
+        value: sentry
+      - key: SENTRY_DB_PASSWORD
+        value: "***"
+      - key: SENTRY_REDIS_HOST
+        value: sentry-redis
+      - key: SENTRY_SERVER_EMAIL
+        value: sentry@$PUBLIC_HOST
+
+agent_install:
+  network: srvly-sentry
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed sentry, sentry-postgres, or sentry-redis containers before retrying."
+    - "Sentry requires significant RAM and resources."
+  prerequisites:
+    - type: postgres
+      name: sentry-postgres
+      image: postgres:16-alpine
+      container: sentry-postgres
+      database: sentry
+      user: sentry
+      password: generate
+      volume: /opt/srvly/apps/sentry/postgres:/var/lib/postgresql/data
+      port: 5432
+      env:
+        POSTGRES_DB: sentry
+        POSTGRES_USER: sentry
+        POSTGRES_PASSWORD: $GENERATED_PASSWORD
+    - type: redis
+      name: sentry-redis
+      image: redis:7-alpine
+      container: sentry-redis
+      volume: /opt/srvly/apps/sentry/redis:/data
+      port: 6379
+  app_env:
+    SENTRY_SECRET_KEY: "***"
+    SENTRY_POSTGRES_HOST: "sentry-postgres"
+    SENTRY_DB_NAME: "sentry"
+    SENTRY_DB_USER: "sentry"
+    SENTRY_DB_PASSWORD: "***"
+    SENTRY_REDIS_HOST: "sentry-redis"
+    SENTRY_SERVER_EMAIL: "sentry@$PUBLIC_HOST"
+  post_install:
+    - "Create the Docker network before all containers and attach Postgres, Redis, and the app to it."
+    - "Start Postgres and Redis first, then run 'sentry upgrade' to initialize the database."
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 9000
+  path: /_health/
+  expected: [200]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: sentry:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 9000
+    description: "Host port"
+links:
+  - label: Website
+    url: https://sentry.io
+  - label: GitHub
+    url: https://github.com/getsentry/sentry
+  - label: Documentation
+    url: https://develop.sentry.dev
+notes: |
+  Sentry requires PostgreSQL, Redis, and a SENTRY_SECRET_KEY. Run 'sentry upgrade' for database migrations on first deployment.

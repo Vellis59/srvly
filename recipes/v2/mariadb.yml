@@ -1,0 +1,78 @@
+metadata:
+  name: "MariaDB"
+  description: |
+    MariaDB is a community-developed fork of MySQL, offering enhanced performance, storage engines, and features while maintaining full compatibility.
+    It is the preferred database choice for many Linux distributions and self-hosted applications due to its open governance.
+    It serves as a drop-in replacement for MySQL with additional performance and feature improvements.
+  category: dev-infra
+  subcategory: database
+  tags: [Database, MariaDB, SQL, Relational]
+  version: "latest"
+  homepage: https://mariadb.org
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/mariadb.svg
+  license: GPL-2.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3307]
+  resources:
+    ram: 512
+    disk: 5
+
+install:
+  docker:
+    image: mariadb:latest
+    name: mariadb
+    port: "3307:3306"
+    volumes:
+      - /opt/srvly/apps/mariadb/data:/var/lib/mysql
+    env:
+      - key: MYSQL_ROOT_PASSWORD
+        value: "***"
+      - key: MYSQL_DATABASE
+        value: default
+
+agent_install:
+  network: srvly-mariadb
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed mariadb container before retrying."
+  prerequisites: []
+  app_env:
+    MYSQL_ROOT_PASSWORD: "***"
+    MYSQL_DATABASE: "default"
+  post_install:
+    - "Run the healthcheck to confirm the database is accepting connections."
+
+healthcheck:
+  type: http
+  port: 3307
+  path: /
+  expected: [200]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: mariadb:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: MariaDB port
+    default: 3307
+    description: "Database port"
+links:
+  - label: Website
+    url: https://mariadb.org
+  - label: GitHub
+    url: https://github.com/MariaDB/server
+  - label: Documentation
+    url: https://mariadb.com/docs
+notes: |
+  MariaDB is a database server, not a web application. It is fully compatible with MySQL.

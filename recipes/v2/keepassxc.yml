@@ -1,0 +1,81 @@
+metadata:
+  name: "KeePassXC"
+  description: |
+    KeePassXC is a cross-platform password manager that stores and manages sensitive credentials in encrypted databases.
+    This container provides the KeePassXC desktop application accessible through a web browser via KasmVNC for remote password management.
+    It supports multiple database formats, auto-type, browser integration, SSH agent, and secure credential sharing.
+  category: security
+  subcategory: password-manager
+  tags: [Password Manager, Security, Credentials, Encryption]
+  version: "latest"
+  homepage: https://keepassxc.org
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/keepassxc.svg
+  license: GPL-2.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3004]
+  resources:
+    ram: 512
+    disk: 1
+
+install:
+  docker:
+    image: lscr.io/linuxserver/keepassxc:latest
+    name: keepassxc
+    port: "3004:3000"
+    volumes:
+      - /opt/srvly/apps/keepassxc/config:/config
+    env:
+      - key: PUID
+        value: "1000"
+      - key: PGID
+        value: "1000"
+      - key: TZ
+        value: "Europe/Paris"
+
+agent_install:
+  network: srvly-keepassxc
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed keepassxc container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 3004
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/keepassxc:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3004
+    description: "Host port"
+links:
+  - label: Website
+    url: https://keepassxc.org
+  - label: GitHub
+    url: https://github.com/keepassxreboot/keepassxc
+  - label: Documentation
+    url: https://keepassxc.org/docs
+notes: |
+  KeePassXC is a desktop application accessed through a browser-based desktop via KasmVNC.

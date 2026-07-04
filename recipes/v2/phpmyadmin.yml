@@ -1,0 +1,76 @@
+metadata:
+  name: "phpMyAdmin"
+  description: |
+    phpMyAdmin is a widely-used web-based MySQL and MariaDB administration tool with an intuitive graphical interface.
+    It supports database creation, table management, SQL queries, import/export, user management, privileges, and server monitoring.
+    It is the most popular open-source tool for managing MySQL databases through a web browser.
+  category: dev-infra
+  subcategory: database
+  tags: [Database, MySQL, Admin, SQL]
+  version: "latest"
+  homepage: https://www.phpmyadmin.net
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/phpmyadmin.svg
+  license: GPL-2.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8070]
+  resources:
+    ram: 256
+    disk: 1
+
+install:
+  docker:
+    image: phpmyadmin:latest
+    name: phpmyadmin
+    port: "8070:80"
+    env:
+      - key: PMA_ARBITRARY
+        value: "1"
+      - key: UPLOAD_LIMIT
+        value: "100M"
+
+agent_install:
+  network: srvly-phpmyadmin
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed phpmyadmin container before retrying."
+  prerequisites: []
+  app_env:
+    PMA_ARBITRARY: "1"
+    UPLOAD_LIMIT: "100M"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8070
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: phpmyadmin:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8070
+    description: "Host port"
+links:
+  - label: Website
+    url: https://www.phpmyadmin.net
+  - label: GitHub
+    url: https://github.com/phpmyadmin/phpmyadmin
+  - label: Documentation
+    url: https://docs.phpmyadmin.net
+notes: |
+  phpMyAdmin connects to existing MySQL/MariaDB servers. Configure server credentials through the login page.
