@@ -1547,7 +1547,7 @@ export const userRouter = router({
 
   getPlan: agentProcedure.query(async ({ ctx }) => {
     const [userRecord] = await ctx.db
-      .select({ plan: users.plan, maxServers: users.maxServers, webhookUrl: users.webhookUrl })
+      .select({ plan: users.plan, maxServers: users.maxServers, webhookUrl: users.webhookUrl, webhookMention: users.webhookMention })
       .from(users)
       .where(eq(users.id, ctx.user.id!))
       .limit(1);
@@ -1555,6 +1555,7 @@ export const userRouter = router({
       plan: userRecord?.plan ?? "free",
       maxServers: userRecord?.maxServers ?? 1,
       webhookUrl: userRecord?.webhookUrl ?? null,
+      webhookMention: userRecord?.webhookMention ?? null,
       currentServers: await ctx.db
         .select({ count: sql<number>`cast(count(*) as int)` })
         .from(servers)
@@ -1579,11 +1580,11 @@ export const userRouter = router({
   }),
 
   saveWebhookUrl: agentProcedure
-    .input(z.object({ url: z.string().max(500).nullable() }))
+    .input(z.object({ url: z.string().max(500).nullable(), mention: z.string().max(100).nullable() }))
     .mutation(async ({ ctx, input }) => {
       await ctx.db
         .update(users)
-        .set({ webhookUrl: input.url })
+        .set({ webhookUrl: input.url, webhookMention: input.mention })
         .where(eq(users.id, ctx.user.id!));
       return { success: true };
     }),
@@ -1592,7 +1593,7 @@ export const userRouter = router({
     .input(z.object({ text: z.string().min(1).max(10000) }))
     .mutation(async ({ ctx, input }) => {
       const [user] = await ctx.db
-        .select({ webhookUrl: users.webhookUrl })
+        .select({ webhookUrl: users.webhookUrl, webhookMention: users.webhookMention })
         .from(users)
         .where(eq(users.id, ctx.user.id!))
         .limit(1);
@@ -1601,8 +1602,10 @@ export const userRouter = router({
         throw new TRPCError({ code: "BAD_REQUEST", message: "No webhook URL configured. Set one in Settings." });
       }
 
+      const text = user.webhookMention ? `@${user.webhookMention} ${input.text}` : input.text;
+
       const payload = {
-        text: input.text,
+        text,
         username: "srvly",
         icon_url: "https://srvly.app/favicon.ico",
       };

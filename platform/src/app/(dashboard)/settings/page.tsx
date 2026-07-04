@@ -38,12 +38,14 @@ export default function SettingsPage() {
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [webhookUrl, setWebhookUrl] = useState("");
+  const [webhookMention, setWebhookMention] = useState("");
   const [webhookMsg, setWebhookMsg] = useState("");
   const [webhookInit, setWebhookInit] = useState(false);
 
   // Sync webhookUrl from plan when it loads
   if (plan && !webhookInit) {
     setWebhookUrl(plan.webhookUrl || "");
+    setWebhookMention(plan.webhookMention || "");
     setWebhookInit(true);
   }
 
@@ -64,7 +66,7 @@ export default function SettingsPage() {
   const handleSaveWebhook = async () => {
     setWebhookMsg("");
     try {
-      await saveWebhook.mutateAsync({ url: webhookUrl.trim() || null });
+      await saveWebhook.mutateAsync({ url: webhookUrl.trim() || null, mention: webhookMention.trim() || null });
       setWebhookMsg("Webhook URL saved!");
       setTimeout(() => setWebhookMsg(""), 3000);
     } catch (err: any) {
@@ -221,8 +223,18 @@ export default function SettingsPage() {
           />
           <button onClick={handleSaveWebhook} disabled={saveWebhook.isPending}
             className="px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 transition-colors shrink-0">
-            {saveWebhook.isPending ? "Saving..." : webhookUrl === plan?.webhookUrl ? "Saved ✓" : "Save"}
+            {saveWebhook.isPending ? "Saving..." : webhookUrl === plan?.webhookUrl && webhookMention === plan?.webhookMention ? "Saved ✓" : "Save"}
           </button>
+        </div>
+        <div className="flex gap-2 mt-2">
+          <input
+            type="text"
+            value={webhookMention}
+            onChange={(e) => setWebhookMention(e.target.value)}
+            placeholder="Agent username (e.g. my-agent)"
+            className="flex-1 px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+          <span className="text-xs text-zinc-500 self-center shrink-0 whitespace-nowrap">Will send as @mention</span>
         </div>
         {webhookMsg && <p className={`text-xs mt-2 ${webhookMsg.includes("Error") ? "text-red-400" : "text-emerald-400"}`}>{webhookMsg}</p>}
         <p className="text-xs text-zinc-500 mt-2">

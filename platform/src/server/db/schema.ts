@@ -13,6 +13,7 @@ export const users = pgTable("users", {
   plan: text("plan").default("free").notNull(),
   maxServers: integer("max_servers").default(1).notNull(),
   webhookUrl: text("webhook_url"),
+  webhookMention: text("webhook_mention"),
 });
 
 // ─── NextAuth adapter tables ───
