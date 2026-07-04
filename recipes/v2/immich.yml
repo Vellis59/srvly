@@ -1,0 +1,61 @@
+metadata:
+  name: "Immich"
+  description: |
+    Immich is a self-hosted web application for photo galleries. Install it on your server for full control over your data and privacy.
+  category: media
+  subcategory: photos
+  tags: [Photos, Gallery]
+  version: "latest"
+  homepage: https://immich.app/
+  icon: https://www.google.com/s2/favicons?domain=immich.app&sz=64
+  license: Open Source
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3001]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: ghcr.io/immich-app/immich-server:latest
+    name: immich
+    port: "3001:3001"
+    volumes:
+      - /opt/srvly/apps/immich/data:/data
+    env: []
+agent_install:
+  network: srvly-immich
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed immich container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 3001
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/immich-app/immich-server:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3001
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://immich.app/
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.

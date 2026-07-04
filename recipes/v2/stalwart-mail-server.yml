@@ -1,0 +1,61 @@
+metadata:
+  name: "Stalwart Mail Server"
+  description: |
+    Stalwart Mail Server is a self-hosted application for communication - email - complete solutions. Install it on your server for full control over your data.
+  category: communication
+  subcategory: chat
+  tags: [Communication, Chat]
+  version: "latest"
+  homepage: https://stalw.art
+  icon: https://www.google.com/s2/favicons?domain=stalw.art&sz=64
+  license: Open Source
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8080]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: ghcr.io/stalwartlabs/stalwart:latest
+    name: stalwart-mail-server
+    port: "8080:8080"
+    volumes:
+      - /opt/srvly/apps/stalwart-mail-server/data:/data
+    env: []
+agent_install:
+  network: srvly-stalwart-mail-server
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed stalwart-mail-server container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 8080
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/stalwartlabs/stalwart:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8080
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://stalw.art
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.

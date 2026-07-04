@@ -1,0 +1,61 @@
+metadata:
+  name: "Ech0"
+  description: |
+    Ech0 is a self-hosted application for blogging platforms. Install it on your server for full control over your data.
+  category: productivity
+  subcategory: documents
+  tags: [Blogging, CMS]
+  version: "latest"
+  homepage: https://echo.soopy.cn/
+  icon: https://www.google.com/s2/favicons?domain=echo.soopy.cn&sz=64
+  license: Open Source
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8080]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: ghcr.io/lin-snow/ech0:latest
+    name: ech0
+    port: "8080:8080"
+    volumes:
+      - /opt/srvly/apps/ech0/data:/data
+    env: []
+agent_install:
+  network: srvly-ech0
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed ech0 container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 8080
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/lin-snow/ech0:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8080
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://echo.soopy.cn/
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.

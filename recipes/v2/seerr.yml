@@ -1,0 +1,61 @@
+metadata:
+  name: "Seerr"
+  description: |
+    Seerr is a self-hosted web application for media management. Install it on your server for full control over your data and privacy.
+  category: media
+  subcategory: media-management
+  tags: [Media, Streaming]
+  version: "latest"
+  homepage: https://github.com/seerr-team/seerr
+  icon: https://www.google.com/s2/favicons?domain=github.com&sz=64
+  license: Open Source
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [5055]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: lscr.io/linuxserver/overseerr:latest
+    name: seerr
+    port: "5055:5055"
+    volumes:
+      - /opt/srvly/apps/seerr/data:/data
+    env: []
+agent_install:
+  network: srvly-seerr
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed seerr container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 5055
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/overseerr:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 5055
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://github.com/seerr-team/seerr
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.

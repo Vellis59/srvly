@@ -1,0 +1,61 @@
+metadata:
+  name: "JupyterLab"
+  description: |
+    JupyterLab is a self-hosted application for software development - ide & tools. Install it on your server for full control over your data.
+  category: dev-infra
+  subcategory: git-code
+  tags: [Dev, Git, Code]
+  version: "latest"
+  homepage: https://jupyterlab.readthedocs.io/en/stable/
+  icon: https://www.google.com/s2/favicons?domain=jupyterlab.readthedocs.io&sz=64
+  license: Open Source
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8080]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: ghcr.io/jupyterlab/jupyterlab:latest
+    name: jupyterlab
+    port: "8080:8080"
+    volumes:
+      - /opt/srvly/apps/jupyterlab/data:/data
+    env: []
+agent_install:
+  network: srvly-jupyterlab
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed jupyterlab container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 8080
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/jupyterlab/jupyterlab:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8080
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://jupyterlab.readthedocs.io/en/stable/
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.

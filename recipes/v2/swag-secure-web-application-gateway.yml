@@ -1,0 +1,61 @@
+metadata:
+  name: "SWAG (Secure Web Application Gateway)"
+  description: |
+    SWAG (Secure Web Application Gateway) is a self-hosted application for web servers. Install it on your server for full control over your data.
+  category: dev-infra
+  subcategory: reverse-proxy
+  tags: [Web Server, HTTP, Proxy]
+  version: "latest"
+  homepage: https://github.com/linuxserver/docker-swag
+  icon: https://www.google.com/s2/favicons?domain=github.com&sz=64
+  license: Open Source
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [80]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: ghcr.io/linuxserver/docker-swag:latest
+    name: swag-secure-web-application-gateway
+    port: "80:80"
+    volumes:
+      - /opt/srvly/apps/swag-secure-web-application-gateway/data:/data
+    env: []
+agent_install:
+  network: srvly-swag-secure-web-application-gateway
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed swag-secure-web-application-gateway container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 80
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/linuxserver/docker-swag:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 80
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://github.com/linuxserver/docker-swag
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.

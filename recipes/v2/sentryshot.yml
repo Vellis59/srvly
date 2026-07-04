@@ -1,0 +1,61 @@
+metadata:
+  name: "SentryShot"
+  description: |
+    SentryShot is a self-hosted web application for video surveillance. Install it on your server for full control over your data and privacy.
+  category: security
+  subcategory: vpn-tunnel
+  tags: [Surveillance, Cameras]
+  version: "latest"
+  homepage: https://codeberg.org/SentryShot/sentryshot
+  icon: https://www.google.com/s2/favicons?domain=codeberg.org&sz=64
+  license: Open Source
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [9000]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: ghcr.io/getsentry/self-hosted:latest
+    name: sentryshot
+    port: "9000:9000"
+    volumes:
+      - /opt/srvly/apps/sentryshot/data:/data
+    env: []
+agent_install:
+  network: srvly-sentryshot
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed sentryshot container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 9000
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/getsentry/self-hosted:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 9000
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://codeberg.org/SentryShot/sentryshot
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.

@@ -1,0 +1,61 @@
+metadata:
+  name: "Homepage by gethomepage"
+  description: |
+    Homepage by gethomepage is a self-hosted web application for personal dashboards. Install it on your server for full control over your data and privacy.
+  category: dev-infra
+  subcategory: server-management
+  tags: [Dashboard, Startpage]
+  version: "latest"
+  homepage: https://github.com/gethomepage/homepage
+  icon: https://www.google.com/s2/favicons?domain=github.com&sz=64
+  license: Open Source
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3000]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: ghcr.io/gethomepage/homepage:latest
+    name: homepage-by-gethomepage
+    port: "3000:3000"
+    volumes:
+      - /opt/srvly/apps/homepage-by-gethomepage/data:/data
+    env: []
+agent_install:
+  network: srvly-homepage-by-gethomepage
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed homepage-by-gethomepage container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 3000
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/gethomepage/homepage:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3000
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://github.com/gethomepage/homepage
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.

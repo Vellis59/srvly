@@ -1,0 +1,61 @@
+metadata:
+  name: "Hemmelig"
+  description: |
+    Hemmelig is a self-hosted application for pastebins. Install it on your server for full control over your data.
+  category: productivity
+  subcategory: notes-wiki
+  tags: [Pastebin, Code, Sharing]
+  version: "latest"
+  homepage: https://hemmelig.app
+  icon: https://www.google.com/s2/favicons?domain=hemmelig.app&sz=64
+  license: Open Source
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8080]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: ghcr.io/hemmeligorg/hemmelig:latest
+    name: hemmelig
+    port: "8080:8080"
+    volumes:
+      - /opt/srvly/apps/hemmelig/data:/data
+    env: []
+agent_install:
+  network: srvly-hemmelig
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed hemmelig container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 8080
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/hemmeligorg/hemmelig:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8080
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://hemmelig.app
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.

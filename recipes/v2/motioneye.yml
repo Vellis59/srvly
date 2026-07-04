@@ -1,0 +1,61 @@
+metadata:
+  name: "motionEye"
+  description: |
+    motionEye is a self-hosted application for video surveillance. Install it on your server for full control over your data.
+  category: security
+  subcategory: vpn-tunnel
+  tags: [Surveillance, Cameras]
+  version: "latest"
+  homepage: https://github.com/motioneye-project/motioneye
+  icon: https://www.google.com/s2/favicons?domain=github.com&sz=64
+  license: Open Source
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8080]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: ghcr.io/motioneye-project/motioneye:latest
+    name: motioneye
+    port: "8080:8080"
+    volumes:
+      - /opt/srvly/apps/motioneye/data:/data
+    env: []
+agent_install:
+  network: srvly-motioneye
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed motioneye container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 8080
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/motioneye-project/motioneye:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8080
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://github.com/motioneye-project/motioneye
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.

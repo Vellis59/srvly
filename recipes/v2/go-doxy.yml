@@ -1,0 +1,61 @@
+metadata:
+  name: "go-doxy"
+  description: |
+    go-doxy is a self-hosted application for web servers. Install it on your server for full control over your data.
+  category: dev-infra
+  subcategory: reverse-proxy
+  tags: [Web Server, HTTP, Proxy]
+  version: "latest"
+  homepage: https://github.com/yusing/godoxy
+  icon: https://www.google.com/s2/favicons?domain=github.com&sz=64
+  license: Open Source
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [80]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: ghcr.io/yusing/godoxy:latest
+    name: go-doxy
+    port: "80:80"
+    volumes:
+      - /opt/srvly/apps/go-doxy/data:/data
+    env: []
+agent_install:
+  network: srvly-go-doxy
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed go-doxy container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 80
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/yusing/godoxy:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 80
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://github.com/yusing/godoxy
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.

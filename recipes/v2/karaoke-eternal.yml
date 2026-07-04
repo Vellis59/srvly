@@ -1,0 +1,61 @@
+metadata:
+  name: "Karaoke Eternal"
+  description: |
+    Karaoke Eternal is a self-hosted application for media streaming - multimedia streaming. Install it on your server for full control over your data.
+  category: media
+  subcategory: media-management
+  tags: [Media, Streaming]
+  version: "latest"
+  homepage: https://www.karaoke-eternal.com
+  icon: https://www.google.com/s2/favicons?domain=www.karaoke-eternal.com&sz=64
+  license: Open Source
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8096]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: ghcr.io/bhj/karaokeeternal:latest
+    name: karaoke-eternal
+    port: "8096:8096"
+    volumes:
+      - /opt/srvly/apps/karaoke-eternal/data:/data
+    env: []
+agent_install:
+  network: srvly-karaoke-eternal
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed karaoke-eternal container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 8096
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/bhj/karaokeeternal:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8096
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://www.karaoke-eternal.com
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.

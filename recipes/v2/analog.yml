@@ -1,0 +1,61 @@
+metadata:
+  name: "ANALOG"
+  description: |
+    ANALOG is a self-hosted application for analytics. Install it on your server for full control over your data.
+  category: productivity
+  subcategory: reporting
+  tags: [Analytics, Reporting]
+  version: "latest"
+  homepage: https://github.com/orangecoloured/analog
+  icon: https://www.google.com/s2/favicons?domain=github.com&sz=64
+  license: Open Source
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8080]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: ghcr.io/orangecoloured/analog:latest
+    name: analog
+    port: "8080:8080"
+    volumes:
+      - /opt/srvly/apps/analog/data:/data
+    env: []
+agent_install:
+  network: srvly-analog
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed analog container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 8080
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/orangecoloured/analog:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8080
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://github.com/orangecoloured/analog
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.

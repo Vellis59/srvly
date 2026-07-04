@@ -1,0 +1,61 @@
+metadata:
+  name: "OpenReader"
+  description: |
+    OpenReader is a self-hosted application for miscellaneous. Install it on your server for full control over your data.
+  category: other
+  subcategory: 
+  tags: [Other, Miscellaneous]
+  version: "latest"
+  homepage: https://openreader.richardr.dev/
+  icon: https://www.google.com/s2/favicons?domain=openreader.richardr.dev&sz=64
+  license: Open Source
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8080]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: ghcr.io/richardr1126/openreader:latest
+    name: openreader
+    port: "8080:8080"
+    volumes:
+      - /opt/srvly/apps/openreader/data:/data
+    env: []
+agent_install:
+  network: srvly-openreader
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed openreader container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 8080
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/richardr1126/openreader:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8080
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://openreader.richardr.dev/
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.

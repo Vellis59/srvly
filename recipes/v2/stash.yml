@@ -1,0 +1,61 @@
+metadata:
+  name: "Stash"
+  description: |
+    Stash is a self-hosted application for media streaming - multimedia streaming. Install it on your server for full control over your data.
+  category: media
+  subcategory: media-management
+  tags: [Media, Streaming]
+  version: "latest"
+  homepage: https://stashapp.cc
+  icon: https://www.google.com/s2/favicons?domain=stashapp.cc&sz=64
+  license: Open Source
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8096]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: ghcr.io/stashapp/stash:latest
+    name: stash
+    port: "8096:8096"
+    volumes:
+      - /opt/srvly/apps/stash/data:/data
+    env: []
+agent_install:
+  network: srvly-stash
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed stash container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 8096
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/stashapp/stash:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8096
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://stashapp.cc
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.
