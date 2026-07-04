@@ -1,0 +1,85 @@
+metadata:
+  name: "SABnzbd"
+  description: |
+    SABnzbd is a free and easy binary newsreader for Usenet with a web-based interface.
+    It downloads files from Usenet servers, automatically repairs damaged archives (PAR2), unpacks RAR archives, and sorts files into your media library.
+    It is the gold standard Usenet downloader for media automation stacks.
+  category: media
+  subcategory: media-management
+  tags: [Usenet, Download, NZB, Media Automation]
+  version: "latest"
+  homepage: https://sabnzbd.org
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/sabnzbd.svg
+  license: GPL-2.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [7780]
+  resources:
+    ram: 512
+    disk: 10
+
+install:
+  docker:
+    image: lscr.io/linuxserver/sabnzbd:latest
+    name: sabnzbd
+    port: "7780:8080"
+    volumes:
+      - /opt/srvly/apps/sabnzbd/config:/config
+      - /opt/srvly/apps/sabnzbd/downloads:/downloads
+      - /opt/srvly/apps/sabnzbd/incomplete:/incomplete
+    env:
+      - key: PUID
+        value: "1000"
+      - key: PGID
+        value: "1000"
+      - key: TZ
+        value: "Europe/Paris"
+
+agent_install:
+  network: srvly-sabnzbd
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed sabnzbd container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 7780
+  path: /
+  expected: [200, 301, 302]
+  timeout: 90
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/sabnzbd:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 7780
+    description: "Host port for the SABnzbd web UI"
+
+links:
+  - label: Website
+    url: https://sabnzbd.org
+  - label: GitHub
+    url: https://github.com/sabnzbd/sabnzbd
+  - label: Documentation
+    url: https://sabnzbd.org/wiki
+
+notes: |
+  SABnzbd requires a Usenet provider subscription. Configure server settings through the web UI on first access.

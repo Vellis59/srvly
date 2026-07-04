@@ -1,0 +1,79 @@
+metadata:
+  name: "Glances"
+  description: |
+    Glances is a real-time system monitoring tool that provides CPU, memory, disk, network, and process information through a web dashboard.
+    It runs as a daemon and exposes a REST API and web UI, making it suitable for remote server monitoring.
+    It is a lightweight alternative to full monitoring stacks like Grafana/Prometheus when you need quick system visibility.
+  category: dev-infra
+  subcategory: monitoring
+  tags: [Monitoring, System, CPU, Memory, Dashboard]
+  version: "latest"
+  homepage: https://nicolargo.github.io/glances
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/glances.svg
+  license: LGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [61208]
+  resources:
+    ram: 256
+    disk: 1
+
+install:
+  docker:
+    image: nicolargo/glances:latest
+    name: glances
+    port: "61208:61208"
+    volumes:
+      - /opt/srvly/apps/glances/conf:/glances/conf
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    env:
+      - key: GLANCES_OPT
+        value: "--webserver"
+        description: "Glances startup options"
+
+agent_install:
+  network: srvly-glances
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed glances container before retrying."
+  prerequisites: []
+  app_env:
+    GLANCES_OPT: "--webserver"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 61208
+  path: /api/4/snapshot
+  expected: [200]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: nicolargo/glances:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 61208
+    description: "Host port for the Glances web UI"
+
+links:
+  - label: Website
+    url: https://nicolargo.github.io/glances
+  - label: GitHub
+    url: https://github.com/nicolargo/glances
+  - label: Documentation
+    url: https://glances.readthedocs.io
+
+notes: |
+  Glances web UI is served on port 61208. The Docker socket mount enables container monitoring.

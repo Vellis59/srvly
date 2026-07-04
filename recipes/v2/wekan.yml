@@ -1,0 +1,94 @@
+metadata:
+  name: "Wekan"
+  description: |
+    Wekan is an open-source kanban board application inspired by Trello for project management and task tracking.
+    It supports boards, lists, cards, swimlanes, checklists, labels, attachments, swipe-actions, custom fields, and real-time collaboration.
+    It is a mature and self-contained alternative to commercial kanban tools.
+  category: productivity
+  subcategory: project-management
+  tags: [Kanban, Project Management, Tasks, Collaboration]
+  version: "latest"
+  homepage: https://wekan.github.io
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/wekan.svg
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: true
+  ports: [3007]
+  resources:
+    ram: 512
+    disk: 5
+
+install:
+  docker:
+    image: wekanteam/wekan:latest
+    name: wekan
+    port: "3007:8080"
+    env:
+      - key: MONGO_URL
+        value: "mongodb://wekan-mongodb:27017/wekan"
+        description: "MongoDB connection URL"
+      - key: ROOT_URL
+        value: "$PUBLIC_BASE_URL"
+        description: "Public URL"
+      - key: MAIL_URL
+        value: ""
+        description: "SMTP URL (optional)"
+
+agent_install:
+  network: srvly-wekan
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed wekan or wekan-mongodb containers before retrying."
+  prerequisites:
+    - type: mongodb
+      name: wekan-mongodb
+      image: mongo:7
+      container: wekan-mongodb
+      volume: /opt/srvly/apps/wekan/mongodb:/data/db
+      port: 27017
+  app_env:
+    MONGO_URL: "mongodb://wekan-mongodb:27017/wekan"
+    ROOT_URL: "$PUBLIC_BASE_URL"
+    MAIL_URL: ""
+  post_install:
+    - "Create the Docker network before both containers and attach MongoDB and the app to it."
+    - "Start MongoDB first and wait until it accepts connections before starting the app."
+    - "Set ROOT_URL to the final public URL before deployment."
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 3007
+  path: /
+  expected: [200, 301, 302]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: wekanteam/wekan:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3007
+    description: "Host port for the Wekan web UI"
+
+links:
+  - label: Website
+    url: https://wekan.github.io
+  - label: GitHub
+    url: https://github.com/wekan/wekan
+  - label: Documentation
+    url: https://github.com/wekan/wekan/wiki
+
+notes: |
+  Wekan requires MongoDB. ROOT_URL must be set to the public URL for correct asset generation.

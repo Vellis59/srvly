@@ -1,0 +1,77 @@
+metadata:
+  name: "Audiobookshelf"
+  description: |
+    Audiobookshelf is a self-hosted audiobook and podcast server with a clean, modern web interface.
+    It supports streaming, downloading, chapter navigation, playback progress sync across devices, and user management.
+    It is the best open-source alternative to proprietary audiobook services like Audible.
+  category: media
+  subcategory: books
+  tags: [Audiobooks, Podcasts, Streaming, Media]
+  version: "latest"
+  homepage: https://audiobookshelf.org
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/audiobookshelf.svg
+  license: GPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [13378]
+  resources:
+    ram: 512
+    disk: 5
+
+install:
+  docker:
+    image: ghcr.io/advplyr/audiobookshelf:latest
+    name: audiobookshelf
+    port: "13378:80"
+    volumes:
+      - /opt/srvly/apps/audiobookshelf/config:/config
+      - /opt/srvly/apps/audiobookshelf/metadata:/metadata
+      - /opt/srvly/apps/audiobookshelf/audiobooks:/audiobooks
+      - /opt/srvly/apps/audiobookshelf/podcasts:/podcasts
+
+agent_install:
+  network: srvly-audiobookshelf
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed audiobookshelf container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 13378
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/advplyr/audiobookshelf:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 13378
+    description: "Host port for the Audiobookshelf web UI"
+
+links:
+  - label: Website
+    url: https://audiobookshelf.org
+  - label: GitHub
+    url: https://github.com/advplyr/audiobookshelf
+  - label: Documentation
+    url: https://www.audiobookshelf.org/docs
+
+notes: |
+  Place audiobooks in the /audiobooks volume and podcasts in /podcasts volume.

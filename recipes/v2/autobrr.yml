@@ -1,0 +1,73 @@
+metadata:
+  name: "Autobrr"
+  description: |
+    Autobrr is a modern, lightweight torrent autodownloader that monitors IRC announce channels and matches releases against your defined filters.
+    It integrates with Sonarr, Radarr, Lidarr, Readarr, and custom webhooks to trigger downloads when matching releases appear.
+    It is the recommended replacement for autodl-irssi with a cleaner web UI and more flexible filtering.
+  category: media
+  subcategory: media-management
+  tags: [Torrent, Automation, IRC, Media]
+  version: "latest"
+  homepage: https://autobrr.com
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/autobrr.svg
+  license: GPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [7474]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: ghcr.io/autobrr/autobrr:latest
+    name: autobrr
+    port: "7474:7474"
+    volumes:
+      - /opt/srvly/apps/autobrr/config:/config
+
+agent_install:
+  network: srvly-autobrr
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed autobrr container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 7474
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/autobrr/autobrr:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 7474
+    description: "Host port for the Autobrr web UI"
+
+links:
+  - label: Website
+    url: https://autobrr.com
+  - label: GitHub
+    url: https://github.com/autobrr/autobrr
+  - label: Documentation
+    url: https://autobrr.com/docs
+
+notes: |
+  Autobrr uses SQLite. It connects to IRC networks and integrates with download clients and *arr services.

@@ -1,0 +1,85 @@
+metadata:
+  name: "Lidarr"
+  description: |
+    Lidarr is a music collection manager that monitors and automates downloading of music from torrent and usenet sources.
+    It integrates with download clients and metadata providers to organize your music library with artist profiles, album art, and quality profiles.
+    It is part of the *arr ecosystem for complete media automation including music.
+  category: media
+  subcategory: media-management
+  tags: [Music, Automation, Torrent, Usenet]
+  version: "latest"
+  homepage: https://lidarr.audio
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/lidarr.svg
+  license: GPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8686]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: lscr.io/linuxserver/lidarr:latest
+    name: lidarr
+    port: "8686:8686"
+    volumes:
+      - /opt/srvly/apps/lidarr/config:/config
+      - /opt/srvly/apps/lidarr/music:/music
+      - /opt/srvly/apps/lidarr/downloads:/downloads
+    env:
+      - key: PUID
+        value: "1000"
+      - key: PGID
+        value: "1000"
+      - key: TZ
+        value: "Europe/Paris"
+
+agent_install:
+  network: srvly-lidarr
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed lidarr container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8686
+  path: /
+  expected: [200, 301, 302]
+  timeout: 90
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/lidarr:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8686
+    description: "Host port for the Lidarr web UI"
+
+links:
+  - label: Website
+    url: https://lidarr.audio
+  - label: GitHub
+    url: https://github.com/Lidarr/Lidarr
+  - label: Documentation
+    url: https://wiki.servarr.com/lidarr
+
+notes: |
+  Lidarr uses SQLite. Integrates with download clients and Plex/Jellyfin for music library management.

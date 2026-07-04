@@ -1,0 +1,73 @@
+metadata:
+  name: "Homer"
+  description: |
+    Homer is a dead-simple, static homepage for your server that organizes bookmarks, services, and widgets in a clean YAML-driven dashboard.
+    It works without a database, has zero dependencies, and loads instantly. It supports custom themes, icons, and service integration widgets.
+    It is an ideal landing page for a homelab or personal server.
+  category: productivity
+  subcategory: notes-wiki
+  tags: [Dashboard, Homepage, Bookmark, Minimal]
+  version: "latest"
+  homepage: https://github.com/bastienwirtz/homer
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/homer.svg
+  license: Apache-2.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8090]
+  resources:
+    ram: 128
+    disk: 1
+
+install:
+  docker:
+    image: b4bz/homer:latest
+    name: homer
+    port: "8090:8080"
+    volumes:
+      - /opt/srvly/apps/homer/assets:/www/assets
+
+agent_install:
+  network: srvly-homer
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed homer container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Edit /www/assets/config.yml inside the container to customize the dashboard."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 8090
+  path: /
+  expected: [200, 301, 302]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: b4bz/homer:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8090
+    description: "Host port for the Homer dashboard"
+
+links:
+  - label: GitHub
+    url: https://github.com/bastienwirtz/homer
+  - label: Documentation
+    url: https://github.com/bastienwirtz/homer#readme
+
+notes: |
+  Homer is a static application. Edit config.yml in the assets volume to add services and bookmarks.

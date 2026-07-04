@@ -1,0 +1,83 @@
+metadata:
+  name: "FreshRSS"
+  description: |
+    FreshRSS is a self-hosted RSS and Atom feed aggregator with a clean, responsive web interface.
+    It supports feed categories, tags, search, filters, OPML import/export, multiple user accounts, REST API, and mobile apps via Fever/Google Reader API.
+    It is a robust, fast, and feature-complete alternative to Google Reader or Feedly.
+  category: communication
+  subcategory: social
+  tags: [RSS, Feeds, News, Aggregator]
+  version: "latest"
+  homepage: https://freshrss.org
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/freshrss.svg
+  license: AGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8093]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: ghcr.io/freshrss/freshrss:latest
+    name: freshrss
+    port: "8093:80"
+    volumes:
+      - /opt/srvly/apps/freshrss/data:/var/www/FreshRSS/data
+      - /opt/srvly/apps/freshrss/extensions:/var/www/FreshRSS/extensions
+    env:
+      - key: CRON_MIN
+        value: "*/20"
+        description: "Feed refresh interval in minutes"
+      - key: TZ
+        value: "Europe/Paris"
+
+agent_install:
+  network: srvly-freshrss
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed freshrss container before retrying."
+  prerequisites: []
+  app_env:
+    CRON_MIN: "*/20"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Access the web UI and run the installation wizard to create the admin account."
+
+healthcheck:
+  type: http
+  port: 8093
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/freshrss/freshrss:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8093
+    description: "Host port for the FreshRSS web UI"
+
+links:
+  - label: Website
+    url: https://freshrss.org
+  - label: GitHub
+    url: https://github.com/FreshRSS/FreshRSS
+  - label: Documentation
+    url: https://github.com/FreshRSS/FreshRSS#readme
+
+notes: |
+  FreshRSS uses SQLite by default. PostgreSQL or MySQL can be configured for larger installations.

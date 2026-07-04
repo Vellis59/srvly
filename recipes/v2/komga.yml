@@ -1,0 +1,76 @@
+metadata:
+  name: "Komga"
+  description: |
+    Komga is a self-hosted comics, manga, and digital book server with a modern web reader and OPDS support.
+    It supports CBZ, CBR, PDF, and EPUB formats with reading progress tracking, collections, bookmarks, and user management.
+    It is the best open-source alternative to services like ComiXology or Kindle for managing digital comic libraries.
+  category: media
+  subcategory: books
+  tags: [Comics, Manga, Ebooks, Reading]
+  version: "latest"
+  homepage: https://komga.org
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/komga.svg
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [25600]
+  resources:
+    ram: 512
+    disk: 5
+
+install:
+  docker:
+    image: gotson/komga:latest
+    name: komga
+    port: "25600:25600"
+    volumes:
+      - /opt/srvly/apps/komga/data:/data
+      - /opt/srvly/apps/komga/books:/books
+
+agent_install:
+  network: srvly-komga
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed komga container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Place comic/manga files in the /books volume."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 25600
+  path: /
+  expected: [200, 301, 302]
+  timeout: 90
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: gotson/komga:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 25600
+    description: "Host port for the Komga web UI"
+
+links:
+  - label: Website
+    url: https://komga.org
+  - label: GitHub
+    url: https://github.com/gotson/komga
+  - label: Documentation
+    url: https://komga.org/docs
+
+notes: |
+  Komga stores metadata and thumbnails in the data volume. Place your comic/manga files in the /books volume.
