@@ -1,0 +1,74 @@
+metadata:
+  name: "Home Assistant"
+  description: |
+    Home Assistant is a comprehensive open-source home automation platform that integrates with thousands of smart home devices and services.
+    It provides dashboards, automations, scripts, energy management, voice control, and local processing for privacy.
+    It is the most popular self-hosted smart home platform, supporting Zigbee, Z-Wave, MQTT, and hundreds of integrations.
+  category: automation-iot
+  subcategory: smart-home
+  tags: [Home Automation, IoT, Smart Home, Dashboard]
+  version: "stable"
+  homepage: https://www.home-assistant.io
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/home-assistant.svg
+  license: Apache-2.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8123]
+  resources:
+    ram: 1024
+    disk: 5
+
+install:
+  docker:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    name: homeassistant
+    port: "8123:8123"
+    volumes:
+      - /opt/srvly/apps/homeassistant/config:/config
+
+agent_install:
+  network: srvly-homeassistant
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed homeassistant container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Access the web UI on port 8123 to complete onboarding."
+
+healthcheck:
+  type: http
+  port: 8123
+  path: /
+  expected: [200, 301, 302]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/home-assistant/home-assistant:stable
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8123
+    description: "Host port for the Home Assistant web UI"
+
+links:
+  - label: Website
+    url: https://www.home-assistant.io
+  - label: GitHub
+    url: https://github.com/home-assistant/home-assistant
+  - label: Documentation
+    url: https://www.home-assistant.io/docs
+
+notes: |
+  Home Assistant stores all configuration in the config volume. For best performance with many devices, consider adding a PostgreSQL database.

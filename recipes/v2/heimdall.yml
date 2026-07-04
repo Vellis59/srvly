@@ -1,0 +1,83 @@
+metadata:
+  name: "Heimdall"
+  description: |
+    Heimdall is an elegant dashboard for organizing and accessing your self-hosted services in one place.
+    It supports customizable tiles, application icons, search, user authentication, and tagging for large homelab environments.
+    It is a polished alternative to Homer for users who want a feature-rich application dashboard with a modern interface.
+  category: productivity
+  subcategory: notes-wiki
+  tags: [Dashboard, Homepage, Bookmarks, Homelab]
+  version: "latest"
+  homepage: https://heimdall.site
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/heimdall.svg
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8094]
+  resources:
+    ram: 256
+    disk: 1
+
+install:
+  docker:
+    image: lscr.io/linuxserver/heimdall:latest
+    name: heimdall
+    port: "8094:80"
+    volumes:
+      - /opt/srvly/apps/heimdall/config:/config
+    env:
+      - key: PUID
+        value: "1000"
+      - key: PGID
+        value: "1000"
+      - key: TZ
+        value: "Europe/Paris"
+
+agent_install:
+  network: srvly-heimdall
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed heimdall container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8094
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/heimdall:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8094
+    description: "Host port for the Heimdall dashboard"
+
+links:
+  - label: Website
+    url: https://heimdall.site
+  - label: GitHub
+    url: https://github.com/linuxserver/Heimdall
+  - label: Documentation
+    url: https://github.com/linuxserver/Heimdall#readme
+
+notes: |
+  Heimdall stores application configurations in the /config volume. Tiles and settings are managed through the web UI.

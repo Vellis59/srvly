@@ -1,0 +1,84 @@
+metadata:
+  name: "Calibre"
+  description: |
+    Calibre is a powerful, cross-platform e-book library management application with a web-based interface for browsing, reading, and managing your collection.
+    It supports metadata editing, format conversion (EPUB, MOBI, PDF, etc.), syncing with e-readers, recipe-based news fetching, and content serving via its built-in web server and OPDS feed.
+    It is the definitive tool for organizing and converting personal ebook collections.
+  category: media
+  subcategory: books
+  tags: [Ebooks, Library, Conversion, Reading]
+  version: "latest"
+  homepage: https://calibre-ebook.com
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/calibre.svg
+  license: GPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8081]
+  resources:
+    ram: 512
+    disk: 5
+
+install:
+  docker:
+    image: lscr.io/linuxserver/calibre:latest
+    name: calibre
+    port: "8081:8080"
+    volumes:
+      - /opt/srvly/apps/calibre/config:/config
+      - /opt/srvly/apps/calibre/books:/books
+    env:
+      - key: PUID
+        value: "1000"
+      - key: PGID
+        value: "1000"
+      - key: TZ
+        value: "Europe/Paris"
+
+agent_install:
+  network: srvly-calibre
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed calibre container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8081
+  path: /
+  expected: [200, 301, 302]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/calibre:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8081
+    description: "Host port for the Calibre web UI"
+
+links:
+  - label: Website
+    url: https://calibre-ebook.com
+  - label: GitHub
+    url: https://github.com/kovidgoyal/calibre
+  - label: Documentation
+    url: https://manual.calibre-ebook.com
+
+notes: |
+  Calibre stores its library in the /books volume. The web interface is accessible on the configured port after initial setup through the desktop UI.

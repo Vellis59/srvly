@@ -1,0 +1,74 @@
+metadata:
+  name: "RustDesk"
+  description: |
+    RustDesk is a full-featured open-source remote desktop application that works out of the box with its own relay server.
+    It supports remote control, file transfer, clipboard sync, audio, TCP tunneling, and self-hosted relay and rendezvous servers for full privacy.
+    It is the leading open-source alternative to TeamViewer and AnyDesk for self-hosted remote desktop access.
+  category: dev-infra
+  subcategory: remote-desktop
+  tags: [Remote Desktop, Remote Access, Support, Screen Sharing]
+  version: "latest"
+  homepage: https://rustdesk.com
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/rustdesk.svg
+  license: AGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [21116]
+  resources:
+    ram: 256
+    disk: 1
+
+install:
+  docker:
+    image: ghcr.io/rustdesk/rustdesk-server:latest
+    name: rustdesk
+    port: "21116:21116"
+    volumes:
+      - /opt/srvly/apps/rustdesk/data:/data
+
+agent_install:
+  network: srvly-rustdesk
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed rustdesk container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Share the RustDesk server address and key with clients for connection."
+
+healthcheck:
+  type: http
+  port: 21116
+  path: /
+  expected: [200]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/rustdesk/rustdesk-server:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: UDP port
+    default: 21116
+    description: "Host port for the RustDesk server"
+
+links:
+  - label: Website
+    url: https://rustdesk.com
+  - label: GitHub
+    url: https://github.com/rustdesk/rustdesk
+  - label: Documentation
+    url: https://rustdesk.com/docs
+
+notes: |
+  RustDesk server includes a rendezvous/relay server. Clients connect using the server's IP and the generated key file.

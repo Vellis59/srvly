@@ -1,0 +1,114 @@
+metadata:
+  name: "Outline"
+  description: |
+    Outline is a modern, real-time knowledge base and team wiki with a clean editing experience and powerful search.
+    It supports markdown editing, nested collections, document history, collaboration, comments, and Slack/SSO integrations.
+    It is a beautiful and fast alternative to Notion or Confluence for teams that want self-hosted documentation.
+  category: productivity
+  subcategory: notes-wiki
+  tags: [Wiki, Knowledge Base, Documentation, Collaboration]
+  version: "latest"
+  homepage: https://www.getoutline.com
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/outline.svg
+  license: BSL-1.1
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: true
+    mysql: false
+    redis: true
+    mongodb: false
+  ports: [3000]
+  resources:
+    ram: 512
+    disk: 2
+
+install:
+  docker:
+    image: outlinewiki/outline:latest
+    name: outline
+    port: "3000:3000"
+    volumes:
+      - /opt/srvly/apps/outline/data:/var/lib/outline/data
+    env:
+      - key: DATABASE_URL
+        value: "postgres://outline:***@outline-postgres:5432/outline"
+      - key: REDIS_URL
+        value: "redis://outline-redis:6379"
+      - key: SECRET_KEY
+        value: "***"
+      - key: UTILS_SECRET
+        value: "***"
+      - key: DEFAULT_LANGUAGE
+        value: "en_US"
+      - key: FORCE_HTTPS
+        value: "false"
+
+agent_install:
+  network: srvly-outline
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed outline, outline-postgres, or outline-redis containers before retrying."
+  prerequisites:
+    - type: postgres
+      name: outline-postgres
+      image: postgres:16-alpine
+      container: outline-postgres
+      database: outline
+      user: outline
+      password: generate
+      volume: /opt/srvly/apps/outline/postgres:/var/lib/postgresql/data
+      port: 5432
+      env:
+        POSTGRES_DB: outline
+        POSTGRES_USER: outline
+        POSTGRES_PASSWORD: $GENERATED_PASSWORD
+    - type: redis
+      name: outline-redis
+      image: redis:7-alpine
+      container: outline-redis
+      volume: /opt/srvly/apps/outline/redis:/data
+      port: 6379
+  app_env:
+    DATABASE_URL: "postgres://outline:***@outline-postgres:5432/outline"
+    REDIS_URL: "redis://outline-redis:6379"
+    SECRET_KEY: "***"
+    UTILS_SECRET: "***"
+    DEFAULT_LANGUAGE: "en_US"
+    FORCE_HTTPS: "false"
+  post_install:
+    - "Create the Docker network before both containers and attach Postgres, Redis, and the app to it."
+    - "Start Postgres and Redis first before starting the app."
+    - "Generate SECRET_KEY and UTILS_SECRET (openssl rand -base64 32 each) before deployment."
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 3000
+  path: /health
+  expected: [200]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: outlinewiki/outline:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3000
+    description: "Host port for the Outline web UI"
+
+links:
+  - label: Website
+    url: https://www.getoutline.com
+  - label: GitHub
+    url: https://github.com/outline/outline
+  - label: Documentation
+    url: https://docs.getoutline.com
+
+notes: |
+  Outline requires PostgreSQL and Redis. It also needs an OIDC/Slack/Google SSO provider configured via env vars for authentication.

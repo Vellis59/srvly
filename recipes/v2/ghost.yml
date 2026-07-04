@@ -1,0 +1,83 @@
+metadata:
+  name: "Ghost"
+  description: |
+    Ghost is a powerful, modern publishing platform for professional creators, bloggers, newsletters, and membership sites.
+    It features a beautiful WYSIWYG editor, built-in email newsletters, SEO tools, analytics, theming, and member management.
+    It is the leading open-source alternative to Substack and Medium for independent publishing.
+  category: productivity
+  subcategory: documents
+  tags: [Blogging, Publishing, Newsletters, CMS]
+  version: "latest"
+  homepage: https://ghost.org
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/ghost.png
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [2368]
+  resources:
+    ram: 512
+    disk: 2
+
+install:
+  docker:
+    image: ghost:latest
+    name: ghost
+    port: "2368:2368"
+    volumes:
+      - /opt/srvly/apps/ghost/content:/var/lib/ghost/content
+    env:
+      - key: url
+        value: "$PUBLIC_BASE_URL"
+        description: "Public URL of the Ghost instance"
+      - key: NODE_ENV
+        value: production
+
+agent_install:
+  network: srvly-ghost
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed ghost container before retrying."
+  prerequisites: []
+  app_env:
+    url: "$PUBLIC_BASE_URL"
+    NODE_ENV: "production"
+  post_install:
+    - "Set url to the final public URL before deployment."
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 2368
+  path: /
+  expected: [200, 301, 302]
+  timeout: 90
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghost:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 2368
+    description: "Host port for the Ghost web UI"
+
+links:
+  - label: Website
+    url: https://ghost.org
+  - label: GitHub
+    url: https://github.com/TryGhost/Ghost
+  - label: Documentation
+    url: https://ghost.org/docs
+
+notes: |
+  Ghost uses SQLite by default. For production, configure MySQL or PostgreSQL. First admin account is created through the web UI.
