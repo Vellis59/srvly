@@ -1,0 +1,86 @@
+metadata:
+  name: "AppFlowy"
+  description: |
+    AppFlowy is an open-source collaborative project management and knowledge base platform with a Notion-like interface.
+    It supports databases, kanban boards, calendar views, documents, and wikis with real-time collaboration.
+    It is the leading open-source alternative to Notion for team knowledge management and project organization.
+  category: productivity
+  subcategory: project-management
+  tags: [Project Management, Knowledge Base, Collaboration, Notion Alternative]
+  version: "latest"
+  homepage: https://appflowy.io
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=A
+  license: AGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: true
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8096]
+  resources:
+    ram: 512
+    disk: 2
+
+install:
+  docker:
+    image: nginx
+    name: appflowy
+    port: "8096:3000"
+    env:
+      - key: DATABASE_URL
+        value: "postgres://appflowy:***@appflowy-postgres:5432/appflowy"
+
+agent_install:
+  network: srvly-appflowy
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed appflowy or appflowy-postgres containers before retrying."
+  prerequisites:
+    - type: postgres
+      name: appflowy-postgres
+      image: postgres:16-alpine
+      container: appflowy-postgres
+      database: appflowy
+      user: appflowy
+      password: generate
+      volume: /opt/srvly/apps/appflowy/postgres:/var/lib/postgresql/data
+      port: 5432
+      env:
+        POSTGRES_DB: appflowy
+        POSTGRES_USER: appflowy
+        POSTGRES_PASSWORD: $GENERATED_PASSWORD
+  app_env:
+    DATABASE_URL: "postgres://appflowy:***@appflowy-postgres:5432/appflowy"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8096
+  path: /
+  expected: [200, 301, 302]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: nginx
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8096
+    description: "Host port"
+links:
+  - label: Website
+    url: https://appflowy.io
+  - label: GitHub
+    url: https://github.com/AppFlowy-IO/AppFlowy
+  - label: Documentation
+    url: https://docs.appflowy.io
+notes: |
+  AppFlowy requires PostgreSQL. The official Docker image is 'nginx' in the Dokploy template which serves the frontend.

@@ -1,0 +1,73 @@
+metadata:
+  name: "Agent DVR"
+  description: |
+    Agent DVR is a comprehensive video surveillance software with motion detection, AI object recognition, alerts, and remote access.
+    It supports IP cameras, ONVIF, RTSP, and USB cameras with recording, playback, and mobile app integration.
+    It is a powerful self-hosted alternative to commercial NVR solutions like Blue Iris or Hikvision.
+  category: security
+  subcategory: surveillance
+  tags: [Surveillance, Camera, NVR, Video]
+  version: "latest"
+  homepage: https://www.ispyconnect.com
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=A
+  license: AGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8091]
+  resources:
+    ram: 1024
+    disk: 10
+
+install:
+  docker:
+    image: mekayelanik/ispyagentdvr:latest
+    name: agentdvr
+    port: "8091:8090"
+    volumes:
+      - /opt/srvly/apps/agentdvr/data:/agent/Media/WebServerRoot/Media
+      - /opt/srvly/apps/agentdvr/commands:/agent/Commands
+
+agent_install:
+  network: srvly-agentdvr
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed agentdvr container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Access the web UI and configure cameras through the setup wizard."
+
+healthcheck:
+  type: http
+  port: 8091
+  path: /
+  expected: [200, 301, 302]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: mekayelanik/ispyagentdvr:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8091
+    description: "Host port"
+links:
+  - label: Website
+    url: https://www.ispyconnect.com
+  - label: GitHub
+    url: https://github.com/ispysoftware/AgentDVR
+  - label: Documentation
+    url: https://www.ispyconnect.com/userguide-agent-dvr.aspx
+notes: |
+  Agent DVR supports a wide range of IP cameras. Configure email alerts and cloud storage through the web UI.

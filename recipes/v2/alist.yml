@@ -1,0 +1,72 @@
+metadata:
+  name: "AList"
+  description: |
+    AList is a file list and WebDAV program that supports multiple storage backends including local, S3, OneDrive, Google Drive, and many cloud providers.
+    It provides a unified web interface to browse, search, and manage files across all connected storage services.
+    It is a powerful tool for aggregating multiple cloud and local storage systems into a single interface.
+  category: storage-backup
+  subcategory: file-sharing
+  tags: [File, WebDAV, Storage, Cloud]
+  version: "v3.55.0"
+  homepage: https://alistgo.com
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=A
+  license: AGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [5244]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: xhofe/alist:v3.55.0
+    name: alist
+    port: "5244:5244"
+    volumes:
+      - /opt/srvly/apps/alist/data:/opt/alist/data
+
+agent_install:
+  network: srvly-alist
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed alist container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Access the web UI and configure storage providers through the admin panel."
+
+healthcheck:
+  type: http
+  port: 5244
+  path: /
+  expected: [200, 301, 302]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: xhofe/alist:v3.55.0
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 5244
+    description: "Host port"
+links:
+  - label: Website
+    url: https://alistgo.com
+  - label: GitHub
+    url: https://github.com/AlistGo/alist
+  - label: Documentation
+    url: https://alistgo.com/guide
+notes: |
+  AList supports multiple storage backends. Configure them through the web admin panel.

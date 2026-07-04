@@ -1,0 +1,89 @@
+metadata:
+  name: "Bluesky PDS"
+  description: |
+    Bluesky PDS (Personal Data Server) is the server component of the Bluesky social network, running the AT Protocol.
+    It hosts your personal data, posts, and identity, giving you full control over your social media presence and data sovereignty.
+    It is the official self-hosted server for participating in the Bluesky social network.
+  category: communication
+  subcategory: social-media
+  tags: [Social Media, AT Protocol, Bluesky, Decentralized]
+  version: "0.4.182"
+  homepage: https://bluesky-social.github.io/pds
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=B
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: true
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8093]
+  resources:
+    ram: 512
+    disk: 5
+
+install:
+  docker:
+    image: ghcr.io/bluesky-social/pds:0.4.182
+    name: blueskypds
+    port: "8093:8080"
+    volumes:
+      - /opt/srvly/apps/blueskypds/data:/pds
+    env:
+      - key: PDS_HOSTNAME
+        value: "$PUBLIC_HOST"
+      - key: PDS_JWT_SECRET
+        value: "***"
+      - key: PDS_ADMIN_PASSWORD
+        value: "***"
+      - key: PDS_PLC_ROTATION_KEY
+        value: "***"
+      - key: PDS_DB_SQLITE_PATH
+        value: /pds/db/mydb.sqlite
+
+agent_install:
+  network: srvly-blueskypds
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed blueskypds container before retrying."
+  prerequisites: []
+  app_env:
+    PDS_HOSTNAME: "$PUBLIC_HOST"
+    PDS_JWT_SECRET: "***"
+    PDS_ADMIN_PASSWORD: "***"
+    PDS_PLC_ROTATION_KEY: "***"
+    PDS_DB_SQLITE_PATH: "/pds/db/mydb.sqlite"
+  post_install:
+    - "Set PDS_HOSTNAME to the final public hostname before deployment."
+    - "Generate PDS_JWT_SECRET, PDS_ADMIN_PASSWORD, and PDS_PLC_ROTATION_KEY before deployment."
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8093
+  path: /xrpc/_health
+  expected: [200]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/bluesky-social/pds:0.4.182
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8093
+    description: "Host port"
+links:
+  - label: Website
+    url: https://bluesky-social.github.io/pds
+  - label: GitHub
+    url: https://github.com/bluesky-social/pds
+  - label: Documentation
+    url: https://bluesky-social.github.io/pds
+notes: |
+  Bluesky PDS requires DNS configuration for PDS_HOSTNAME to be publicly accessible. The admin panel is at /admin.

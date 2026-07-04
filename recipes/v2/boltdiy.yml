@@ -1,0 +1,74 @@
+metadata:
+  name: "Bolt.Diy"
+  description: |
+    Bolt.Diy is an AI-powered web application generator that lets you build full-stack applications through natural language prompts.
+    It supports React, Vue, Svelte, Node.js, and Python with a built-in AI code generation engine and live preview.
+    It is an innovative tool for rapid prototyping and development using AI-assisted code generation.
+  category: dev-infra
+  subcategory: ide-tools
+  tags: [AI, Code Generation, Development, Prototyping]
+  version: "latest"
+  homepage: https://bolt.diy
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=B
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [5173]
+  resources:
+    ram: 1024
+    disk: 2
+
+install:
+  docker:
+    image: ghcr.io/stackblitz-labs/bolt.diy:latest
+    name: boltdiy
+    port: "5173:5173"
+    env:
+      - key: NODE_ENV
+        value: production
+
+agent_install:
+  network: srvly-boltdiy
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed boltdiy container before retrying."
+  prerequisites: []
+  app_env:
+    NODE_ENV: "production"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Configure API keys for the AI provider through the web UI."
+
+healthcheck:
+  type: http
+  port: 5173
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/stackblitz-labs/bolt.diy:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 5173
+    description: "Host port"
+links:
+  - label: Website
+    url: https://bolt.diy
+  - label: GitHub
+    url: https://github.com/stackblitz-labs/bolt.diy
+  - label: Documentation
+    url: https://github.com/stackblitz-labs/bolt.diy#readme
+notes: |
+  Bolt.Diy requires an API key from an AI provider (OpenAI, Anthropic, etc.) configured through the web interface.

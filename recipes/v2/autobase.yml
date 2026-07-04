@@ -1,0 +1,67 @@
+metadata:
+  name: "Autobase"
+  description: |
+    Autobase is a self-hosted database management tool with a web interface for monitoring and administering PostgreSQL databases.
+    It provides visual query building, schema browsing, performance monitoring, and backup management.
+    It is a useful tool for developers and DBAs managing PostgreSQL databases through a browser.
+  category: dev-infra
+  subcategory: database
+  tags: [Database, PostgreSQL, Admin, Monitoring]
+  version: "2.5.2"
+  homepage: https://autobase.app
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=A
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3040]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: autobase/console:2.5.2
+    name: autobase
+    port: "3040:80"
+
+agent_install:
+  network: srvly-autobase
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed autobase container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 3040
+  path: /
+  expected: [200, 301, 302]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: autobase/console:2.5.2
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3040
+    description: "Host port"
+links:
+  - label: GitHub
+    url: https://github.com/vitabaks/autobase
+  - label: Documentation
+    url: https://github.com/vitabaks/autobase#readme
+notes: |
+  Autobase connects to existing PostgreSQL databases for monitoring and administration.

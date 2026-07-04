@@ -1,0 +1,67 @@
+metadata:
+  name: "Anubis"
+  description: |
+    Anubis is a proof-of-work challenge proxy that protects websites and APIs from bots, scrapers, and automated attacks.
+    It presents JavaScript-based proof-of-work challenges to visitors before allowing access, filtering out automated traffic.
+    It is an effective self-hosted bot mitigation tool for web applications.
+  category: security
+  subcategory: firewall
+  tags: [Security, Bot, Proxy, Protection]
+  version: "latest"
+  homepage: https://anubis.techaro.lol
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=A
+  license: AGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8092]
+  resources:
+    ram: 128
+    disk: 1
+
+install:
+  docker:
+    image: ghcr.io/techarohq/anubis:latest
+    name: anubis
+    port: "8092:80"
+
+agent_install:
+  network: srvly-anubis
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed anubis container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8092
+  path: /
+  expected: [200, 301, 302]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/techarohq/anubis:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8092
+    description: "Host port"
+links:
+  - label: GitHub
+    url: https://github.com/TecharoHQ/anubis
+  - label: Documentation
+    url: https://github.com/TecharoHQ/anubis#readme
+notes: |
+  Anubis acts as a reverse proxy, placing challenge pages in front of protected services.

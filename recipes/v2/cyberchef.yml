@@ -1,0 +1,69 @@
+metadata:
+  name: "CyberChef"
+  description: |
+    CyberChef is a web-based data transformation, analysis, and processing tool for handling various data formats.
+    It supports encryption, encoding, compression, data analysis, and over 300 operations including AES, Base64, hex, JSON formatting, and more.
+    It is known as the "Cyber Swiss Army Knife" and is widely used by security professionals and developers.
+  category: dev-infra
+  subcategory: ide-tools
+  tags: [Data, Transformation, Security, Utilities]
+  version: "latest"
+  homepage: https://gchq.github.io/CyberChef
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=C
+  license: Apache-2.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8094]
+  resources:
+    ram: 256
+    disk: 1
+
+install:
+  docker:
+    image: ghcr.io/gchq/cyberchef:latest
+    name: cyberchef
+    port: "8094:8000"
+
+agent_install:
+  network: srvly-cyberchef
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed cyberchef container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8094
+  path: /
+  expected: [200, 301, 302]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/gchq/cyberchef:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8094
+    description: "Host port"
+links:
+  - label: Website
+    url: https://gchq.github.io/CyberChef
+  - label: GitHub
+    url: https://github.com/gchq/CyberChef
+  - label: Documentation
+    url: https://github.com/gchq/CyberChef#readme
+notes: |
+  CyberChef is a static web application with no database. All processing happens in the browser.

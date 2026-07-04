@@ -1,0 +1,83 @@
+metadata:
+  name: "Authelia"
+  description: |
+    Authelia is a robust single sign-on (SSO) and multi-factor authentication (MFA) server for reverse proxies like Nginx, Traefik, and Caddy.
+    It supports one-time passwords, TOTP, Duo Push, WebAuthn, and security keys with LDAP and file-based user databases.
+    It is the most popular self-hosted authentication gateway for securing services behind a reverse proxy.
+  category: security
+  subcategory: auth-sso
+  tags: [Authentication, SSO, MFA, Security]
+  version: "latest"
+  homepage: https://www.authelia.com
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=A
+  license: Apache-2.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: true
+    mongodb: false
+  ports: [9091]
+  resources:
+    ram: 256
+    disk: 1
+
+install:
+  docker:
+    image: authelia/authelia:latest
+    name: authelia
+    port: "9091:9091"
+    volumes:
+      - /opt/srvly/apps/authelia/config:/config
+    env:
+      - key: TZ
+        value: "Europe/Paris"
+
+agent_install:
+  network: srvly-authelia
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed authelia or authelia-redis containers before retrying."
+  prerequisites:
+    - type: redis
+      name: authelia-redis
+      image: redis:7-alpine
+      container: authelia-redis
+      volume: /opt/srvly/apps/authelia/redis:/data
+      port: 6379
+  app_env:
+    TZ: "Europe/Paris"
+  post_install:
+    - "Create the Docker network before both containers and attach Redis and the app to it."
+    - "Start Redis first before starting the app."
+    - "Configure Authelia through the configuration.yml file in the /config volume."
+
+healthcheck:
+  type: http
+  port: 9091
+  path: /api/health
+  expected: [200]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: authelia/authelia:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 9091
+    description: "Host port"
+links:
+  - label: Website
+    url: https://www.authelia.com
+  - label: GitHub
+    url: https://github.com/authelia/authelia
+  - label: Documentation
+    url: https://www.authelia.com/docs
+notes: |
+  Authelia requires a configuration.yml and Redis. It works as an authentication frontend for reverse proxy setups.
