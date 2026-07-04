@@ -15,14 +15,11 @@
         "category": {
           "type": "string",
           "enum": [
-            "analytics", "automation", "backup", "cms", "communication",
-            "community", "crm", "database", "development", "dns", "documents",
-            "email", "entertainment", "finance", "gaming", "iot", "learning",
-            "marketing", "media", "monitoring", "networking", "notes", "office",
-            "password", "personal", "privacy", "project-management", "proxy",
-            "recruitment", "security", "storage", "system", "web-server"
+            "media", "dev-infra", "communication", "security", "productivity",
+            "storage-backup", "automation-iot", "gaming", "ai-llm", "other"
           ]
         },
+        "subcategory": { "type": "string" },
         "tags": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
         "version": { "type": "string" },
         "homepage": { "type": "string" },

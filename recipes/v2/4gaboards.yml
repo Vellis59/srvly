@@ -5,7 +5,8 @@ metadata:
     Features Kanban-style boards, drag-and-drop task management, custom lists,
     cards with attachments, user avatars, and project backgrounds. Perfect for
     teams looking for a self-hosted alternative to commercial PM tools.
-  category: project-management
+  category: productivity
+  subcategory: project-management
   tags: [Project Management, Kanban, Productivity, Collaboration, Task Management]
   version: "3.3.6"
   homepage: https://4gaboards.com

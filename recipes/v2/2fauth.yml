@@ -6,6 +6,7 @@ metadata:
     one-time passwords directly from your browser, and access them from any device
     with a simple, clean interface. Works without a mobile phone.
   category: security
+  subcategory: auth-sso
   tags: [Security, Authentication, Password, 2FA]
   version: "5.3.0"
   homepage: https://github.com/Bubka/2FAuth

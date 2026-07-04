@@ -4,7 +4,8 @@ metadata:
     Personal finance tool designed to help you manage your finances with ease.
     Local-first, 100% free and open-source. Syncs across devices. Features
     budgeting, transaction management, bill tracking, and reports.
-  category: finance
+  category: productivity
+  subcategory: finance
   tags: [Finance, Budget, Personal]
   version: "26.2.1"
   homepage: https://actualbudget.org
