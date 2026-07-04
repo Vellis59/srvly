@@ -1,0 +1,61 @@
+metadata:
+  name: "Crafty Controller"
+  description: |
+    Minecraft server control panel. Manage multiple game servers with web UI, backup automation, and user management.
+  category: gaming
+  subcategory: game-management
+  tags: [Gaming, Minecraft, Server]
+  version: "latest"
+  homepage: https://craftycontrol.com/
+  icon: https://www.google.com/s2/favicons?domain=craftycontrol.com&sz=64
+  license: GPL-3.0
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8443]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: ghcr.io/craftycontroller/crafty-community:latest
+    name: crafty-controller
+    port: "8443:8443"
+    volumes:
+      - /opt/srvly/apps/crafty-controller/data:/data
+    env: []
+agent_install:
+  network: srvly-crafty-controller
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed crafty-controller container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 8443
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/craftycontroller/crafty-community:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8443
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://craftycontrol.com/
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.

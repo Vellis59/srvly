@@ -1,0 +1,61 @@
+metadata:
+  name: "Readeck"
+  description: |
+    Save the precious readable content of web pages you like and want to keep forever. Bookmark manager and read-it-later tool.
+  category: productivity
+  subcategory: notes-wiki
+  tags: [Bookmarks, Read Later, Content]
+  version: "latest"
+  homepage: https://readeck.org/en/
+  icon: https://www.google.com/s2/favicons?domain=readeck.org&sz=64
+  license: AGPL-3.0
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8000]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: ghcr.io/readeck/readeck:latest
+    name: readeck
+    port: "8000:8000"
+    volumes:
+      - /opt/srvly/apps/readeck/data:/data
+    env: []
+agent_install:
+  network: srvly-readeck
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed readeck container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 8000
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/readeck/readeck:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8000
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://readeck.org/en/
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.

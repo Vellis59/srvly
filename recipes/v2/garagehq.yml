@@ -1,0 +1,61 @@
+metadata:
+  name: "GarageHQ"
+  description: |
+    Open-source distributed object storage service designed for self-hosting. S3-compatible, geo-replicated, and lightweight for small-scale deployments.
+  category: storage-backup
+  subcategory: cloud-storage
+  tags: [Storage, S3, Object]
+  version: "latest"
+  homepage: https://garagehq.deuxfleurs.fr/
+  icon: https://www.google.com/s2/favicons?domain=garagehq.deuxfleurs.fr&sz=64
+  license: AGPL-3.0
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3900]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: ghcr.io/deuxfleurs/garage:latest
+    name: garagehq
+    port: "3900:3900"
+    volumes:
+      - /opt/srvly/apps/garagehq/data:/data
+    env: []
+agent_install:
+  network: srvly-garagehq
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed garagehq container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 3900
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/deuxfleurs/garage:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3900
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://garagehq.deuxfleurs.fr/
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.

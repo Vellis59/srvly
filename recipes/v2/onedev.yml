@@ -1,0 +1,61 @@
+metadata:
+  name: "OneDev"
+  description: |
+    All-in-one DevOps platform with Git management, issue tracking, and CI/CD. Simple yet powerful alternative to GitLab and GitHub.
+  category: dev-infra
+  subcategory: git-code
+  tags: [DevOps, Git, CI/CD]
+  version: "latest"
+  homepage: https://onedev.io/
+  icon: https://www.google.com/s2/favicons?domain=onedev.io&sz=64
+  license: MIT
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [6612]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: ghcr.io/theonedev/onedev:latest
+    name: onedev
+    port: "6612:6612"
+    volumes:
+      - /opt/srvly/apps/onedev/data:/data
+    env: []
+agent_install:
+  network: srvly-onedev
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed onedev container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 6612
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/theonedev/onedev:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 6612
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://onedev.io/
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.

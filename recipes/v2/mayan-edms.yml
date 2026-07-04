@@ -1,0 +1,61 @@
+metadata:
+  name: "Mayan EDMS"
+  description: |
+    Electronic document management system. Organize, index, and search documents with OCR, versioning, and workflow automation.
+  category: productivity
+  subcategory: documents
+  tags: [Documents, EDMS, OCR]
+  version: "latest"
+  homepage: https://www.mayan-edms.com
+  icon: https://www.google.com/s2/favicons?domain=www.mayan-edms.com&sz=64
+  license: Apache-2.0
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8000]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: ghcr.io/mayan-edms/mayan-edms:latest
+    name: mayan-edms
+    port: "8000:8000"
+    volumes:
+      - /opt/srvly/apps/mayan-edms/data:/data
+    env: []
+agent_install:
+  network: srvly-mayan-edms
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed mayan-edms container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 8000
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/mayan-edms/mayan-edms:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8000
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://www.mayan-edms.com
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.
