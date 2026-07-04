@@ -208,7 +208,7 @@ function DomainStatus({ domain }: { domain: any }) {
           sslExpired ? "bg-red-500/20 text-red-400" :
           sslExpiring ? "bg-amber-500/20 text-amber-400" :
           "bg-emerald-500/20 text-emerald-400"
-        }`} title={sslResult?.daysLeft !== null ? `${sslResult.daysLeft}d remaining` : ""}>
+        }`} title={sslResult?.daysLeft != null ? `${sslResult?.daysLeft}d remaining` : ""}>
           SSL
         </span>
       ) : (
