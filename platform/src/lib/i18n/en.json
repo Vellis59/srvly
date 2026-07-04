@@ -154,5 +154,47 @@
 
   "ssh.executing": "Running...",
   "ssh.done": "Done",
-  "ssh.failed": "Failed"
+  "ssh.failed": "Failed",
+
+  "nav.domains": "Domains",
+
+  "domains.title": "Domains",
+  "domains.desc": "All domains across your servers",
+  "domains.count": "domain(s) configured",
+  "domains.add": "+ Add domain",
+  "domains.empty": "No domains yet",
+  "domains.empty.desc": "Add a domain pointing to any installed app on any server.",
+  "domains.add.title": "New domain",
+  "domains.add.name": "Domain name",
+  "domains.add.name.placeholder": "app.yourdomain.com",
+  "domains.add.server": "Server",
+  "domains.add.server.select": "Select a server...",
+  "domains.add.port": "Port",
+  "domains.add.port.placeholder": "Target port (80, 3000...)",
+  "domains.add.cancel": "Cancel",
+  "domains.add.submit": "Add",
+  "domains.add.submitting": "Adding...",
+  "domains.add.error.required": "Domain name is required",
+  "domains.add.error.server": "Please select a server",
+  "domains.add.success": "Domain added!",
+
+  "domains.column.domain": "Domain",
+  "domains.column.server": "Server",
+  "domains.column.target": "Target",
+  "domains.column.status": "Status",
+  "domains.column.actions": "Actions",
+
+  "domains.action.open": "Open ↗",
+  "domains.action.check": "Check DNS",
+  "domains.action.ssl": "Enable SSL",
+  "domains.action.delete": "Delete",
+
+  "domains.status.dns_ok": "DNS ✓",
+  "domains.status.dns_missing": "DNS ✗",
+  "domains.status.dns_checking": "checking...",
+  "domains.status.ssl_active": "SSL ✓",
+  "domains.status.ssl_pending": "SSL pending",
+  "domains.status.ssl_checking": "checking...",
+
+  "domains.delete.confirm": "Delete domain"
 }

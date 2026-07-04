@@ -8,6 +8,7 @@ import { useT } from "@/lib/i18n";
 const navItems = [
   { href: "/dashboard", label: "nav.dashboard", icon: "♜" },
   { href: "/servers", label: "nav.servers", icon: "♝" },
+  { href: "/domains", label: "nav.domains", icon: "🌍" },
   { href: "/catalog", label: "nav.catalog", icon: "♞" },
   { href: "/settings", label: "nav.settings", icon: "⚙" },
 ];

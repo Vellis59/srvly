@@ -1567,6 +1567,53 @@ export const domainRouter = router({
       return enriched;
     }),
 
+  listAll: agentProcedure
+    .query(async ({ ctx }) => {
+      const rows = await ctx.db
+        .select({
+          id: domains.id,
+          name: domains.name,
+          sslStatus: domains.sslStatus,
+          targetPort: domains.targetPort,
+          targetApp: domains.targetApp,
+          createdAt: domains.createdAt,
+          serverId: servers.id,
+          serverName: servers.name,
+          serverIp: servers.ip,
+        })
+        .from(domains)
+        .innerJoin(servers, eq(domains.serverId, servers.id))
+        .where(eq(servers.userId, ctx.user.id!))
+        .orderBy(domains.createdAt);
+
+      // Enrich with installation names using a single batch lookup
+      const appNameMap = new Map<string, string>();
+      for (const row of rows) {
+        if (row.targetApp) {
+          const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(row.targetApp);
+          if (isUuid && !appNameMap.has(row.targetApp)) {
+            appNameMap.set(row.targetApp, "");
+          }
+        }
+      }
+      if (appNameMap.size > 0) {
+        const uuids = Array.from(appNameMap.keys());
+        const insts = await ctx.db
+          .select({ id: installations.id, params: installations.params })
+          .from(installations)
+          .where(inArray(installations.id, uuids));
+        for (const inst of insts) {
+          const p = inst.params as any;
+          appNameMap.set(inst.id, p?.name || "");
+        }
+      }
+
+      return rows.map((r) => ({
+        ...r,
+        appName: r.targetApp && appNameMap.has(r.targetApp) ? appNameMap.get(r.targetApp) || r.targetApp : r.targetApp || null,
+      }));
+    }),
+
   add: agentProcedure
     .input(z.object({
       serverId: z.string(),
