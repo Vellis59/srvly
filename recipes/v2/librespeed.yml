@@ -1,0 +1,71 @@
+metadata:
+  name: "LibreSpeed"
+  description: |
+    LibreSpeed is a lightweight, self-hosted internet speed test tool that runs in the browser with no Flash or Java required.
+    It measures download speed, upload speed, latency, and jitter using a simple web interface. It can run on any web server.
+    It is a practical tool for testing bandwidth from your own infrastructure without relying on third-party services.
+  category: dev-infra
+  subcategory: monitoring
+  tags: [Speedtest, Bandwidth, Network, Monitoring]
+  version: "latest"
+  homepage: https://librespeed.org
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/librespeed.svg
+  license: LGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8098]
+  resources:
+    ram: 128
+    disk: 1
+
+install:
+  docker:
+    image: ghcr.io/librespeed/speedtest:latest
+    name: librespeed
+    port: "8098:80"
+
+agent_install:
+  network: srvly-librespeed
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed librespeed container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8098
+  path: /
+  expected: [200, 301, 302]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/librespeed/speedtest:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8098
+    description: "Host port for the LibreSpeed web UI"
+
+links:
+  - label: Website
+    url: https://librespeed.org
+  - label: GitHub
+    url: https://github.com/librespeed/speedtest
+  - label: Documentation
+    url: https://github.com/librespeed/speedtest#readme
+
+notes: |
+  LibreSpeed is a static web application with no database or persistent storage requirements.

@@ -1,0 +1,74 @@
+metadata:
+  name: "NocoDB"
+  description: |
+    NocoDB is an open-source no-code database platform that turns any SQL database into a collaborative spreadsheet-like interface.
+    It supports views (grid, gallery, form, kanban), filters, sorting, formulas, webhooks, API access, and team collaboration.
+    It is a powerful Airtable alternative that works with existing MySQL, PostgreSQL, or SQLite databases.
+  category: productivity
+  subcategory: documents
+  tags: [Database, No-Code, Spreadsheet, Airtable Alternative]
+  version: "latest"
+  homepage: https://nocodb.com
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/nocodb.svg
+  license: AGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8080]
+  resources:
+    ram: 512
+    disk: 2
+
+install:
+  docker:
+    image: nocodb/nocodb:latest
+    name: nocodb
+    port: "8080:8080"
+    volumes:
+      - /opt/srvly/apps/nocodb/data:/usr/app/data
+
+agent_install:
+  network: srvly-nocodb
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed nocodb container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 8080
+  path: /api/health
+  expected: [200]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: nocodb/nocodb:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8080
+    description: "Host port for the NocoDB web UI"
+
+links:
+  - label: Website
+    url: https://nocodb.com
+  - label: GitHub
+    url: https://github.com/nocodb/nocodb
+  - label: Documentation
+    url: https://docs.nocodb.com
+
+notes: |
+  NocoDB uses an embedded SQLite database by default. Connect an external MySQL or PostgreSQL database for production use.

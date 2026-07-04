@@ -1,0 +1,112 @@
+metadata:
+  name: "Mattermost"
+  description: |
+    Mattermost is a secure, self-hosted collaboration platform for team messaging, file sharing, workflows, and integrations.
+    It supports channels, direct messages, voice calls, custom bots, slash commands, webhooks, and deep integrations with DevOps tools.
+    It is the leading open-source alternative to Slack with enterprise-grade security and compliance features.
+  category: communication
+  subcategory: chat
+  tags: [Messaging, Collaboration, Teams, Slack Alternative]
+  version: "latest"
+  homepage: https://mattermost.com
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/mattermost.svg
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: true
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8065]
+  resources:
+    ram: 1024
+    disk: 5
+
+install:
+  docker:
+    image: mattermost/mattermost-team-edition:latest
+    name: mattermost
+    port: "8065:8065"
+    volumes:
+      - /opt/srvly/apps/mattermost/config:/mattermost/config
+      - /opt/srvly/apps/mattermost/data:/mattermost/data
+      - /opt/srvly/apps/mattermost/logs:/mattermost/logs
+      - /opt/srvly/apps/mattermost/plugins:/mattermost/client/plugins
+    env:
+      - key: MM_USERNAME
+        value: mmuser
+      - key: MM_PASSWORD
+        value: "***"
+      - key: MM_DBNAME
+        value: mattermost
+      - key: MM_HOST
+        value: mattermost-postgres
+      - key: MM_PORT
+        value: "5432"
+      - key: MM_SITEURL
+        value: "$PUBLIC_BASE_URL"
+
+agent_install:
+  network: srvly-mattermost
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed mattermost or mattermost-postgres containers before retrying."
+  prerequisites:
+    - type: postgres
+      name: mattermost-postgres
+      image: postgres:16-alpine
+      container: mattermost-postgres
+      database: mattermost
+      user: mmuser
+      password: generate
+      volume: /opt/srvly/apps/mattermost/postgres:/var/lib/postgresql/data
+      port: 5432
+      env:
+        POSTGRES_DB: mattermost
+        POSTGRES_USER: mmuser
+        POSTGRES_PASSWORD: $GENERATED_PASSWORD
+  app_env:
+    MM_USERNAME: "mmuser"
+    MM_PASSWORD: "***"
+    MM_DBNAME: "mattermost"
+    MM_HOST: "mattermost-postgres"
+    MM_PORT: "5432"
+    MM_SITEURL: "$PUBLIC_BASE_URL"
+  post_install:
+    - "Create the Docker network before both containers and attach Postgres and the app to it."
+    - "Start Postgres first and wait until it accepts connections before starting the app."
+    - "Set MM_SITEURL to the final public URL."
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 8065
+  path: /api/v4/system/ping
+  expected: [200]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: mattermost/mattermost-team-edition:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8065
+    description: "Host port for the Mattermost web UI"
+
+links:
+  - label: Website
+    url: https://mattermost.com
+  - label: GitHub
+    url: https://github.com/mattermost/mattermost
+  - label: Documentation
+    url: https://docs.mattermost.com
+
+notes: |
+  Mattermost requires PostgreSQL. First-run setup takes 1-2 minutes. Access the web UI to create the initial admin account.

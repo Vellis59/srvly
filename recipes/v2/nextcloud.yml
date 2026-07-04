@@ -1,0 +1,94 @@
+metadata:
+  name: "Nextcloud"
+  description: |
+    Nextcloud is a comprehensive self-hosted productivity platform for file sync and share, collaboration, calendar, contacts, email, video calls, and office document editing.
+    It supports millions of users, end-to-end encryption, federation, and an extensive app marketplace for extending functionality.
+    It is the most widely deployed open-source private cloud solution worldwide.
+  category: storage-backup
+  subcategory: cloud-storage
+  tags: [Cloud, File Sync, Collaboration, Office]
+  version: "latest"
+  homepage: https://nextcloud.com
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/nextcloud.svg
+  license: AGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8180]
+  resources:
+    ram: 1024
+    disk: 10
+
+install:
+  docker:
+    image: nextcloud:latest
+    name: nextcloud
+    port: "8180:80"
+    volumes:
+      - /opt/srvly/apps/nextcloud/html:/var/www/html
+      - /opt/srvly/apps/nextcloud/data:/var/www/html/data
+      - /opt/srvly/apps/nextcloud/config:/var/www/html/config
+    env:
+      - key: NEXTCLOUD_ADMIN_USER
+        value: "admin"
+        description: "Admin username"
+      - key: NEXTCLOUD_ADMIN_PASSWORD
+        value: "***"
+        description: "Admin password"
+      - key: NEXTCLOUD_TRUSTED_DOMAINS
+        value: "$PUBLIC_HOST"
+        description: "Comma-separated trusted domains"
+      - key: OVERWRITEPROTOCOL
+        value: "$PUBLIC_PROTOCOL"
+        description: "Protocol for URL generation"
+
+agent_install:
+  network: srvly-nextcloud
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed nextcloud container before retrying."
+  prerequisites: []
+  app_env:
+    NEXTCLOUD_ADMIN_USER: "admin"
+    NEXTCLOUD_ADMIN_PASSWORD: "***"
+    NEXTCLOUD_TRUSTED_DOMAINS: "$PUBLIC_HOST"
+    OVERWRITEPROTOCOL: "$PUBLIC_PROTOCOL"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Set NEXTCLOUD_TRUSTED_DOMAINS to the final public hostname and OVERWRITEPROTOCOL accordingly."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 8180
+  path: /status.php
+  expected: [200]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: nextcloud:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8180
+    description: "Host port for the Nextcloud web UI"
+
+links:
+  - label: Website
+    url: https://nextcloud.com
+  - label: GitHub
+    url: https://github.com/nextcloud/server
+  - label: Documentation
+    url: https://docs.nextcloud.com
+
+notes: |
+  Nextcloud uses SQLite by default. For production with multiple users, migrate to PostgreSQL or MySQL. This basic recipe does not include Redis or cron for background jobs.

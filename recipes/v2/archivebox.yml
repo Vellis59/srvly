@@ -1,0 +1,75 @@
+metadata:
+  name: "ArchiveBox"
+  description: |
+    ArchiveBox is a self-hosted internet archiving tool that saves copies of websites, bookmarks, and pages for offline access.
+    It supports capturing HTML, PDF, screenshots, WARC, DOM dumps, readable text, git repositories, and media. It can import from bookmarks, RSS, or browser history.
+    It is an essential tool for preserving digital content and building personal web archives.
+  category: automation-iot
+  subcategory: scraping
+  tags: [Archiving, Bookmarks, Web Scraping, Preservation]
+  version: "latest"
+  homepage: https://archivebox.io
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/archivebox.svg
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8097]
+  resources:
+    ram: 1024
+    disk: 10
+
+install:
+  docker:
+    image: ghcr.io/archivebox/archivebox:latest
+    name: archivebox
+    port: "8097:8000"
+    volumes:
+      - /opt/srvly/apps/archivebox/data:/data
+
+agent_install:
+  network: srvly-archivebox
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed archivebox container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Run 'archivebox init' inside the container if this is a fresh install."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 8097
+  path: /
+  expected: [200, 301, 302]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/archivebox/archivebox:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8097
+    description: "Host port for the ArchiveBox web UI"
+
+links:
+  - label: Website
+    url: https://archivebox.io
+  - label: GitHub
+    url: https://github.com/ArchiveBox/ArchiveBox
+  - label: Documentation
+    url: https://github.com/ArchiveBox/ArchiveBox/wiki
+
+notes: |
+  ArchiveBox stores all archived content in the /data volume. The initial init step creates the admin user.

@@ -1,0 +1,83 @@
+metadata:
+  name: "Shlink"
+  description: |
+    Shlink is a self-hosted URL shortening service with a REST API, CLI tool, and web client for creating and managing shortened URLs.
+    It supports custom slugs, tags, QR codes, visit analytics, geolocation, device tracking, and integration with web frameworks.
+    It is a clean alternative to Bitly or TinyURL that gives you full ownership of your shortened link data.
+  category: productivity
+  subcategory: documents
+  tags: [URL Shortener, Links, Analytics, QR Code]
+  version: "latest"
+  homepage: https://shlink.io
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/shlink.svg
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8099]
+  resources:
+    ram: 256
+    disk: 1
+
+install:
+  docker:
+    image: shlinkio/shlink:latest
+    name: shlink
+    port: "8099:8080"
+    volumes:
+      - /opt/srvly/apps/shlink/data:/data
+    env:
+      - key: DEFAULT_DOMAIN
+        value: "$PUBLIC_HOST"
+        description: "Default short domain"
+      - key: IS_HTTPS
+        value: "false"
+        description: "Set to true when behind HTTPS reverse proxy"
+
+agent_install:
+  network: srvly-shlink
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed shlink container before retrying."
+  prerequisites: []
+  app_env:
+    DEFAULT_DOMAIN: "$PUBLIC_HOST"
+    IS_HTTPS: "false"
+  post_install:
+    - "Set DEFAULT_DOMAIN to the final public hostname before deployment."
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8099
+  path: /rest/health
+  expected: [200]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: shlinkio/shlink:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8099
+    description: "Host port for the Shlink web UI"
+
+links:
+  - label: Website
+    url: https://shlink.io
+  - label: GitHub
+    url: https://github.com/shlinkio/shlink
+  - label: Documentation
+    url: https://shlink.io/documentation
+
+notes: |
+  Shlink uses an embedded SQLite database by default. For production, MySQL or PostgreSQL can be configured.

@@ -1,0 +1,74 @@
+metadata:
+  name: "Trilium"
+  description: |
+    Trilium is a self-hosted hierarchical note-taking application with rich text editing, markdown support, and a visual knowledge graph.
+    It supports relations between notes, scripting, encryption, version history, synchronization across devices, and publishing.
+    It is a powerful tool for building a personal knowledge base with structured and interconnected notes.
+  category: productivity
+  subcategory: notes-wiki
+  tags: [Notes, Knowledge Base, Markdown, Hierarchical]
+  version: "latest"
+  homepage: https://triliumnext.github.io/Docs
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/trilium.svg
+  license: AGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8095]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: ghcr.io/triliumnext/notes:latest
+    name: trilium
+    port: "8095:8080"
+    volumes:
+      - /opt/srvly/apps/trilium/data:/home/node/trilium-data
+
+agent_install:
+  network: srvly-trilium
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed trilium container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 8095
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/triliumnext/notes:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8095
+    description: "Host port for the Trilium web UI"
+
+links:
+  - label: Website
+    url: https://triliumnext.github.io/Docs
+  - label: GitHub
+    url: https://github.com/TriliumNext/Notes
+  - label: Documentation
+    url: https://triliumnext.github.io/Docs
+
+notes: |
+  Trilium uses an embedded database stored in the persistent data volume.

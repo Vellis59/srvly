@@ -1,0 +1,103 @@
+metadata:
+  name: "Matomo"
+  description: |
+    Matomo is a powerful self-hosted web analytics platform that gives you full ownership of your data.
+    It provides detailed visitor reports, goal tracking, e-commerce analytics, heatmaps, session recordings, A/B testing, and privacy compliance tools.
+    It is the leading open-source alternative to Google Analytics used by millions of websites worldwide.
+  category: dev-infra
+  subcategory: monitoring
+  tags: [Analytics, Web, Privacy, Statistics]
+  version: "latest"
+  homepage: https://matomo.org
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/matomo.svg
+  license: GPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: true
+    redis: false
+    mongodb: false
+  ports: [8100]
+  resources:
+    ram: 512
+    disk: 5
+
+install:
+  docker:
+    image: matomo:latest
+    name: matomo
+    port: "8100:80"
+    volumes:
+      - /opt/srvly/apps/matomo/config:/var/www/html/config
+    env:
+      - key: MATOMO_DATABASE_HOST
+        value: matomo-mariadb
+        description: "Database host"
+      - key: MATOMO_DATABASE_ADAPTER
+        value: mysql
+        description: "Database adapter"
+      - key: MATOMO_DATABASE_TABLES_PREFIX
+        value: matomo_
+        description: "Tables prefix"
+
+agent_install:
+  network: srvly-matomo
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed matomo or matomo-mariadb containers before retrying."
+  prerequisites:
+    - type: mysql
+      name: matomo-mariadb
+      image: mariadb:11
+      container: matomo-mariadb
+      database: matomo
+      user: matomo
+      password: generate
+      volume: /opt/srvly/apps/matomo/mariadb:/var/lib/mysql
+      port: 3306
+      env:
+        MYSQL_DATABASE: matomo
+        MYSQL_USER: matomo
+        MYSQL_PASSWORD: $GENERATED_PASSWORD
+        MYSQL_ROOT_PASSWORD: $GENERATED_ROOT_PASSWORD
+  app_env:
+    MATOMO_DATABASE_HOST: "matomo-mariadb"
+    MATOMO_DATABASE_ADAPTER: "mysql"
+    MATOMO_DATABASE_TABLES_PREFIX: "matomo_"
+  post_install:
+    - "Create the Docker network before both containers and attach MariaDB and the app to it."
+    - "Start MariaDB first and wait until it accepts connections before starting the app."
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 8100
+  path: /
+  expected: [200, 301, 302]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: matomo:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8100
+    description: "Host port for the Matomo web UI"
+
+links:
+  - label: Website
+    url: https://matomo.org
+  - label: GitHub
+    url: https://github.com/matomo-org/matomo
+  - label: Documentation
+    url: https://matomo.org/docs
+
+notes: |
+  Matomo requires MariaDB/MySQL. Run the installation wizard through the web UI on first access to complete the database setup.
