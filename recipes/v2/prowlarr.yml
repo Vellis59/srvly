@@ -1,0 +1,86 @@
+metadata:
+  name: "Prowlarr"
+  description: |
+    Prowlarr is a torrent and usenet indexer manager that centralizes indexer management for the *arr ecosystem.
+    It integrates with Sonarr, Radarr, Lidarr, Readarr, and other services by syncing indexers automatically.
+    It is a core component of any media automation stack.
+  category: media
+  subcategory: media-management
+  tags: [Indexer, Torrent, Usenet, Media Automation]
+  version: "latest"
+  homepage: https://prowlarr.com
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/prowlarr.svg
+  license: GPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [9696]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: lscr.io/linuxserver/prowlarr:latest
+    name: prowlarr
+    port: "9696:9696"
+    volumes:
+      - /opt/srvly/apps/prowlarr/config:/config
+    env:
+      - key: PUID
+        value: "1000"
+        description: "User ID"
+      - key: PGID
+        value: "1000"
+        description: "Group ID"
+      - key: TZ
+        value: "Europe/Paris"
+        description: "Timezone"
+
+agent_install:
+  network: srvly-prowlarr
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed prowlarr container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 9696
+  path: /
+  expected: [200, 301, 302]
+  timeout: 90
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/prowlarr:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 9696
+    description: "Host port for the Prowlarr web UI"
+
+links:
+  - label: Website
+    url: https://prowlarr.com
+  - label: GitHub
+    url: https://github.com/Prowlarr/Prowlarr
+  - label: Documentation
+    url: https://wiki.servarr.com/prowlarr
+
+notes: |
+  Prowlarr uses SQLite and integrates with Sonarr, Radarr, Lidarr, Readarr, and other *arr services.

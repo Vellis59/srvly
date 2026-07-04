@@ -1,0 +1,88 @@
+metadata:
+  name: "Deluge"
+  description: |
+    Deluge is a lightweight, cross-platform BitTorrent client with a web-based remote interface, full encryption, and plugin support.
+    It supports DHT, PEX, magnet links, RSS, label/tag management, bandwidth scheduling, and remote control via its Web UI, thin client, or API.
+    It is a versatile torrent client well suited for headless server environments.
+  category: media
+  subcategory: media-management
+  tags: [Torrent, Download, P2P, Media]
+  version: "latest"
+  homepage: https://deluge-torrent.org
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/deluge.svg
+  license: GPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8112]
+  resources:
+    ram: 256
+    disk: 5
+
+install:
+  docker:
+    image: lscr.io/linuxserver/deluge:latest
+    name: deluge
+    port: "8112:8112"
+    volumes:
+      - /opt/srvly/apps/deluge/config:/config
+      - /opt/srvly/apps/deluge/downloads:/downloads
+    env:
+      - key: PUID
+        value: "1000"
+        description: "User ID"
+      - key: PGID
+        value: "1000"
+        description: "Group ID"
+      - key: TZ
+        value: "Europe/Paris"
+        description: "Timezone"
+
+agent_install:
+  network: srvly-deluge
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed deluge container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Default web UI password: deluge (change on first login)."
+
+healthcheck:
+  type: http
+  port: 8112
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/deluge:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8112
+    description: "Host port for the Deluge web UI"
+
+links:
+  - label: Website
+    url: https://deluge-torrent.org
+  - label: GitHub
+    url: https://github.com/deluge-torrent/deluge
+  - label: Docker Hub
+    url: https://hub.docker.com/r/linuxserver/deluge
+
+notes: |
+  Default web password is 'deluge'. The Daemon port (58846) is not exposed by default.

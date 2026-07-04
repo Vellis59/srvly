@@ -1,0 +1,87 @@
+metadata:
+  name: "Bazarr"
+  description: |
+    Bazarr is a companion application for Sonarr and Radarr that manages and downloads subtitles based on your media library's needs.
+    It supports multiple subtitle providers, automatic searching, manual download, and languages customization.
+    It is an essential addition to any media automation setup for subtitle management.
+  category: media
+  subcategory: media-management
+  tags: [Subtitles, Media Automation, Sonarr, Radarr]
+  version: "latest"
+  homepage: https://www.bazarr.media
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/bazarr.svg
+  license: GPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [6767]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: lscr.io/linuxserver/bazarr:latest
+    name: bazarr
+    port: "6767:6767"
+    volumes:
+      - /opt/srvly/apps/bazarr/config:/config
+      - /opt/srvly/apps/bazarr/media:/media
+    env:
+      - key: PUID
+        value: "1000"
+        description: "User ID"
+      - key: PGID
+        value: "1000"
+        description: "Group ID"
+      - key: TZ
+        value: "Europe/Paris"
+        description: "Timezone"
+
+agent_install:
+  network: srvly-bazarr
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed bazarr container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 6767
+  path: /
+  expected: [200, 301, 302]
+  timeout: 90
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/bazarr:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 6767
+    description: "Host port for the Bazarr web UI"
+
+links:
+  - label: Website
+    url: https://www.bazarr.media
+  - label: GitHub
+    url: https://github.com/morpheus65535/bazarr
+  - label: Documentation
+    url: https://wiki.bazarr.media
+
+notes: |
+  Bazarr requires Sonarr and/or Radarr to function. Point it to your existing *arr instances during setup.

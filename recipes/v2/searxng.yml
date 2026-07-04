@@ -1,0 +1,80 @@
+metadata:
+  name: "SearXNG"
+  description: |
+    SearXNG is a free, self-hosted metasearch engine that aggregates results from over 70 search services without tracking or profiling users.
+    It supports privacy-preserving web, image, video, news, file, and map searches with custom categories, themes, and API access.
+    It is the gold standard for privacy-focused self-hosted search.
+  category: communication
+  subcategory: chat
+  tags: [Search, Privacy, Metasearch, Aggregator]
+  version: "latest"
+  homepage: https://docs.searxng.org
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/searxng.svg
+  license: AGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8888]
+  resources:
+    ram: 512
+    disk: 2
+
+install:
+  docker:
+    image: searxng/searxng:latest
+    name: searxng
+    port: "8888:8080"
+    volumes:
+      - /opt/srvly/apps/searxng/etc:/etc/searxng
+    env:
+      - key: SEARXNG_BASE_URL
+        value: "$PUBLIC_BASE_URL"
+        description: "Public URL of the SearXNG instance"
+
+agent_install:
+  network: srvly-searxng
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed searxng container before retrying."
+  prerequisites: []
+  app_env:
+    SEARXNG_BASE_URL: "$PUBLIC_BASE_URL"
+  post_install:
+    - "Set SEARXNG_BASE_URL to the final public URL before deployment."
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Fetch the rendered HTML and verify that asset URLs are relative or point to the public URL, not localhost."
+
+healthcheck:
+  type: http
+  port: 8888
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: searxng/searxng:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8888
+    description: "Host port for the SearXNG web UI"
+
+links:
+  - label: Website
+    url: https://docs.searxng.org
+  - label: GitHub
+    url: https://github.com/searxng/searxng
+  - label: Documentation
+    url: https://docs.searxng.org
+
+notes: |
+  SearXNG stores settings in /etc/searxng/settings.yml inside the container.

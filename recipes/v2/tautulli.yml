@@ -1,0 +1,86 @@
+metadata:
+  name: "Tautulli"
+  description: |
+    Tautulli is a monitoring and analytics dashboard for Plex and Jellyfin media servers.
+    It tracks stream activity, user watch history, library statistics, server performance, and provides rich notifications and graphs.
+    It is the go-to companion for understanding who watches what on your media server.
+  category: dev-infra
+  subcategory: monitoring
+  tags: [Monitoring, Plex, Jellyfin, Analytics, Media]
+  version: "latest"
+  homepage: https://tautulli.com
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/tautulli.svg
+  license: GPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8181]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: lscr.io/linuxserver/tautulli:latest
+    name: tautulli
+    port: "8181:8181"
+    volumes:
+      - /opt/srvly/apps/tautulli/config:/config
+    env:
+      - key: PUID
+        value: "1000"
+        description: "User ID"
+      - key: PGID
+        value: "1000"
+        description: "Group ID"
+      - key: TZ
+        value: "Europe/Paris"
+        description: "Timezone"
+
+agent_install:
+  network: srvly-tautulli
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed tautulli container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8181
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/tautulli:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8181
+    description: "Host port for the Tautulli web UI"
+
+links:
+  - label: Website
+    url: https://tautulli.com
+  - label: GitHub
+    url: https://github.com/Tautulli/Tautulli
+  - label: Documentation
+    url: https://github.com/Tautulli/Tautulli/wiki
+
+notes: |
+  Tautulli requires a Plex or Jellyfin server. Configure the connection during the initial setup wizard.
