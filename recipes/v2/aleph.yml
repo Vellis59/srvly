@@ -1,0 +1,61 @@
+metadata:
+  name: "Aleph"
+  description: |
+    Search engine and document analysis platform. Index documents, entities, and connections. Features full-text search, entity extraction, and graph visualization.
+  category: dev-infra
+  subcategory: database
+  tags: [Search, Documents, Analysis]
+  version: "latest"
+  homepage: https://aleph.occrp.org/
+  icon: https://www.google.com/s2/favicons?domain=aleph.occrp.org&sz=64
+  license: AGPL-3.0
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8080]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: ghcr.io/alephdata/aleph:latest
+    name: aleph
+    port: "8080:8080"
+    volumes:
+      - /opt/srvly/apps/aleph/data:/data
+    env: []
+agent_install:
+  network: srvly-aleph
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed aleph container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 8080
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/alephdata/aleph:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8080
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://aleph.occrp.org/
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.

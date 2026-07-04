@@ -1,0 +1,61 @@
+metadata:
+  name: "Algernon"
+  description: |
+    Small pure-Go web server with Lua, Markdown, HTTP/2, QUIC, Redis, and PostgreSQL support. Fast and lightweight with automatic TLS.
+  category: dev-infra
+  subcategory: reverse-proxy
+  tags: [Web Server, Go, HTTP]
+  version: "latest"
+  homepage: https://algernon.roboticoverlords.org/
+  icon: https://www.google.com/s2/favicons?domain=algernon.roboticoverlords.org&sz=64
+  license: BSD-3-Clause
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8080]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: ghcr.io/xyproto/algernon:latest
+    name: algernon
+    port: "8080:8080"
+    volumes:
+      - /opt/srvly/apps/algernon/data:/data
+    env: []
+agent_install:
+  network: srvly-algernon
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed algernon container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 8080
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/xyproto/algernon:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8080
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://algernon.roboticoverlords.org/
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.

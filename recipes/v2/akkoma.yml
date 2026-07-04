@@ -1,0 +1,61 @@
+metadata:
+  name: "Akkoma"
+  description: |
+    Federated microblogging server compatible with Mastodon and ActivityPub. Fork of Pleroma with faster development pace and community features.
+  category: communication
+  subcategory: social
+  tags: [Social, Fediverse, Mastodon]
+  version: "latest"
+  homepage: https://akkoma.social/
+  icon: https://www.google.com/s2/favicons?domain=akkoma.social&sz=64
+  license: AGPL-3.0
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [4000]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: akkoma/akkoma:latest
+    name: akkoma
+    port: "4000:4000"
+    volumes:
+      - /opt/srvly/apps/akkoma/data:/data
+    env: []
+agent_install:
+  network: srvly-akkoma
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed akkoma container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 4000
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: akkoma/akkoma:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 4000
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://akkoma.social/
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.

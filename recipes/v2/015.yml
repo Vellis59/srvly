@@ -1,0 +1,61 @@
+metadata:
+  name: "015"
+  description: |
+    Self-hosted temporary file sharing platform for one-time file and text upload, processing, and sharing with queue processing.
+  category: storage-backup
+  subcategory: file-sharing
+  tags: [Sharing, Files, Temporary]
+  version: "latest"
+  homepage: https://send.fudaoyuan.icu
+  icon: https://www.google.com/s2/favicons?domain=send.fudaoyuan.icu&sz=64
+  license: AGPL-3.0
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [80]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: ghcr.io/keven1024/015:latest
+    name: 015
+    port: "80:80"
+    volumes:
+      - /opt/srvly/apps/015/data:/data
+    env: []
+agent_install:
+  network: srvly-015
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed 015 container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 80
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/keven1024/015:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 80
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://send.fudaoyuan.icu
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.

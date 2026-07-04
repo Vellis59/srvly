@@ -1,0 +1,61 @@
+metadata:
+  name: "Answer"
+  description: |
+    Q&A platform for teams and communities. Build knowledge bases with tagging, search, reputation systems, and gamification.
+  category: communication
+  subcategory: forums
+  tags: [Q&A, Forum, Knowledge]
+  version: "latest"
+  homepage: https://answer.apache.org
+  icon: https://www.google.com/s2/favicons?domain=answer.apache.org&sz=64
+  license: Apache-2.0
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [9080]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: ghcr.io/answerdev/answer:latest
+    name: answer
+    port: "9080:9080"
+    volumes:
+      - /opt/srvly/apps/answer/data:/data
+    env: []
+agent_install:
+  network: srvly-answer
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed answer container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 9080
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/answerdev/answer:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 9080
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://answer.apache.org
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.

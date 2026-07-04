@@ -1,0 +1,61 @@
+metadata:
+  name: "AnythingLLM"
+  description: |
+    All-in-one AI application with built-in RAG, AI agents, no-code agent builder, and MCP compatibility. Supports multiple LLM providers. 60k+ stars.
+  category: ai-llm
+  subcategory: chat-assistant
+  tags: [AI, LLM, RAG, Agents]
+  version: "latest"
+  homepage: https://anythingllm.com/
+  icon: https://www.google.com/s2/favicons?domain=anythingllm.com&sz=64
+  license: MIT
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3001]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: ghcr.io/mintplex-labs/anything-llm:latest
+    name: anythingllm
+    port: "3001:3001"
+    volumes:
+      - /opt/srvly/apps/anythingllm/data:/data
+    env: []
+agent_install:
+  network: srvly-anythingllm
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed anythingllm container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 3001
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/mintplex-labs/anything-llm:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3001
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://anythingllm.com/
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.

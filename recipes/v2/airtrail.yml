@@ -1,0 +1,61 @@
+metadata:
+  name: "AirTrail"
+  description: |
+    Modern flight tracking system. Map flights on an interactive globe, analyze travel patterns, and own your data. Supports importing from multiple services.
+  category: productivity
+  subcategory: finance
+  tags: [Travel, Flights, Tracking]
+  version: "latest"
+  homepage: https://airtrail.johan.ohly.dk
+  icon: https://www.google.com/s2/favicons?domain=airtrail.johan.ohly.dk&sz=64
+  license: GPL-3.0
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3000]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: johly/airtrail:latest
+    name: airtrail
+    port: "3000:3000"
+    volumes:
+      - /opt/srvly/apps/airtrail/data:/data
+    env: []
+agent_install:
+  network: srvly-airtrail
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed airtrail container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 3000
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: johly/airtrail:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3000
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://airtrail.johan.ohly.dk
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.

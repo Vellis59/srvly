@@ -1,0 +1,61 @@
+metadata:
+  name: "Accent"
+  description: |
+    Developer-oriented translation tool. Manage project translations, sync with Git, and collaborate with translators. Supports multiple languages and formats.
+  category: dev-infra
+  subcategory: api-backend
+  tags: [Translation, i18n, Localization]
+  version: "latest"
+  homepage: https://www.accent.reviews/
+  icon: https://www.google.com/s2/favicons?domain=www.accent.reviews&sz=64
+  license: BSD-3-Clause
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [4000]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: mirego/accent:latest
+    name: accent
+    port: "4000:4000"
+    volumes:
+      - /opt/srvly/apps/accent/data:/data
+    env: []
+agent_install:
+  network: srvly-accent
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed accent container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 4000
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: mirego/accent:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 4000
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://www.accent.reviews/
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.
