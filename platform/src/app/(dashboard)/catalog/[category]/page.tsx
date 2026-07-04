@@ -17,6 +17,16 @@ function getColor(id: string): string {
   return COLORS[Math.abs(hash) % COLORS.length];
 }
 
+function shortDescription(description: string, maxLength = 140): string {
+  if (description.length <= maxLength) return description;
+
+  const boundary = description.lastIndexOf(".", maxLength);
+  if (boundary >= 60) return `${description.slice(0, boundary + 1)} …`;
+
+  const wordBoundary = description.lastIndexOf(" ", maxLength);
+  return `${description.slice(0, wordBoundary > 60 ? wordBoundary : maxLength).trim()} …`;
+}
+
 function AppCard({ app }: { app: { id: string; name: string; description?: string | null; icon?: string | null } }) {
   const [imageError, setImageError] = useState(false);
   const initial = (app.name || app.id).charAt(0).toUpperCase();
@@ -45,8 +55,8 @@ function AppCard({ app }: { app: { id: string; name: string; description?: strin
           {app.name}
         </h3>
         {app.description && (
-          <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">
-            {app.description}
+          <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed line-clamp-3">
+            {shortDescription(app.description)}
           </p>
         )}
       </div>

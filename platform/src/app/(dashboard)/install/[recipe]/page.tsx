@@ -148,7 +148,7 @@ export default function InstallPage() {
           ← Back to catalog
         </button>
         <h1 className="text-2xl font-bold text-zinc-100">{recipe.name}</h1>
-        <p className="text-sm text-zinc-500 mt-1">{recipe.description?.slice(0, 200)}</p>
+        <p className="text-sm text-zinc-500 mt-1 leading-relaxed">{recipe.description}</p>
       </div>
 
       {/* Form */}
