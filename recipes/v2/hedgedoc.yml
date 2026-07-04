@@ -1,0 +1,87 @@
+metadata:
+  name: "HedgeDoc"
+  description: |
+    HedgeDoc is a real-time collaborative markdown editor where multiple users can write and edit documents together.
+    It supports diagrams, slide mode, version history, roles, permissions, and integrates with various storage backends.
+    It is a popular open-source alternative to HackMD or Notion for collaborative documentation.
+  category: productivity
+  subcategory: notes-wiki
+  tags: [Markdown, Collaboration, Editor, Real-Time]
+  version: "latest"
+  homepage: https://hedgedoc.org
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/hedgedoc.svg
+  license: AGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8057]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: lscr.io/linuxserver/hedgedoc:latest
+    name: hedgedoc
+    port: "8057:80"
+    volumes:
+      - /opt/srvly/apps/hedgedoc/config:/config
+    env:
+      - key: PUID
+        value: "1000"
+      - key: PGID
+        value: "1000"
+      - key: TZ
+        value: "Europe/Paris"
+      - key: CMD_DOMAIN
+        value: "$PUBLIC_HOST"
+      - key: CMD_PROTOCOL_USESSL
+        value: "false"
+
+agent_install:
+  network: srvly-hedgedoc
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed hedgedoc container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+    CMD_DOMAIN: "$PUBLIC_HOST"
+    CMD_PROTOCOL_USESSL: "false"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8057
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/hedgedoc:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8057
+    description: "Host port"
+links:
+  - label: Website
+    url: https://hedgedoc.org
+  - label: GitHub
+    url: https://github.com/hedgedoc/hedgedoc
+  - label: Documentation
+    url: https://docs.hedgedoc.org
+notes: |
+  HedgeDoc uses SQLite by default. For production with multiple users, configure PostgreSQL.

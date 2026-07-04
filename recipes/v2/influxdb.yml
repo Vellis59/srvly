@@ -1,0 +1,87 @@
+metadata:
+  name: "InfluxDB"
+  description: |
+    InfluxDB is a high-performance time-series database designed for monitoring, metrics, IoT, and real-time analytics workloads.
+    It supports SQL-like queries, continuous queries, retention policies, downsampling, and seamless integration with Grafana and Telegraf.
+    It is the leading open-source time-series database for DevOps monitoring and IoT data.
+  category: dev-infra
+  subcategory: database
+  tags: [Database, Time-Series, Monitoring, Metrics]
+  version: "latest"
+  homepage: https://www.influxdata.com
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/influxdb.svg
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8093]
+  resources:
+    ram: 512
+    disk: 5
+
+install:
+  docker:
+    image: influxdb:latest
+    name: influxdb
+    port: "8093:8086"
+    volumes:
+      - /opt/srvly/apps/influxdb/data:/var/lib/influxdb2
+    env:
+      - key: DOCKER_INFLUXDB_INIT_MODE
+        value: setup
+      - key: DOCKER_INFLUXDB_INIT_USERNAME
+        value: admin
+      - key: DOCKER_INFLUXDB_INIT_PASSWORD
+        value: "***"
+      - key: DOCKER_INFLUXDB_INIT_ORG
+        value: homelab
+      - key: DOCKER_INFLUXDB_INIT_BUCKET
+        value: default
+
+agent_install:
+  network: srvly-influxdb
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed influxdb container before retrying."
+  prerequisites: []
+  app_env:
+    DOCKER_INFLUXDB_INIT_MODE: "setup"
+    DOCKER_INFLUXDB_INIT_USERNAME: "admin"
+    DOCKER_INFLUXDB_INIT_PASSWORD: "***"
+    DOCKER_INFLUXDB_INIT_ORG: "homelab"
+    DOCKER_INFLUXDB_INIT_BUCKET: "default"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8093
+  path: /health
+  expected: [200]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: influxdb:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8093
+    description: "Host port"
+links:
+  - label: Website
+    url: https://www.influxdata.com
+  - label: GitHub
+    url: https://github.com/influxdata/influxdb
+  - label: Documentation
+    url: https://docs.influxdata.com
+notes: |
+  InfluxDB v2 API is compatible with the Flux query language. The HTTP API is on port 8093.

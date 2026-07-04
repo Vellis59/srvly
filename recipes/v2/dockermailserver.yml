@@ -1,0 +1,82 @@
+metadata:
+  name: "Docker Mailserver"
+  description: |
+    Docker Mailserver is a full-featured email server stack running in Docker containers, supporting SMTP, IMAP, POP3, LDAP, antivirus, and spam filtering.
+    It includes Postfix, Dovecot, SpamAssassin, ClamAV, OpenDKIM, Fetchmail, and Certbot with automated Let's Encrypt SSL certificates.
+    It is the most popular self-hosted mail server solution for Docker environments.
+  category: communication
+  subcategory: email
+  tags: [Email, SMTP, IMAP, Mail Server]
+  version: "latest"
+  homepage: https://docker-mailserver.github.io
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/docker-mailserver.svg
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [25]
+  resources:
+    ram: 1024
+    disk: 10
+
+install:
+  docker:
+    image: ghcr.io/docker-mailserver/docker-mailserver:latest
+    name: mailserver
+    port: "25:25"
+    volumes:
+      - /opt/srvly/apps/mailserver/data:/var/mail
+      - /opt/srvly/apps/mailserver/config:/tmp/docker-mailserver
+    env:
+      - key: OVERRIDE_HOSTNAME
+        value: "$PUBLIC_HOST"
+      - key: SSL_TYPE
+        value: manual
+
+agent_install:
+  network: srvly-mailserver
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed mailserver container before retrying."
+  prerequisites: []
+  app_env:
+    OVERRIDE_HOSTNAME: "$PUBLIC_HOST"
+    SSL_TYPE: "manual"
+  post_install:
+    - "Configure mail accounts through the setup.sh script in the container."
+    - "Set up DNS MX, SPF, DKIM, and DMARC records for the mail domain."
+
+healthcheck:
+  type: http
+  port: 0
+  path: /
+  expected: [200]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/docker-mailserver/docker-mailserver:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: SMTP port
+    default: 25
+    description: "SMTP port"
+
+links:
+  - label: Website
+    url: https://docker-mailserver.github.io
+  - label: GitHub
+    url: https://github.com/docker-mailserver/docker-mailserver
+  - label: Documentation
+    url: https://docker-mailserver.github.io
+
+notes: |
+  Docker Mailserver requires proper DNS configuration (MX, SPF, DKIM, DMARC) and port 25 availability from your ISP.

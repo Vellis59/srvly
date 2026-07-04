@@ -1,0 +1,72 @@
+metadata:
+  name: "Kanboard"
+  description: |
+    Kanboard is a minimalist kanban project management software that helps teams visualize workflow and manage tasks efficiently.
+    It supports boards, columns, swimlanes, tasks, subtasks, time tracking, analytics, user roles, LDAP auth, webhooks, and automatic actions.
+    It is a lightweight, fast alternative to Trello or Wekan with no external dependencies.
+  category: productivity
+  subcategory: project-management
+  tags: [Kanban, Project Management, Tasks, Agile]
+  version: "latest"
+  homepage: https://kanboard.org
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/kanboard.svg
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8068]
+  resources:
+    ram: 256
+    disk: 1
+
+install:
+  docker:
+    image: ghcr.io/kanboard/kanboard:latest
+    name: kanboard
+    port: "8068:80"
+    volumes:
+      - /opt/srvly/apps/kanboard/data:/var/www/app/data
+      - /opt/srvly/apps/kanboard/plugins:/var/www/app/plugins
+
+agent_install:
+  network: srvly-kanboard
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed kanboard container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8068
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/kanboard/kanboard:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8068
+    description: "Host port"
+links:
+  - label: Website
+    url: https://kanboard.org
+  - label: GitHub
+    url: https://github.com/kanboard/kanboard
+  - label: Documentation
+    url: https://docs.kanboard.org
+notes: |
+  Kanboard uses SQLite by default. For production, configure MySQL or PostgreSQL.

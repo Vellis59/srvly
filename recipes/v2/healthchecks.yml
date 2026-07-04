@@ -1,0 +1,87 @@
+metadata:
+  name: "Healthchecks"
+  description: |
+    Healthchecks is a cron job monitoring service that listens for HTTP pings from scheduled tasks and sends alerts when they are late or missing.
+    It supports email, webhook, Slack, Pushover, Telegram, and many other notification channels with scheduled downtimes and status pages.
+    It is an essential monitoring tool for cron jobs, backups, and any recurring scheduled task.
+  category: dev-infra
+  subcategory: monitoring
+  tags: [Monitoring, Cron, Healthcheck, Alerts]
+  version: "latest"
+  homepage: https://healthchecks.io
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/healthchecks.svg
+  license: BSD-3-Clause
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8054]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: lscr.io/linuxserver/healthchecks:latest
+    name: healthchecks
+    port: "8054:80"
+    volumes:
+      - /opt/srvly/apps/healthchecks/config:/config
+    env:
+      - key: PUID
+        value: "1000"
+      - key: PGID
+        value: "1000"
+      - key: TZ
+        value: "Europe/Paris"
+      - key: SITE_ROOT
+        value: "$PUBLIC_BASE_URL"
+      - key: SECRET_KEY
+        value: "***"
+
+agent_install:
+  network: srvly-healthchecks
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed healthchecks container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+    SITE_ROOT: "$PUBLIC_BASE_URL"
+    SECRET_KEY: "***"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 8054
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/healthchecks:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8054
+    description: "Host port"
+links:
+  - label: Website
+    url: https://healthchecks.io
+  - label: GitHub
+    url: https://github.com/healthchecks/healthchecks
+  - label: Documentation
+    url: https://healthchecks.io/docs
+notes: |
+  Healthchecks uses SQLite by default. For production, configure PostgreSQL.

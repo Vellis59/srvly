@@ -1,0 +1,70 @@
+metadata:
+  name: "Huginn"
+  description: |
+    Huginn is a system for building agents that perform automated tasks online, such as monitoring websites, fetching emails, scraping data, and posting notifications.
+    It provides a visual event-driven workflow builder with hundreds of predefined agent types for web scraping, data processing, and API integrations.
+    It is a powerful automation engine for personal and infrastructure workflows.
+  category: automation-iot
+  subcategory: workflows
+  tags: [Automation, Agents, Workflows, Scraping]
+  version: "latest"
+  homepage: https://github.com/huginn/huginn
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/huginn.svg
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: true
+    redis: true
+    mongodb: false
+  ports: [3010]
+  resources:
+    ram: 1024
+    disk: 5
+
+install:
+  docker:
+    image: ghcr.io/huginn/huginn:latest
+    name: huginn
+    port: "3010:3000"
+    volumes:
+      - /opt/srvly/apps/huginn/data:/var/lib/mysql
+
+agent_install:
+  network: srvly-huginn
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed huginn container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+    - "Complete initial setup through the web UI."
+
+healthcheck:
+  type: http
+  port: 3010
+  path: /
+  expected: [200, 301, 302]
+  timeout: 120
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/huginn/huginn:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3010
+    description: "Host port"
+links:
+  - label: GitHub
+    url: https://github.com/huginn/huginn
+  - label: Documentation
+    url: https://github.com/huginn/huginn/wiki
+notes: |
+  Huginn requires MySQL/MariaDB and Redis for event processing queues.

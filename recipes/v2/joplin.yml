@@ -1,0 +1,81 @@
+metadata:
+  name: "Joplin"
+  description: |
+    Joplin is a privacy-focused note-taking and to-do application with synchronization across devices via Nextcloud, Dropbox, or webdav.
+    It supports markdown editing, notebooks, tags, checklists, web clipper, search, and end-to-end encryption.
+    It is a leading open-source alternative to Evernote and OneNote for personal knowledge management.
+  category: productivity
+  subcategory: notes-wiki
+  tags: [Notes, To-Do, Markdown, Synchronization]
+  version: "latest"
+  homepage: https://joplinapp.org
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/joplin.svg
+  license: AGPL-3.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [22300]
+  resources:
+    ram: 256
+    disk: 2
+
+install:
+  docker:
+    image: lscr.io/linuxserver/joplin:latest
+    name: joplin
+    port: "22300:22300"
+    volumes:
+      - /opt/srvly/apps/joplin/config:/config
+    env:
+      - key: PUID
+        value: "1000"
+      - key: PGID
+        value: "1000"
+      - key: TZ
+        value: "Europe/Paris"
+
+agent_install:
+  network: srvly-joplin
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed joplin container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 22300
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/joplin:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 22300
+    description: "Host port"
+links:
+  - label: Website
+    url: https://joplinapp.org
+  - label: GitHub
+    url: https://github.com/laurent22/joplin
+  - label: Documentation
+    url: https://joplinapp.org/help
+notes: |
+  Joplin server provides synchronization for the desktop and mobile Joplin apps.

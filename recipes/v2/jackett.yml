@@ -1,0 +1,79 @@
+metadata:
+  name: "Jackett"
+  description: |
+    Jackett is a proxy server that translates queries from Sonarr, Radarr, Lidarr, and other *arr apps into tracker-site-specific HTTP queries.
+    It supports hundreds of public and private torrent indexers and provides a unified API for media automation stacks.
+    It is an essential component of the *arr ecosystem for accessing torrent indexers.
+  category: media
+  subcategory: media-management
+  tags: [Torrent, Indexer, Proxy, Media]
+  version: "latest"
+  homepage: https://github.com/Jackett/Jackett
+  icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jackett.svg
+  license: GPL-2.0
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [9117]
+  resources:
+    ram: 256
+    disk: 1
+
+install:
+  docker:
+    image: lscr.io/linuxserver/jackett:latest
+    name: jackett
+    port: "9117:9117"
+    volumes:
+      - /opt/srvly/apps/jackett/config:/config
+    env:
+      - key: PUID
+        value: "1000"
+      - key: PGID
+        value: "1000"
+      - key: TZ
+        value: "Europe/Paris"
+
+agent_install:
+  network: srvly-jackett
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed jackett container before retrying."
+  prerequisites: []
+  app_env:
+    PUID: "1000"
+    PGID: "1000"
+    TZ: "Europe/Paris"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 9117
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: lscr.io/linuxserver/jackett:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 9117
+    description: "Host port"
+links:
+  - label: GitHub
+    url: https://github.com/Jackett/Jackett
+  - label: Documentation
+    url: https://github.com/Jackett/Jackett#readme
+notes: |
+  Jackett integrates with Sonarr, Radarr, and other *arr apps. Add indexers through the web UI.
