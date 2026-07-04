@@ -1,0 +1,61 @@
+metadata:
+  name: "InvenTree"
+  description: |
+    Open-source inventory management system. Track parts, stock, suppliers, and manufacturers with barcode scanning and order management.
+  category: productivity
+  subcategory: crm-erp
+  tags: [Inventory, Stock, Management]
+  version: "latest"
+  homepage: https://inventree.org/
+  icon: https://www.google.com/s2/favicons?domain=inventree.org&sz=64
+  license: MIT
+  verified: false
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [8000]
+  resources:
+    ram: 256
+    disk: 1
+install:
+  docker:
+    image: ghcr.io/inventree/inventree:latest
+    name: inventree
+    port: "8000:8000"
+    volumes:
+      - /opt/srvly/apps/inventree/data:/data
+    env: []
+agent_install:
+  network: srvly-inventree
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed inventree container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+healthcheck:
+  type: http
+  port: 8000
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/inventree/inventree:latest
+    description: "Docker image to deploy"
+  port:
+    type: integer
+    title: HTTP port
+    default: 8000
+    description: "Host port for the web UI"
+links:
+  - label: Website
+    url: https://inventree.org/
+notes: |
+  Auto-generated recipe. Verify ports and volumes before production use.
