@@ -857,13 +857,77 @@ export const installRouter = router({
         .where(and(eq(installations.id, input.id), eq(servers.userId, ctx.user.id!)));
       if (!row) throw new TRPCError({ code: "NOT_FOUND" });
 
-      // Kill Docker containers via SSH
-      const r = await ctx.db.select().from(recipes).where(eq(recipes.id, row.installation.recipeId)).then(r => r[0]);
-      const container = (r?.recipe as any)?.install?.[0]?.docker?.name || "app";
-      await executeOnServer(row.server.id, `docker rm -f ${container} 2>/dev/null; docker rm -f ${container}-mysql 2>/dev/null; echo "REMOVED"`, 15).catch(() => {});
+      const params = (row.installation.params as any) || {};
+      const container = params.containerName || params.name || row.installation.recipeId || "app";
+      const domain = params.domain || null;
+      const safeName = row.installation.recipeId || container;
+      const networkName = `srvly-${safeName.replace(/[^a-zA-Z0-9_.-]/g, "-")}`;
 
+      // Build comprehensive cleanup script
+      const script = [
+        `echo ">>> Stopping & removing container ${container}..."`,
+        `docker stop ${container} 2>/dev/null || true`,
+        `docker rm -f ${container} 2>/dev/null || true`,
+        `docker rm -f ${safeName}-mysql 2>/dev/null || true`,
+        ``,
+        `echo ">>> Removing Docker network ${networkName}..."`,
+        `docker network rm ${networkName} 2>/dev/null || true`,
+        ``,
+        `echo ">>> Cleaning up data directories..."`,
+        `rm -rf "/opt/srvly/${container}" 2>/dev/null || true`,
+        `rm -f "/tmp/srvly-${container}.env" 2>/dev/null || true`,
+        ``,
+        // Remove reverse proxy config if domain is set
+        domain ? [
+          `echo ">>> Removing proxy config for ${domain}..."`,
+          // Caddy — remove block from any Caddyfile
+          `for CFG in /opt/srvly/infra/Caddyfile /etc/caddy/Caddyfile; do`,
+          `  if [ -f "$CFG" ]; then`,
+          `    sed -i "/^${domain} {/,/^}/d" "$CFG" 2>/dev/null || true`,
+          `  fi`,
+          `done`,
+          // nginx — remove config file
+          `rm -f "/etc/nginx/sites-enabled/${domain}.conf" 2>/dev/null || true`,
+          ``,
+          // Reload whichever proxy is active
+          `echo ">>> Reloading reverse proxy..."`,
+          `if command -v caddy &>/dev/null && docker ps -q --filter name=caddy 2>/dev/null | grep -q .; then`,
+          `  docker exec $(docker ps -q --filter name=caddy) caddy reload --config /etc/caddy/Caddyfile 2>/dev/null || true`,
+          `elif command -v caddy &>/dev/null; then`,
+          `  caddy reload 2>/dev/null || systemctl reload caddy 2>/dev/null || true`,
+          `elif command -v nginx &>/dev/null; then`,
+          `  nginx -t 2>/dev/null && systemctl reload nginx 2>/dev/null || true`,
+          `fi`,
+        ].join("\n") : null,
+        ``,
+        `echo "CLEANUP_DONE"`,
+      ]
+        .filter(Boolean)
+        .join("\n");
+
+      await executeOnServer(row.server.id, script, 30).catch(() => {});
+
+      // Delete associated domain records from DB
+      if (domain) {
+        await ctx.db
+          .delete(domains)
+          .where(and(eq(domains.name, domain), eq(domains.serverId, row.server.id)))
+          .catch(() => {});
+      }
+      // Also try by targetApp matching container or recipeId
+      await ctx.db
+        .delete(domains)
+        .where(
+          and(
+            eq(domains.serverId, row.server.id),
+            eq(domains.targetApp, container),
+          ),
+        )
+        .catch(() => {});
+
+      // Delete installation record
       await ctx.db.delete(installations).where(eq(installations.id, input.id));
-      return { success: true };
+      return { success: true, message: `${container} uninstalled and cleaned up` };
     }),
 
   // ── Agent API ──────────────────────────────────────────────
