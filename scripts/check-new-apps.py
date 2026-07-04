@@ -24,7 +24,9 @@ skip = {'dragonfly-db','emqx','enshrouded','fivem','flatnotes-totp','frappe-hr',
         'grafana-loki','grafana-tempo','grafana-mimir','hadoop','n8n',
         'cloudflare-ddns','cloudflared','colanode','couchdb','datalens','discord-tickets',
         'dokploy-prom-monitoring-extension','go-whatsapp-web-multidevice','instantdb','kaneo','kestra',
-        'ipfs','java','conduit','conduwuit','booklore','gitingest'}
+        'ipfs','java','conduit','conduwuit','booklore','gitingest',
+        'hoarder','i18nblog','ihatemoney','inngest','kokoroweb','komarimonitor',
+        'letterfeed','maybe','mediacms','mediafetch'}
 
 found = []
 for a in new:
