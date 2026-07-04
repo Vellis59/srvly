@@ -116,6 +116,8 @@ export default function InstallPage() {
     fullPrompt += "## srvly API context\n";
     fullPrompt += `Base URL: ${baseUrl}\n`;
     fullPrompt += "Authentication: send the srvly API token as a Bearer token on every agent API request.\n";
+    fullPrompt += "Use `/api/dispatch` for pre-install host commands such as Docker network creation or prerequisite database/cache containers.\n";
+    fullPrompt += "Use `/api/agent/docker/deploy` for the final application container.\n";
     fullPrompt += `Server ID: ${selectedServer}\n\n`;
 
     fullPrompt += "## Recipe install plan\n";
@@ -138,7 +140,8 @@ export default function InstallPage() {
     if (prerequisites.length === 0) {
       fullPrompt += "No external database/cache prerequisite is required for this app.\n\n";
     } else {
-      fullPrompt += "Create these prerequisites before the app container. Use `/api/dispatch` to create networks and prerequisite containers.\n";
+      fullPrompt += "Create these prerequisites before the app container. Use `POST /api/dispatch` with `{ serverId, script, timeout }` to create networks and prerequisite containers.\n";
+      fullPrompt += "Do not use `/api/agent/install/exec` for pre-install prerequisites: it requires an existing installationId.\n";
       fullPrompt += "Generate every value marked `generate` yourself at runtime and reuse it in the app env mapping.\n";
       fullPrompt += `\`\`\`json\n${renderJson(prerequisites)}\n\`\`\`\n\n`;
     }
