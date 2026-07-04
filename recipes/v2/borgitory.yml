@@ -1,0 +1,70 @@
+metadata:
+  name: "Borgitory"
+  description: |
+    Borgitory is a self-hosted backup server with a web interface for managing Borg backup repositories.
+    It provides a user-friendly dashboard for monitoring backup status, managing repositories, and restoring files.
+    It simplifies the management of Borg-based backup systems with a clean web UI.
+  category: storage-backup
+  subcategory: backup
+  tags: [Backup, Borg, Storage, Archiving]
+  version: "latest"
+  homepage: https://borgitory.app
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=B
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [5500]
+  resources:
+    ram: 256
+    disk: 10
+
+install:
+  docker:
+    image: mlapaglia/borgitory:latest
+    name: borgitory
+    port: "5500:5500"
+    volumes:
+      - /opt/srvly/apps/borgitory/repos:/repos
+      - /opt/srvly/apps/borgitory/config:/config
+
+agent_install:
+  network: srvly-borgitory
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed borgitory container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 5500
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: mlapaglia/borgitory:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 5500
+    description: "Host port"
+links:
+  - label: GitHub
+    url: https://github.com/mlapaglia/borgitory
+  - label: Documentation
+    url: https://github.com/mlapaglia/borgitory#readme
+notes: |
+  Borgitory manages Borg backup repositories. Mount existing repositories or create new ones through the web UI.

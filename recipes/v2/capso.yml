@@ -1,0 +1,71 @@
+metadata:
+  name: "Cap.so"
+  description: |
+    Cap.so is a self-hosted screen recording and screen capture tool with instant sharing capabilities.
+    It provides browser-based recording with annotations, GIF creation, and shareable links for captured content.
+    It is a practical alternative to Loom or CloudApp for teams that want self-hosted video messaging.
+  category: productivity
+  subcategory: documents
+  tags: [Screen Recording, Video, Capture, Sharing]
+  version: "latest"
+  homepage: https://cap.so
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=C
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3072]
+  resources:
+    ram: 512
+    disk: 2
+
+install:
+  docker:
+    image: ghcr.io/capsoftware/cap-web:latest
+    name: capso
+    port: "3072:3000"
+    volumes:
+      - /opt/srvly/apps/capso/data:/data
+
+agent_install:
+  network: srvly-capso
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed capso container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 3072
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/capsoftware/cap-web:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3072
+    description: "Host port"
+links:
+  - label: Website
+    url: https://cap.so
+  - label: GitHub
+    url: https://github.com/capsoftware/cap-web
+  - label: Documentation
+    url: https://github.com/capsoftware/cap-web#readme
+notes: |
+  Cap.so stores recordings in the /data volume for persistent storage.

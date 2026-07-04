@@ -1,0 +1,69 @@
+metadata:
+  name: "Hoppscotch"
+  description: |
+    Hoppscotch is a lightweight, web-based API development and testing tool for building and debugging HTTP, GraphQL, WebSocket, and Server-Sent Events requests.
+    It provides a clean interface with collections, environment variables, pre-request scripts, and response validation.
+    It is the most popular open-source alternative to Postman and Insomnia for API testing.
+  category: dev-infra
+  subcategory: ide-tools
+  tags: [API, Testing, HTTP, Development]
+  version: "latest"
+  homepage: https://hoppscotch.io
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=H
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3075]
+  resources:
+    ram: 256
+    disk: 1
+
+install:
+  docker:
+    image: hoppscotch/hoppscotch:latest
+    name: hoppscotch
+    port: "3075:3000"
+
+agent_install:
+  network: srvly-hoppscotch
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed hoppscotch container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 3075
+  path: /
+  expected: [200, 301, 302]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: hoppscotch/hoppscotch:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3000
+    description: "Host port"
+links:
+  - label: Website
+    url: https://hoppscotch.io
+  - label: GitHub
+    url: https://github.com/hoppscotch/hoppscotch
+  - label: Documentation
+    url: https://hoppscotch.io/docs
+notes: |
+  Hoppscotch is a progressive web app. It can work offline and supports installing as a PWA.

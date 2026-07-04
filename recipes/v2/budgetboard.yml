@@ -1,0 +1,67 @@
+metadata:
+  name: "Budget Board"
+  description: |
+    Budget Board is a personal finance management application for tracking expenses, income, and budgets with visual dashboards.
+    It provides spending categories, monthly budgets, transaction history, and financial reports.
+    It is a lightweight alternative to YNAB or Mint for personal budget tracking.
+  category: productivity
+  subcategory: finance
+  tags: [Budget, Finance, Expenses, Tracking]
+  version: "latest"
+  homepage: https://budgetboard.io
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=B
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3071]
+  resources:
+    ram: 256
+    disk: 1
+
+install:
+  docker:
+    image: ghcr.io/teelur/budget-board/server:release
+    name: budgetboard
+    port: "3071:8080"
+
+agent_install:
+  network: srvly-budgetboard
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed budgetboard container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 3071
+  path: /
+  expected: [200, 301, 302]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/teelur/budget-board/server:release
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3071
+    description: "Host port"
+links:
+  - label: GitHub
+    url: https://github.com/teelur/budget-board
+  - label: Documentation
+    url: https://github.com/teelur/budget-board#readme
+notes: |
+  Budget Board stores all data in an embedded database.

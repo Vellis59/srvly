@@ -1,0 +1,75 @@
+metadata:
+  name: "Anytype"
+  description: |
+    Anytype is a self-hosted sync and storage backend for the Anytype knowledge management application.
+    It provides encrypted, peer-to-peer data synchronization for notes, documents, and media collections.
+    It is the server component for the Anytype personal knowledge ecosystem.
+  category: productivity
+  subcategory: notes-wiki
+  tags: [Knowledge Base, Sync, Storage, Notes]
+  version: "latest"
+  homepage: https://anytype.io
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=A
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3070]
+  resources:
+    ram: 512
+    disk: 5
+
+install:
+  docker:
+    image: ghcr.io/grishy/any-sync-bundle:latest
+    name: anytype
+    port: "3070:8080"
+    volumes:
+      - /opt/srvly/apps/anytype/data:/data
+    env:
+      - key: ANY_SYNC_NETWORK
+        value: main
+
+agent_install:
+  network: srvly-anytype
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed anytype container before retrying."
+  prerequisites: []
+  app_env:
+    ANY_SYNC_NETWORK: "main"
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 3070
+  path: /health
+  expected: [200]
+  timeout: 60
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: ghcr.io/grishy/any-sync-bundle:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3070
+    description: "Host port"
+links:
+  - label: Website
+    url: https://anytype.io
+  - label: GitHub
+    url: https://github.com/grishy/any-sync-bundle
+  - label: Documentation
+    url: https://tech.anytype.io
+notes: |
+  Anytype server provides sync capabilities for the Anytype desktop and mobile applications.

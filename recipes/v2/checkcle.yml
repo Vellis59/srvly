@@ -1,0 +1,69 @@
+metadata:
+  name: "Checkcle"
+  description: |
+    Checkcle is a server management and cleaning tool for monitoring and maintaining your Docker host.
+    It provides disk usage analysis, container log cleaning, unused image removal, and system health monitoring.
+    It is a useful utility for keeping server resources clean and optimized.
+  category: dev-infra
+  subcategory: server-management
+  tags: [Server, Cleaning, Maintenance, Docker]
+  version: "latest"
+  homepage: https://checkcle.app
+  icon: https://placehold.co/64x64/1a73e8/ffffff?text=C
+  license: MIT
+  verified: false
+
+prerequisites:
+  databases:
+    postgres: false
+    mysql: false
+    redis: false
+    mongodb: false
+  ports: [3073]
+  resources:
+    ram: 128
+    disk: 1
+
+install:
+  docker:
+    image: operacle/checkcle:latest
+    name: checkcle
+    port: "3073:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+agent_install:
+  network: srvly-checkcle
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed checkcle container before retrying."
+  prerequisites: []
+  app_env: {}
+  post_install:
+    - "Run the HTTP healthcheck before registering the installation as successful."
+
+healthcheck:
+  type: http
+  port: 3073
+  path: /
+  expected: [200, 301, 302]
+  timeout: 30
+
+params:
+  image:
+    type: string
+    title: Docker image
+    default: operacle/checkcle:latest
+    description: "Docker image"
+  port:
+    type: integer
+    title: HTTP port
+    default: 3073
+    description: "Host port"
+links:
+  - label: GitHub
+    url: https://github.com/operacle/checkcle
+  - label: Documentation
+    url: https://github.com/operacle/checkcle#readme
+notes: |
+  Checkcle requires access to the Docker socket for container management operations.
