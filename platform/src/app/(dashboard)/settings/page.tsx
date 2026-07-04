@@ -36,6 +36,7 @@ export default function SettingsPage() {
   const regenerate = trpc.user.regenerateToken.useMutation();
   const [copiedToken, setCopiedToken] = useState(false);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [webhookUrl, setWebhookUrl] = useState("");
   const [webhookMention, setWebhookMention] = useState("");
@@ -78,6 +79,13 @@ export default function SettingsPage() {
     if (copyToClipboard(tokenData?.token || "")) {
       setCopiedToken(true);
       setTimeout(() => setCopiedToken(false), 2000);
+    }
+  };
+
+  const handleCopyUrl = (url: string) => {
+    if (copyToClipboard(url)) {
+      setCopiedUrl(true);
+      setTimeout(() => setCopiedUrl(false), 2000);
     }
   };
 
@@ -283,15 +291,41 @@ export default function SettingsPage() {
       </div>
 
       {tokenData?.token && (
-        <div className="text-zinc-950 rounded-2xl p-6 mb-6">
-          <h2 className="text-sm font-semibold text-slate-200 mb-3">Prompt for your agent</h2>
-          <pre className="text-sm font-mono text-slate-100 whitespace-pre-wrap break-words leading-relaxed mb-4">{promptText}</pre>
-          <button
-            onClick={handleCopyPrompt}
-            className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 transition-colors"
-          >
-            {copiedPrompt ? "Copied!" : "Copy prompt"}
-          </button>
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 mb-6">
+          <h2 className="text-sm font-semibold text-zinc-100 mb-3">🤖 Agent Skill</h2>
+          <p className="text-sm text-zinc-500 mb-3">
+            One command to configure your AI agent. The skill file is hosted at a URL — no need to copy/paste a wall of text.
+          </p>
+
+          {/* One-liner */}
+          <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-3 mb-3 flex items-center gap-2">
+            <code className="text-xs font-mono text-emerald-400 break-all flex-1">
+              curl -s {baseUrl}/api/agent/skill/{tokenData.token}
+            </code>
+            <button onClick={() => handleCopyUrl(baseUrl + "/api/agent/skill/" + tokenData.token)}
+              className="px-2.5 py-1.5 bg-emerald-600 text-white rounded-lg text-[11px] font-medium hover:bg-emerald-700 transition-colors shrink-0">
+              {copiedUrl ? "Copied!" : "Copy URL"}
+            </button>
+          </div>
+          <p className="text-xs text-zinc-500 mb-4">
+            Paste this URL in your agent's skill loader, or pipe it: <code className="text-emerald-400">curl -s ... | your-agent --load -</code>
+          </p>
+
+          {/* Full prompt (expandable) */}
+          <details className="group">
+            <summary className="text-xs text-zinc-500 hover:text-zinc-300 cursor-pointer select-none">
+              📄 Show full prompt ({promptText.split("\n").length} lines)
+            </summary>
+            <pre className="text-sm font-mono text-slate-100 whitespace-pre-wrap break-words leading-relaxed mt-3 mb-3 max-h-96 overflow-y-auto border border-zinc-800 rounded-xl p-4">
+              {promptText}
+            </pre>
+            <button
+              onClick={handleCopyPrompt}
+              className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-medium hover:bg-emerald-700 transition-colors"
+            >
+              {copiedPrompt ? "Copied!" : "Copy full prompt"}
+            </button>
+          </details>
         </div>
       )}
     </div>
