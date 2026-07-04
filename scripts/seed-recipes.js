@@ -88,8 +88,10 @@ async function main() {
     // Params section
     const params = doc.params || {};
 
-    // Full recipe data as JSON
-    const recipeData = { content: rawContent };
+    // Full recipe data as JSON. Keep the raw content for traceability, but also
+    // store the parsed YAML so the frontend/agent prompt can consume structured
+    // install instructions without reparsing YAML in the browser.
+    const recipeData = { ...doc, content: rawContent };
 
     try {
       await client.query(

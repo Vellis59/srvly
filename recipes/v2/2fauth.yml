@@ -31,14 +31,27 @@ install:
     name: 2fauth
     port: "8000:8000"
     volumes:
-      - /opt/2fauth:/2fauth
+      - /opt/srvly/apps/2fauth/data:/2fauth
     env:
       - key: APP_KEY
-        value: ""
+        value: "$GENERATED_APP_KEY"
         description: "Application encryption key (generate with: openssl rand -base64 32)"
       - key: SITE_NAME
         value: "2FAuth"
         description: "Site name displayed in the UI"
+
+agent_install:
+  network: srvly-2fauth
+  preflight:
+    - "Check that the selected host port is free before deploying."
+    - "Remove any failed 2fauth container before retrying."
+  prerequisites: []
+  app_env:
+    APP_KEY: $GENERATED_APP_KEY
+    SITE_NAME: "2FAuth"
+  post_install:
+    - "Generate APP_KEY with openssl rand -base64 32 before deployment."
+    - "Run the HTTP healthcheck before registering the installation as successful."
 
 healthcheck:
   type: http

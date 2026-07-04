@@ -1,111 +1,106 @@
-# Recipe v2 — Format de référence
-# Chaque application dans le catalogue DOIT suivre ce format.
-# Les champs marqués REQUIS sont obligatoires.
-# Les champs marqués CI sont utilisés par le pipeline de validation automatique.
+# Recipe v2 — Reference format
+# Every app in the catalog MUST follow this format.
+# The recipe is not only a catalog card: it is an executable installation contract for agents.
 
 metadata:
-  # --- REQUIS ---
-  name: "Actual Budget"
+  name: "Example App"
   description: |
-    Description courte (2-3 phrases) de ce que fait l'application.
-  category: finance        # Voir catégories autorisées ci-dessous
-  tags: [Finance]
-
-  # --- OPTIONNEL ---
-  version: "26.2.1"               # Version testée de l'image
-  homepage: https://actualbudget.org
-  icon: https://.../icon.png
+    Short but complete English description of what the application does.
+    Use 2-3 full sentences. Do not truncate text.
+  category: productivity          # Parent category from platform/src/lib/taxonomy.ts
+  subcategory: project-management # Optional but recommended
+  tags: [Productivity]
+  version: "1.0.0"
+  homepage: https://example.com
+  icon: https://example.com/icon.svg
   license: MIT
+  verified: false
 
-  # --- INTERNE (rempli par la CI) ---
-  verified: false          # CI: passe à true après validation
-  verified_at: null        # CI: date de la dernière validation
-  verified_by: null        # CI: commit SHA qui a validé
-
-# --- PRÉREQUIS ---
-# Dit à l'agent ce qu'il doit préparer AVANT de déployer l'app.
-# L'agent vérifie si les services existent déjà, sinon les crée.
-# REQUIS
+# Declarative prerequisites used for catalog badges and basic validation.
 prerequisites:
-  databases:               # Listes des bases de données nécessaires
-    postgres: true         # L'agent spin un Postgres si pas présent
+  databases:
+    postgres: false
     mysql: false
     redis: false
     mongodb: false
-  ports: [5006]            # Port(s) nécessaire(s) → l'agent vérifie la disponibilité
-  resources:               # Optionnel : specs minimales
-    ram: 256               # Mo
-    disk: 1                # Go
+  ports: [8080]
+  resources:
+    ram: 256 # MB
+    disk: 1  # GB
 
-# --- INSTALLATION ---
-# REQUIS
+# Docker payload used by srvly's deploy API.
 install:
   docker:
-    image: ghcr.io/actualbudget/actual-server:26.2.1   # REQUIS
-    name: actualbudget                                    # REQUIS : nom du container
-    port: "5006:5006"                                     # REQUIS : port hôte:conteneur
-
-    volumes:                                              # Optionnel
-      - /data
-
-    env:                                                  # Optionnel
-      # Variables d'environnement. Pour les connexions BDD,
-      # utiliser $DB_* qui seront automatiquement résolues par l'agent.
-      - key: DATABASE_URL
-        value: "postgresql://$DB_USER:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME"
-        description: "URL de connexion PostgreSQL (automatique)"
+    image: ghcr.io/example/app:1.0.0
+    name: example-app
+    port: "8080:8080"
+    volumes:
+      - /opt/srvly/apps/example-app/data:/data
+    env:
       - key: NODE_ENV
         value: production
-        description: "Environnement d'exécution"
+        description: "Runtime environment"
 
-# --- HEALTHCHECK ---
-# Comment vérifier que l'app fonctionne après déploiement.
-# REQUIS
+# Machine-readable plan consumed by the generated agent prompt.
+# This is what prevents the agent from guessing how to install prerequisites.
+agent_install:
+  network: srvly-example-app
+  preflight:
+    - "Check whether the requested host port is free before deploying."
+    - "Clean up failed containers with the same names before retrying."
+  prerequisites:
+    # Example for an app that needs Postgres. Remove if not needed.
+    - type: postgres
+      name: example-app-postgres
+      image: postgres:16-alpine
+      container: example-app-postgres
+      database: example_app
+      user: example_app
+      password: generate
+      volume: /opt/srvly/apps/example-app/postgres:/var/lib/postgresql/data
+      port: 5432
+      env:
+        POSTGRES_DB: example_app
+        POSTGRES_USER: example_app
+        POSTGRES_PASSWORD: $GENERATED_PASSWORD
+  app_env:
+    DATABASE_HOST: example-app-postgres
+    DATABASE_PORT: "5432"
+    DATABASE_NAME: example_app
+    DATABASE_USER: example_app
+    DATABASE_PASSWORD: $GENERATED_POSTGRES_PASSWORD
+  post_install:
+    - "Run the healthcheck before registering the installation as successful."
+
 healthcheck:
-  type: http                    # http | tcp | script
-  port: 5006
-  path: /                       # Pour http : chemin à tester
-  expected: [200, 301, 302]    # Codes HTTP acceptables
-  timeout: 30                   # Secondes max d'attente
+  type: http
+  port: 8080
+  path: /
+  expected: [200, 301, 302]
+  timeout: 60
 
-# --- PARAMÈTRES MODIFIABLES ---
-# Champs que l'utilisateur (ou l'agent) peut personnaliser.
-# REQUIS : au moins image et port
+# User/agent-customizable params. Keep params.image.default identical to install.docker.image.
 params:
   image:
     type: string
-    title: Image Docker
-    default: ghcr.io/actualbudget/actual-server:26.2.1
-    description: "Image Docker à utiliser"
+    title: Docker image
+    default: ghcr.io/example/app:1.0.0
+    description: "Docker image to deploy"
   port:
     type: integer
-    title: Port HTTP
-    default: 5006
-    description: "Port d'accès à l'interface web"
+    title: HTTP port
+    default: 8080
+    description: "Host port for the web UI"
 
-# --- LIENS ---
-# Optionnel
 links:
   - label: Documentation
-    url: https://actualbudget.github.io/docs
+    url: https://example.com/docs
   - label: GitHub
-    url: https://github.com/actualbudget/actual
-  - label: Docker Hub
-    url: https://hub.docker.com/r/actualbudget/actual-server
+    url: https://github.com/example/app
 
-# --- NOTES D'INSTALLATION ---
-# Optionnel : infos supplémentaires pour l'agent
 notes: |
-  Actual Budget est une app Node.js stateless.
-  Aucune configuration post-install requise.
-  L'interface est accessible directement sur le port configuré.
+  Add any app-specific caveats here. Do not include secrets.
 
-# ============================================================
-# CATÉGORIES AUTORISÉES
-# ============================================================
-# analytics, automation, backup, cms, communication, community,
-# crm, database, development, dns, documents, email, entertainment,
-# finance, gaming, iot, learning, marketing, media, monitoring,
-# networking, notes, office, password, personal, privacy, project-management,
-# proxy, recruitment, security, storage, system, web-server
-# ============================================================
+# Parent categories allowed:
+# media, dev-infra, communication, security, productivity,
+# storage-backup, automation-iot, gaming, ai-llm, other

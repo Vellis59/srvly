@@ -103,6 +103,59 @@
         "timeout": { "type": "integer", "minimum": 5, "maximum": 120 }
       }
     },
+    "agent_install": {
+      "type": "object",
+      "description": "Machine-readable install plan consumed by the agent prompt. This tells the agent exactly what to create before deploying the app.",
+      "properties": {
+        "network": { "type": "string", "minLength": 1 },
+        "preflight": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "prerequisites": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["type", "name"],
+            "properties": {
+              "type": { "type": "string", "enum": ["postgres", "mysql", "redis", "mongodb", "network", "volume"] },
+              "name": { "type": "string", "minLength": 1 },
+              "image": { "type": "string" },
+              "container": { "type": "string" },
+              "database": { "type": "string" },
+              "user": { "type": "string" },
+              "password": { "type": "string", "enum": ["generate"] },
+              "volume": { "type": "string" },
+              "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+              "env": {
+                "type": "object",
+                "additionalProperties": {
+                  "anyOf": [
+                    { "type": "string" },
+                    { "type": "number" },
+                    { "type": "boolean" }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "app_env": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "number" },
+              { "type": "boolean" }
+            ]
+          }
+        },
+        "post_install": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
     "params": {
       "type": "object",
       "additionalProperties": {

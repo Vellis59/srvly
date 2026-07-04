@@ -25,6 +25,22 @@ function copyToClipboard(text: string): boolean {
   return false;
 }
 
+function slugify(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+function envArrayToObject(env: any[] | undefined): Record<string, string> {
+  if (!Array.isArray(env)) return {};
+  return env.reduce((acc: Record<string, string>, item: any) => {
+    if (item?.key) acc[item.key] = String(item.value ?? "");
+    return acc;
+  }, {});
+}
+
+function renderJson(value: unknown): string {
+  return JSON.stringify(value, null, 2);
+}
+
 export default function InstallPage() {
   const { recipe: recipeId } = useParams<{ recipe: string }>();
   const router = useRouter();
@@ -51,79 +67,100 @@ export default function InstallPage() {
   const prompt = useMemo(() => {
     if (!recipe || !selectedServer) return "";
 
+    const recipeData = (recipe as any).recipe || {};
+    const docker = recipeData.install?.docker || {};
+    const agentPlan = recipeData.agent_install || {};
+    const healthcheck = recipeData.healthcheck || {};
     const appName = recipe.name || recipeId;
+    const appSlug = slugify(docker.name || appName || recipeId);
     const serverName = selectedServerData?.name || selectedServer;
     const serverIp = selectedServerData?.ip || "";
     const finalPort = port || String(defaultPort);
     const hasDomain = domain.trim().length > 0;
-    const hasCreds = useCredentials;
     const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://srvly.app";
+    const defaultImage = recipeData.params?.image?.default || docker.image || recipeId;
+    const internalPort = String(docker.port || `${finalPort}:${finalPort}`).split(":").pop() || finalPort;
+    const network = agentPlan.network || `srvly-${appSlug}`;
+    const dockerEnv = envArrayToObject(docker.env);
+    const agentEnv = agentPlan.app_env || {};
+    const appEnv = { ...dockerEnv, ...agentEnv };
+    const volumes = Array.isArray(docker.volumes) ? docker.volumes : [];
+    const prerequisites = Array.isArray(agentPlan.prerequisites) ? agentPlan.prerequisites : [];
+    const githubLink = recipeData.links?.find?.((l: any) => l.label?.toLowerCase().includes("github"))?.url || recipeData.metadata?.homepage || "";
 
-    let parts: string[] = [];
-    parts.push(`Use srvly skill and install **${appName}** on server **${serverName}** (${serverIp})`);
-
-    if (hasDomain) {
-      parts.push(`with domain **${domain.trim()}**`);
-    } else {
-      parts.push(`on port **${finalPort}** (http://${serverIp}:${finalPort})`);
+    if (useCredentials) {
+      appEnv.ADMIN_USER = username;
+      appEnv.ADMIN_PASSWORD = password;
     }
 
-    if (hasCreds) {
-      parts.push(`with username **${username}** and password **${password}**`);
-    }
-
-    const ghLink = (recipe as any)?.recipe?.links?.find?.((l: any) => l.label?.toLowerCase().includes("github"))?.url || "";
-    const defaultImage = (recipe as any)?.recipe?.params?.image?.default || recipeId;
-
-    let fullPrompt = parts.join(" ") + ".\n\n";
-    fullPrompt += "## Installation instructions\n\n";
-    fullPrompt += "### 1. Check port availability\n";
-    fullPrompt += `Before installing, verify that port **${finalPort}** is free on the server:\n`;
-    fullPrompt += `- **Use the API**: Make a \`GET ${baseUrl}/api/agent/servers/${selectedServer}/containers\` request to fetch all active containers and occupied ports.\n`;
-    fullPrompt += `- Inspect the \`containers\` array response. If the port **${finalPort}** is already in use under any container's \`hostPorts\`, **automatically pick another free port** (e.g. ${finalPort} + 1, +2, etc.).\n`;
-    fullPrompt += `- Keep track of the final selected port for the next steps.\n\n`;
-    
-    fullPrompt += "### 2. Clean up before retry\n";
-    fullPrompt += "If a previous installation attempt exists (failed or partial):\n";
-    fullPrompt += "- First, check existing installations for this server via the API:\n";
-    fullPrompt += `  GET ${baseUrl}/api/agent/install/list?serverId=${selectedServer}\n`;
-    fullPrompt += "- If you find a failed installation with the same name, **delete it** before retrying.\n";
-    fullPrompt += "- Also run a shell command \`docker rm -f " + appName.toLowerCase().replace(/[^a-z0-9]/g, "-") + " 2>/dev/null || true\` via the exec endpoint to clean up any leftover container.\n";
-    fullPrompt += "- Do NOT create a duplicate installation record. Reuse or clean up the existing one.\n\n";
-    
-    fullPrompt += "### 3. Install\n";
-    fullPrompt += `Use the deploy API to run the application container:\n`;
-    fullPrompt += `**POST ${baseUrl}/api/agent/docker/deploy**\n`;
-    
-    // Construct the API payload description
-    let payload: Record<string, any> = {
+    const deployPayload: Record<string, any> = {
       serverId: selectedServer,
-      name: appName.toLowerCase().replace(/[^a-z0-9]/g, "-"),
+      name: appSlug,
       image: defaultImage,
-      port: parseInt(finalPort, 10) || defaultPort
+      port: parseInt(finalPort, 10) || defaultPort,
+      env: appEnv,
+      volumes,
     };
-    if (hasDomain) {
-      payload.domain = domain.trim();
+    if (hasDomain) deployPayload.domain = domain.trim();
+
+    let fullPrompt = `Install **${appName}** on server **${serverName}** (${serverIp}).`;
+    fullPrompt += hasDomain ? ` Use domain **${domain.trim()}**.\n\n` : ` Use host port **${finalPort}** (http://${serverIp}:${finalPort}).\n\n`;
+
+    fullPrompt += "## Mandatory rules\n";
+    fullPrompt += "- Use the srvly REST API. Do not SSH manually unless the API endpoint explicitly executes a command for you.\n";
+    fullPrompt += "- Do not modify SSH, firewall, Fail2Ban, sudoers, PAM, systemd, apt packages, or host security settings.\n";
+    fullPrompt += "- Do not invent Docker images, variables, ports, or dependencies. Follow the install plan below exactly.\n";
+    fullPrompt += "- Generate required secrets at runtime, keep them private, and do not print them in the final answer.\n";
+    fullPrompt += "- Do not register the installation as successful until the healthcheck passes.\n\n";
+
+    fullPrompt += "## srvly API context\n";
+    fullPrompt += `Base URL: ${baseUrl}\n`;
+    fullPrompt += "Authentication: send the srvly API token as a Bearer token on every agent API request.\n";
+    fullPrompt += `Server ID: ${selectedServer}\n\n`;
+
+    fullPrompt += "## Recipe install plan\n";
+    fullPrompt += `App ID: ${recipeId}\n`;
+    fullPrompt += `Container name: ${appSlug}\n`;
+    fullPrompt += `Docker image: ${defaultImage}\n`;
+    fullPrompt += `Docker network: ${network}\n`;
+    fullPrompt += `Host port: ${finalPort}\n`;
+    fullPrompt += `Container port: ${internalPort}\n`;
+    if (githubLink) fullPrompt += `Reference docs: ${githubLink}\n`;
+    fullPrompt += "\n";
+
+    fullPrompt += "### 1. Preflight\n";
+    fullPrompt += `- GET ${baseUrl}/api/agent/servers/${selectedServer}/containers and verify that host port ${finalPort} is free. If it is occupied, choose the next free port and update the deploy payload.\n`;
+    fullPrompt += `- GET ${baseUrl}/api/agent/install?serverId=${selectedServer} and avoid duplicate installation records.\n`;
+    for (const item of agentPlan.preflight || []) fullPrompt += `- ${item}\n`;
+    fullPrompt += "\n";
+
+    fullPrompt += "### 2. Create prerequisites first\n";
+    if (prerequisites.length === 0) {
+      fullPrompt += "No external database/cache prerequisite is required for this app.\n\n";
+    } else {
+      fullPrompt += "Create these prerequisites before the app container. Use `/api/dispatch` to create networks and prerequisite containers.\n";
+      fullPrompt += "Generate every value marked `generate` yourself at runtime and reuse it in the app env mapping.\n";
+      fullPrompt += `\`\`\`json\n${renderJson(prerequisites)}\n\`\`\`\n\n`;
     }
-    if (hasCreds) {
-      payload.env = {
-        // Agent can map typical env vars for the database or admin panel
-        // (e.g. WORDPRESS_DB_PASSWORD, POSTGRES_PASSWORD, ADMIN_USER, ADMIN_PASSWORD)
-        "//Note": "Map user/pass to the standard environment variable names for this image",
-        "ADMIN_USER": username,
-        "ADMIN_PASSWORD": password
-      };
-    }
-    
-    fullPrompt += `Body:\n\`\`\`json\n${JSON.stringify(payload, null, 2)}\n\`\`\`\n\n`;
-    fullPrompt += `If the port was changed in step 1, update the \`port\` property in the request payload.\n\n`;
-    fullPrompt += `The token is sent in the header: \`Authorization: Bearer <Token API>\`\n\n`;
-    
-    fullPrompt += `### 4. Verify and confirm\n`;
-    fullPrompt += "- Wait for the app to be ready (HTTP 200).\n";
-    fullPrompt += "- Provide the access URL to the user.\n";
-    fullPrompt += "- If the installation fails, report the error and logs to the user.\n\n";
-    fullPrompt += `Consult the GitHub docs: ${ghLink || "https://github.com"} for image-specific variables if needed.`;
+
+    fullPrompt += "### 3. Deploy the application container\n";
+    fullPrompt += `POST ${baseUrl}/api/agent/docker/deploy\n`;
+    fullPrompt += "Use this body, replacing generated placeholders and the port if preflight selected a different one:\n";
+    fullPrompt += `\`\`\`json\n${renderJson(deployPayload)}\n\`\`\`\n\n`;
+
+    fullPrompt += "### 4. Post-install actions\n";
+    for (const item of agentPlan.post_install || []) fullPrompt += `- ${item}\n`;
+    fullPrompt += "\n";
+
+    fullPrompt += "### 5. Healthcheck\n";
+    fullPrompt += `Type: ${healthcheck.type || "http"}\n`;
+    fullPrompt += `URL: http://${serverIp}:${finalPort}${healthcheck.path || "/"}\n`;
+    fullPrompt += `Expected status: ${(healthcheck.expected || [200]).join(", ")}\n`;
+    fullPrompt += `Timeout: ${healthcheck.timeout || 60}s\n`;
+    fullPrompt += "If the healthcheck fails, fetch logs, fix the root cause, retry, and only then report back.\n\n";
+
+    fullPrompt += "## Final response\n";
+    fullPrompt += "Tell the user the final access URL, whether the healthcheck passed, and mention any generated credentials only if the app requires the user to save them. Do not expose database passwords.\n";
 
     return fullPrompt;
   }, [recipe, recipeId, selectedServer, selectedServerData, domain, port, defaultPort, username, password, useCredentials]);
