@@ -2,7 +2,7 @@
 
 import { trpc } from "@/lib/trpc";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useState, useMemo } from "react";
 
 const COLORS = [
@@ -67,7 +67,15 @@ function AppCard({ app }: { app: { id: string; name: string; description?: strin
 export default function CategoryPage() {
   const { category: categoryId } = useParams<{ category: string }>();
   const router = useRouter();
-  const [selectedSub, setSelectedSub] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const selectedSub = searchParams.get("sub");
+
+  const setSub = (subId: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (subId) params.set("sub", subId);
+    else params.delete("sub");
+    router.replace(`/catalog/${categoryId}?${params.toString()}`, { scroll: false });
+  };
 
   const { data: catPage, isLoading } = trpc.catalog.category.useQuery({ id: categoryId });
   const { data: categories } = trpc.catalog.categories.useQuery();
@@ -121,7 +129,7 @@ export default function CategoryPage() {
       {subcategories.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-6">
           <button
-            onClick={() => setSelectedSub(null)}
+            onClick={() => setSub(null)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
               !selectedSub
                 ? "bg-emerald-600 text-white"
@@ -133,7 +141,7 @@ export default function CategoryPage() {
           {subcategories.map((sub: any) => (
             <button
               key={sub.id}
-              onClick={() => setSelectedSub(sub.id)}
+              onClick={() => setSub(sub.id)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 selectedSub === sub.id
                   ? "bg-emerald-600 text-white"

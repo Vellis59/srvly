@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState, useMemo } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 
 // ─── Color generator from string ───
 const COLORS = [
@@ -68,8 +69,18 @@ function AppCard({ app }: { app: { id: string; name: string; description?: strin
 export default function CatalogPage() {
   const { data: session } = useSession();
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const selectedCategory = searchParams.get("category");
+  const selectedSubcategory = searchParams.get("subcategory");
+
+  // Subcategory filter via URL search params
+  const setSubcategory = (subId: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (subId) params.set("subcategory", subId);
+    else params.delete("subcategory");
+    router.replace(`/catalog?${params.toString()}`, { scroll: false });
+  };
 
   // Fetch categories with counts
   const { data: categories } = trpc.catalog.categories.useQuery();
@@ -118,16 +129,14 @@ export default function CatalogPage() {
 
   const handleCategoryClick = (catId: string) => {
     if (selectedCategory === catId) {
-      setSelectedCategory(null);
-      setSelectedSubcategory(null);
+      router.push("/catalog");
     } else {
-      setSelectedCategory(catId);
-      setSelectedSubcategory(null);
+      router.push(`/catalog?category=${catId}`);
     }
   };
 
   const handleSubcategoryClick = (subId: string) => {
-    setSelectedSubcategory(selectedSubcategory === subId ? null : subId);
+    setSubcategory(selectedSubcategory === subId ? null : subId);
   };
 
   return (
@@ -161,7 +170,7 @@ export default function CatalogPage() {
       {/* Category pills */}
       <div className="flex flex-wrap gap-2 mb-6">
         <button
-          onClick={() => { setSelectedCategory(null); setSelectedSubcategory(null); }}
+          onClick={() => router.push("/catalog")}
           className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
             !selectedCategory
               ? "bg-emerald-600 text-white shadow-sm"
@@ -258,7 +267,7 @@ export default function CatalogPage() {
               {categories?.filter(c => c.count > 0).map((cat) => (
                 <Link
                   key={cat.id}
-                  href={`/catalog/${cat.id}`}
+                  href={`/catalog?category=${cat.id}`}
                   className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 hover:border-zinc-700 hover:shadow-sm transition-all text-left block"
                 >
                   <div className="flex items-center gap-3 mb-1">
@@ -275,6 +284,21 @@ export default function CatalogPage() {
               ))}
             </div>
           </div>
+
+          {/* All apps */}
+          {allForFeatured && allForFeatured.length > 0 && (
+            <div className="mt-8">
+              <h2 className="text-sm font-semibold text-zinc-300 mb-3 flex items-center gap-2">
+                <span className="w-5 h-5 bg-zinc-700 rounded-full flex items-center justify-center text-[10px]">📦</span>
+                All apps ({allForFeatured.length})
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {allForFeatured.map((app: any) => (
+                  <AppCard key={app.id} app={app} />
+                ))}
+              </div>
+            </div>
+          )}
         </>
       ) : (
         <>
