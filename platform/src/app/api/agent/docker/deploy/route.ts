@@ -208,14 +208,14 @@ export async function POST(req: NextRequest) {
 
     const params = { name, port: appPort, containerPort: appContainerPort, domain, image: imageName, containerName, network, healthcheckPath: checkPath, healthcheckExpected: expectedCodes };
 
-    // Dedup: check if an installation with the same name already exists on this server
+    // Dedup: check if an installation with the same name or containerName already exists on this server (case-insensitive)
     const [existing] = await db
       .select()
       .from(installations)
       .where(
         and(
           eq(installations.serverId, serverId),
-          sql`params->>'name' = ${name}`,
+          sql`lower(params->>'containerName') = ${containerName.toLowerCase()} OR lower(params->>'name') = ${name.toLowerCase()}`,
         ),
       )
       .limit(1);

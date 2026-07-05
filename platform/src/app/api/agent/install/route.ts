@@ -21,14 +21,16 @@ export async function POST(req: NextRequest) {
       .where(and(eq(servers.id, serverId), eq(servers.userId, user.id)));
     if (!server) return error("Server not found", 404);
 
-    // Dedup: update existing installation if same name on server, else create
+    const targetContainerName = containerName || name.toLowerCase().replace(/[^a-z0-9]/g, "-");
+
+    // Dedup: check if an installation with the same name or containerName already exists on this server (case-insensitive)
     const [existing] = await db
       .select()
       .from(installations)
       .where(
         and(
           eq(installations.serverId, serverId),
-          sql`params->>'name' = ${name}`,
+          sql`lower(params->>'containerName') = ${targetContainerName.toLowerCase()} OR lower(params->>'name') = ${name.toLowerCase()}`,
         ),
       )
       .limit(1);
