@@ -21,12 +21,12 @@ export const TAXONOMY: TaxonomyCategory[] = [
     icon: "🎬",
     description: "Applications pour gérer, streamer et organiser vos médias (musique, vidéo, photos, livres).",
     subcategories: [
-      { id: "music", label: "Musique" },
-      { id: "video", label: "Vidéo" },
+      { id: "music", label: "Music" },
+      { id: "video", label: "Video" },
       { id: "photos", label: "Photos" },
-      { id: "books", label: "Livres & Ebooks" },
+      { id: "books", label: "Books & Ebooks" },
       { id: "podcasts", label: "Podcasts" },
-      { id: "media-management", label: "Gestion de médias" },
+      { id: "media-management", label: "Media Management" },
     ],
   },
   {
@@ -35,15 +35,15 @@ export const TAXONOMY: TaxonomyCategory[] = [
     icon: "🛠️",
     description: "Outils pour développeurs et infrastructure serveur : Docker, proxy, CI/CD, bases de données.",
     subcategories: [
-      { id: "docker-containers", label: "Docker & Conteneurs" },
+      { id: "docker-containers", label: "Docker & Containers" },
       { id: "reverse-proxy", label: "Reverse Proxy" },
       { id: "cicd", label: "CI/CD" },
-      { id: "database", label: "Base de données" },
+      { id: "database", label: "Database" },
       { id: "monitoring", label: "Monitoring" },
       { id: "git-code", label: "Git & Code" },
-      { id: "ide-tools", label: "IDE & Outils dev" },
+      { id: "ide-tools", label: "IDE & Dev Tools" },
       { id: "api-backend", label: "API & Backend" },
-      { id: "server-management", label: "Administration serveur" },
+      { id: "server-management", label: "Server Administration" },
     ],
   },
   {
@@ -52,10 +52,10 @@ export const TAXONOMY: TaxonomyCategory[] = [
     icon: "💬",
     description: "Solutions de communication : messagerie instantanée, email, forums et réseaux sociaux.",
     subcategories: [
-      { id: "chat", label: "Chat & Messagerie" },
+      { id: "chat", label: "Chat & Messaging" },
       { id: "email", label: "Email" },
-      { id: "forums", label: "Forums & Communautés" },
-      { id: "social", label: "Réseaux sociaux" },
+      { id: "forums", label: "Forums & Communities" },
+      { id: "social", label: "Social Networks" },
     ],
   },
   {
@@ -65,10 +65,10 @@ export const TAXONOMY: TaxonomyCategory[] = [
     description: "Protection de votre infrastructure : VPN, authentification, mots de passe, pare-feu.",
     subcategories: [
       { id: "vpn-tunnel", label: "VPN & Tunnel" },
-      { id: "auth-sso", label: "Authentification & SSO" },
-      { id: "password-manager", label: "Gestionnaires de mots de passe" },
-      { id: "firewall", label: "Pare-feu & Réseau" },
-      { id: "secret-management", label: "Gestion de secrets" },
+      { id: "auth-sso", label: "Authentication & SSO" },
+      { id: "password-manager", label: "Password Managers" },
+      { id: "firewall", label: "Firewall & Network" },
+      { id: "secret-management", label: "Secret Management" },
     ],
   },
   {
@@ -78,12 +78,12 @@ export const TAXONOMY: TaxonomyCategory[] = [
     description: "Applications pour le travail et la gestion : notes, wiki, CRM, finance, gestion de projet.",
     subcategories: [
       { id: "notes-wiki", label: "Notes & Wiki" },
-      { id: "project-management", label: "Gestion de projet" },
+      { id: "project-management", label: "Project Management" },
       { id: "crm-erp", label: "CRM & ERP" },
-      { id: "finance", label: "Finance & Comptabilité" },
+      { id: "finance", label: "Finance & Accounting" },
       { id: "documents", label: "Documents & PDF" },
-      { id: "calendars", label: "Calendriers & Planning" },
-      { id: "forms-surveys", label: "Formulaires & Sondages" },
+      { id: "calendars", label: "Calendars & Planning" },
+      { id: "forms-surveys", label: "Forms & Surveys" },
     ],
   },
   {
@@ -92,10 +92,10 @@ export const TAXONOMY: TaxonomyCategory[] = [
     icon: "💾",
     description: "Gestion des fichiers : partage, cloud personnel, sauvegardes et synchronisation.",
     subcategories: [
-      { id: "file-sharing", label: "Partage de fichiers" },
-      { id: "cloud-storage", label: "Cloud personnel" },
-      { id: "backup", label: "Sauvegardes" },
-      { id: "sync", label: "Synchronisation" },
+      { id: "file-sharing", label: "File Sharing" },
+      { id: "cloud-storage", label: "Personal Cloud" },
+      { id: "backup", label: "Backups" },
+      { id: "sync", label: "Sync" },
     ],
   },
   {
@@ -115,9 +115,9 @@ export const TAXONOMY: TaxonomyCategory[] = [
     icon: "🎮",
     description: "Serveurs de jeux, outils de gestion et streaming gaming.",
     subcategories: [
-      { id: "game-servers", label: "Serveurs de jeux" },
-      { id: "game-management", label: "Gestion de jeux" },
-      { id: "streaming", label: "Streaming gaming" },
+      { id: "game-servers", label: "Game Servers" },
+      { id: "game-management", label: "Game Management" },
+      { id: "streaming", label: "Gaming Streaming" },
     ],
   },
   {
@@ -127,9 +127,9 @@ export const TAXONOMY: TaxonomyCategory[] = [
     description: "Intelligence artificielle : chatbots, agents autonomes, machine learning, bases vectorielles.",
     subcategories: [
       { id: "chat-assistant", label: "Chat & Assistant" },
-      { id: "agents", label: "Agents autonomes" },
+      { id: "agents", label: "Autonomous Agents" },
       { id: "machine-learning", label: "Machine Learning" },
-      { id: "vector-db", label: "Bases vectorielles" },
+      { id: "vector-db", label: "Vector Databases" },
     ],
   },
   {
