@@ -819,16 +819,42 @@ export const installRouter = router({
         script += `docker pull ${image} && echo "IMAGE_PULLED"\n`;
       }
 
-      // Create installation record
-      const [inst] = await ctx.db
-        .insert(installations)
-        .values({
-          serverId: input.serverId,
-          recipeId: input.recipeId,
-          params: { ...params, port, image },
-          status: "running",
-        })
-        .returning();
+      // Find existing installation for this server+recipe (upsert)
+      const [existing] = await ctx.db
+        .select()
+        .from(installations)
+        .where(
+          and(
+            eq(installations.serverId, input.serverId),
+            eq(installations.recipeId, input.recipeId)
+          )
+        )
+        .limit(1);
+
+      let inst;
+      if (existing) {
+        // Update existing installation
+        [inst] = await ctx.db
+          .update(installations)
+          .set({
+            params: { ...params, port, image },
+            status: "running",
+            updatedAt: new Date(),
+          })
+          .where(eq(installations.id, existing.id))
+          .returning();
+      } else {
+        // Create new installation record
+        [inst] = await ctx.db
+          .insert(installations)
+          .values({
+            serverId: input.serverId,
+            recipeId: input.recipeId,
+            params: { ...params, port, image },
+            status: "running",
+          })
+          .returning();
+      }
 
       // Queue the deployment task in BullMQ
       await sshQueue.add("install", {
@@ -952,24 +978,57 @@ export const installRouter = router({
         .where(and(eq(servers.id, input.serverId), eq(servers.userId, ctx.user.id!)));
       if (!server) throw new TRPCError({ code: "NOT_FOUND" });
 
-      const [inst] = await ctx.db
-        .insert(installations)
-        .values({
-          serverId: input.serverId,
-          recipeId: input.type || "app",
-          status: "success",
-          params: {
-            name: input.name,
-            port: input.port,
-            domain: input.domain,
-            image: input.image,
-            containerName: input.containerName,
-            notes: input.notes,
-          },
-          result: {},
-          logs: "",
-        })
-        .returning();
+      // Find existing installation for this server+recipe (upsert)
+      const recipeId = input.type || "app";
+      const [existing] = await ctx.db
+        .select()
+        .from(installations)
+        .where(
+          and(
+            eq(installations.serverId, input.serverId),
+            eq(installations.recipeId, recipeId)
+          )
+        )
+        .limit(1);
+
+      let inst;
+      if (existing) {
+        [inst] = await ctx.db
+          .update(installations)
+          .set({
+            status: "success",
+            params: {
+              name: input.name,
+              port: input.port,
+              domain: input.domain,
+              image: input.image,
+              containerName: input.containerName,
+              notes: input.notes,
+            },
+            updatedAt: new Date(),
+          })
+          .where(eq(installations.id, existing.id))
+          .returning();
+      } else {
+        [inst] = await ctx.db
+          .insert(installations)
+          .values({
+            serverId: input.serverId,
+            recipeId: recipeId,
+            status: "success",
+            params: {
+              name: input.name,
+              port: input.port,
+              domain: input.domain,
+              image: input.image,
+              containerName: input.containerName,
+              notes: input.notes,
+            },
+            result: {},
+            logs: "",
+          })
+          .returning();
+      }
 
       return { id: inst.id, message: `${input.name} registered` };
     }),
