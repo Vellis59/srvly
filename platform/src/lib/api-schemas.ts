@@ -31,6 +31,7 @@ export const dockerDeploySchema = z.object({
     .optional(),
   healthcheckPath: z.string().min(1).max(300).regex(/^\/[a-zA-Z0-9_./?=&%-]*$/, "Healthcheck path must start with / and contain only URL-safe characters").optional(),
   healthcheckExpected: z.array(z.coerce.number().int().min(100).max(599)).min(1).max(20).optional(),
+  recipeId: z.string().optional(),
 });
 
 export type DockerDeployInput = z.infer<typeof dockerDeploySchema>;
@@ -45,6 +46,7 @@ export const installRegisterSchema = z.object({
   image: z.string().max(500).optional(),
   containerName: z.string().max(100).optional(),
   notes: z.string().max(2000).optional(),
+  recipeId: z.string().optional(),
 });
 
 // ─── GET /api/agent/install (query params) ─────────────

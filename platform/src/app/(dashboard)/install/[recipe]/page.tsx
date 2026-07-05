@@ -120,6 +120,7 @@ export default function InstallPage() {
       volumes,
       healthcheckPath: healthcheck.path || "/",
       healthcheckExpected: healthcheck.expected || [200, 301, 302],
+      recipeId: recipeId,
     };
     if (hasDomain) deployPayload.domain = domain.trim();
 

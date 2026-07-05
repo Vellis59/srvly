@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { db } from "@/server/db";
 import { installations, servers, domains } from "@/server/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, or, sql } from "drizzle-orm";
 import { executeOnServer } from "@/lib/ssh";
 import { authUser, error, ok, validateBody } from "@/lib/api-helpers";
 import { dockerDeploySchema } from "@/lib/api-schemas";
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
 
     const validation = await validateBody(req, dockerDeploySchema);
     if (!validation.valid) return validation.response;
-    const { serverId, name, image, port, containerPort, domain, network, env, volumes, healthcheckPath, healthcheckExpected } = validation.data;
+    const { serverId, name, image, port, containerPort, domain, network, env, volumes, healthcheckPath, healthcheckExpected, recipeId } = validation.data;
 
     const [server] = await db
       .select()
@@ -208,14 +208,17 @@ export async function POST(req: NextRequest) {
 
     const params = { name, port: appPort, containerPort: appContainerPort, domain, image: imageName, containerName, network, healthcheckPath: checkPath, healthcheckExpected: expectedCodes };
 
-    // Dedup: check if an installation with the same name or containerName already exists on this server (case-insensitive)
+    // Dedup: check if an installation with the same name, containerName, or recipeId already exists on this server (case-insensitive)
     const [existing] = await db
       .select()
       .from(installations)
       .where(
         and(
           eq(installations.serverId, serverId),
-          sql`lower(params->>'containerName') = ${containerName.toLowerCase()} OR lower(params->>'name') = ${name.toLowerCase()}`,
+          or(
+            recipeId && recipeId !== "app" ? eq(installations.recipeId, recipeId) : sql`false`,
+            sql`lower(params->>'containerName') = ${containerName.toLowerCase()} OR lower(params->>'name') = ${name.toLowerCase()}`
+          )
         ),
       )
       .limit(1);
@@ -226,7 +229,7 @@ export async function POST(req: NextRequest) {
       [inst] = await db
         .update(installations)
         .set({
-          recipeId: "app",
+          recipeId: recipeId || existing.recipeId || "app",
           status: success ? "success" : "failed",
           params,
           result: { output, error: result.error },
@@ -241,7 +244,7 @@ export async function POST(req: NextRequest) {
         .insert(installations)
         .values({
           serverId,
-          recipeId: "app",
+          recipeId: recipeId || "app",
           status: success ? "success" : "failed",
           params,
           result: { output, error: result.error },

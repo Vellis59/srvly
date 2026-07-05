@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { db } from "@/server/db";
 import { installations, servers } from "@/server/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, or, sql } from "drizzle-orm";
 import { authUser, error, ok, validateBody } from "@/lib/api-helpers";
 import { installRegisterSchema, installListSchema } from "@/lib/api-schemas";
 
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
 
     const validation = await validateBody(req, installRegisterSchema);
     if (!validation.valid) return validation.response;
-    const { serverId, name, port, domain, image, containerName, notes } = validation.data;
+    const { serverId, name, port, domain, image, containerName, notes, recipeId } = validation.data;
 
     const [server] = await db
       .select()
@@ -23,14 +23,17 @@ export async function POST(req: NextRequest) {
 
     const targetContainerName = containerName || name.toLowerCase().replace(/[^a-z0-9]/g, "-");
 
-    // Dedup: check if an installation with the same name or containerName already exists on this server (case-insensitive)
+    // Dedup: check if an installation with the same name, containerName, or recipeId already exists on this server (case-insensitive)
     const [existing] = await db
       .select()
       .from(installations)
       .where(
         and(
           eq(installations.serverId, serverId),
-          sql`lower(params->>'containerName') = ${targetContainerName.toLowerCase()} OR lower(params->>'name') = ${name.toLowerCase()}`,
+          or(
+            recipeId && recipeId !== "app" ? eq(installations.recipeId, recipeId) : sql`false`,
+            sql`lower(params->>'containerName') = ${targetContainerName.toLowerCase()} OR lower(params->>'name') = ${name.toLowerCase()}`
+          )
         ),
       )
       .limit(1);
@@ -40,6 +43,7 @@ export async function POST(req: NextRequest) {
       [inst] = await db
         .update(installations)
         .set({
+          recipeId: recipeId || existing.recipeId || "app",
           status: "success",
           params: { name, port, domain, image, containerName, notes },
           result: {},
@@ -53,7 +57,7 @@ export async function POST(req: NextRequest) {
         .insert(installations)
         .values({
           serverId,
-          recipeId: "app",
+          recipeId: recipeId || "app",
           status: "success",
           params: { name, port, domain, image, containerName, notes },
           result: {},
