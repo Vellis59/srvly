@@ -978,15 +978,21 @@ export const installRouter = router({
         .where(and(eq(servers.id, input.serverId), eq(servers.userId, ctx.user.id!)));
       if (!server) throw new TRPCError({ code: "NOT_FOUND" });
 
-      // Find existing installation for this server+recipe (upsert)
+      // Find existing installation for this server+app (upsert)
+      // For generic "app" type, deduplicate by name (container/app name)
+      // For specific types (catalog recipes), deduplicate by type
       const recipeId = input.type || "app";
+      const lookupKey = recipeId === "app"
+        ? sql`${installations.params}->>'name' = ${input.name}`
+        : eq(installations.recipeId, recipeId);
+
       const [existing] = await ctx.db
         .select()
         .from(installations)
         .where(
           and(
             eq(installations.serverId, input.serverId),
-            eq(installations.recipeId, recipeId)
+            lookupKey
           )
         )
         .limit(1);

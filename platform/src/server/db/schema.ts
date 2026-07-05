@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, integer, jsonb, primaryKey, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid, integer, jsonb, primaryKey } from "drizzle-orm/pg-core";
 import type { AdapterAccount } from "next-auth/adapters";
 
 // ─── Users (NextAuth-compatible) ───
@@ -117,9 +117,7 @@ export const installations = pgTable("installations", {
   logs: text("logs"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-}, (table) => ({
-  uniqueServerRecipe: unique().on(table.serverId, table.recipeId),
-}));
+});
 
 // ─── Domains ───
 export const domains = pgTable("domains", {
