@@ -188,6 +188,20 @@ export default function InstallPage() {
     fullPrompt += `Fetch the rendered HTML from ${publicUrl}${healthcheck.path || "/"}. If it is an HTML page, inspect asset URLs and base/public URL references: they must point to ${publicUrl} or relative paths, not localhost or 127.0.0.1.\n`;
     fullPrompt += "If the healthcheck fails, fetch logs, fix the root cause, retry, and only then report back.\n\n";
 
+    fullPrompt += "### 6. Register success\n";
+    fullPrompt += "Once the healthcheck is successful, you MUST notify srvly that the installation is complete and successful by calling the register endpoint:\n";
+    fullPrompt += `POST ${baseUrl}/api/agent/install\n`;
+    fullPrompt += "Body:\n";
+    fullPrompt += `\`\`\`json\n${JSON.stringify({
+      serverId: selectedServer,
+      name: appSlug,
+      port: parseInt(finalPort, 10) || defaultPort,
+      image: defaultImage,
+      containerName: appSlug,
+      recipeId: recipeId,
+      notes: "Installed and verified healthy by agent"
+    }, null, 2)}\n\`\`\`\n\n`;
+
     fullPrompt += "## Final response\n";
     fullPrompt += "Tell the user the final access URL, whether the healthcheck passed, and mention any generated credentials only if the app requires the user to save them. Do not expose database passwords.\n";
 

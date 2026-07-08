@@ -1270,6 +1270,43 @@ export const installRouter = router({
           };
         });
 
+      // Sync installation statuses in DB with actual docker container statuses
+      const serverInsts = await ctx.db
+        .select()
+        .from(installations)
+        .where(eq(installations.serverId, input.serverId));
+
+      const containerStatusMap = new Map<string, string>();
+      for (const c of containers) {
+        containerStatusMap.set(c.name.toLowerCase(), c.status);
+      }
+
+      for (const inst of serverInsts) {
+        const params = (inst.params as any) || {};
+        const containerName = params.containerName || params.name || inst.recipeId;
+        if (containerName) {
+          const dockerStatus = containerStatusMap.get(containerName.toLowerCase());
+          let targetStatus: "success" | "stopped" | null = null;
+          if (dockerStatus === "running") {
+            targetStatus = "success";
+          } else if (dockerStatus === "stopped") {
+            targetStatus = "stopped";
+          } else {
+            // Container not found on server
+            if (inst.status === "success" || inst.status === "running") {
+              targetStatus = "stopped";
+            }
+          }
+
+          if (targetStatus && inst.status !== targetStatus) {
+            await ctx.db
+              .update(installations)
+              .set({ status: targetStatus, updatedAt: new Date() })
+              .where(eq(installations.id, inst.id));
+          }
+        }
+      }
+
       return { success: true, containers };
     }),
 
