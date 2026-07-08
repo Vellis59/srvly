@@ -250,7 +250,7 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false,
-          "default": "'📁'"
+          "default": "'\ud83d\udcc1'"
         },
         "sort_order": {
           "name": "sort_order",
@@ -438,19 +438,6 @@
           "tableTo": "servers",
           "columnsFrom": [
             "server_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "installations_recipe_id_recipes_id_fk": {
-          "name": "installations_recipe_id_recipes_id_fk",
-          "tableFrom": "installations",
-          "tableTo": "recipes",
-          "columnsFrom": [
-            "recipe_id"
           ],
           "columnsTo": [
             "id"
