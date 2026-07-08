@@ -1,13 +1,23 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = process.env.RESEND_FROM || "welcome@mg.srvly.app";
+
+function getResend(): Resend | null {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return null;
+  return new Resend(apiKey);
+}
 
 export async function sendWelcomeEmail(user: {
   name: string | null;
   email: string | null;
 }) {
   if (!user.email) return;
+  const resend = getResend();
+  if (!resend) {
+    console.warn("[email] RESEND_API_KEY not set, skipping welcome email");
+    return;
+  }
 
   const html = `<!doctype html>
 <html>
