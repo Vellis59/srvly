@@ -70,13 +70,20 @@ fi
 if [ ! -f .env ]; then
   PGPASS=$(openssl rand -base64 24 | tr -dc a-zA-Z0-9)
   AUTHSECRET=$(openssl rand -base64 32 | tr -dc a-zA-Z0-9)
+  SSHENCKEY=$(openssl rand -base64 32 | tr -dc a-zA-Z0-9)
   cat > .env << EOF
 DATABASE_URL=postgres://srvly:${PGPASS}@postgres:5432/srvly
 POSTGRES_PASSWORD=${PGPASS}
 AUTH_SECRET=${AUTHSECRET}
+SSH_ENCRYPTION_KEY=${SSHENCKEY}
 NEXT_PUBLIC_BASE_URL=https://${DOMAIN}
 NEXT_PUBLIC_APP_URL=https://${DOMAIN}
 NEXTAUTH_URL=https://${DOMAIN}
+AUTH_TRUST_HOST=true
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
 SSH_KEY_PATH=/app/ssh_keys
 REDIS_URL=redis://redis:6379
 EOF

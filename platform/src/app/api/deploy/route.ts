@@ -56,19 +56,22 @@ import os, secrets, string
 a = string.ascii_letters + string.digits
 pg = "".join(secrets.choice(a) for _ in range(24))
 au = "".join(secrets.choice(a) for _ in range(32))
+se = "".join(secrets.choice(a) for _ in range(32))
 p = "/opt/srvly/.env"
 if not os.path.exists(p):
     with open(p, "w") as f:
-        f.write("DATABASE_URL=postgres://srvly:***@postgres:5432/srvly\\n")
-        f.write("POSTGRES_PASSWORD=***\n")
-        f.write("AUTH_SECRET=***\n")
+        f.write("DATABASE_URL=postgres://srvly:" + pg + "@postgres:5432/srvly\\n")
+        f.write("POSTGRES_PASSWORD=" + pg + "\\n")
+        f.write("AUTH_SECRET=" + au + "\\n")
+        f.write("SSH_ENCRYPTION_KEY=" + se + "\\n")
         f.write("NEXT_PUBLIC_BASE_URL=https://YOUR_DOMAIN\\n")
         f.write("NEXT_PUBLIC_APP_URL=https://YOUR_DOMAIN\\n")
         f.write("NEXTAUTH_URL=https://YOUR_DOMAIN\\n")
-        f.write("AUTH_SECRET=" + au + "\\n")
         f.write("AUTH_TRUST_HOST=true\\n")
-        f.write("AUTH_GITHUB_ID=\\n")
-        f.write("AUTH_GITHUB_SECRET=\\n")
+        f.write("GITHUB_CLIENT_ID=\\n")
+        f.write("GITHUB_CLIENT_SECRET=\\n")
+        f.write("GOOGLE_CLIENT_ID=\\n")
+        f.write("GOOGLE_CLIENT_SECRET=\\n")
         f.write("SSH_KEY_PATH=/app/ssh_keys\\n")
         f.write("REDIS_URL=redis://redis:6379\\n")
     print(".env created")
