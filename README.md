@@ -1,30 +1,51 @@
-# srvly
+<br clear="both">
 
-**Open-source VPS management platform** — connect your servers, deploy apps with your AI agent, monitor everything from one dashboard.
+<div align="center">
+  <br>
+  <img src="https://srvly.app/og-image.svg" alt="srvly" width="600">
+  <br><br>
+  <h1>srvly</h1>
+  <p><strong>Open-source AI-powered VPS management platform</strong></p>
+  <p>Connect your servers, deploy 1668+ apps with your AI agent, and monitor everything from one dashboard.</p>
 
-srvly is a **management portal** that gives you a unified view of all your VPS instances. Each server gets its own SSH key, and you deploy applications via your AI agent (Hermes, OpenCLAW, etc.) which communicates with the srvly API.
+  <p>
+    <a href="https://srvly.app"><img src="https://img.shields.io/badge/srvly.app-34d399?style=flat-square" alt="Website"></a>
+    <a href="https://console.srvly.app"><img src="https://img.shields.io/badge/console-0f172a?style=flat-square" alt="Console"></a>
+    <a href="https://docs.srvly.app"><img src="https://img.shields.io/badge/docs-334155?style=flat-square" alt="Docs"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-34d399?style=flat-square" alt="License"></a>
+    <a href="https://github.com/Vellis59/srvly/releases"><img src="https://img.shields.io/github/v/release/Vellis59/srvly?style=flat-square&color=34d399" alt="Release"></a>
+  </p>
 
-## Features
+  <br>
+</div>
 
-- **Server management** — Add, connect, and monitor your VPS instances from one dashboard
-- **SSH key authentication** — srvly generates SSH keys or accepts your own; a cron guard ensures keys stay authorized
-- **🔒 SSH keys encrypted at rest** — AES-256-GCM symmetric encryption in the database (auto-fallback for existing keys)
-- **One-click deploy** — Server setup script (Docker + UFW + Fail2Ban + SSH hardening) in a single command
-- **App catalog** — 900+ open-source apps ready to deploy (via `vellis.cc` catalog)
-- **AI agent integration** — Your AI agent handles installations and debugging via the srvly REST API
-- **Async job queue** — Deployments and backups are processed via BullMQ + Redis, not blocking the API
-- **Real-time monitoring** — CPU, RAM, disk, uptime, and health status for each server
-- **Docker management** — View logs, restart, stop/start containers from the dashboard
-- **Multi-user ready** — Built-in plan system (free: 1 server) with GitHub OAuth authentication
+---
 
-## Architecture
+**srvly** is a management portal that gives you a unified view of all your VPS instances. Each server gets its own SSH key, and you deploy applications via your AI agent (Hermes, OpenCLAW, etc.) which communicates with the srvly API.
+
+## ✨ Features
+
+| | Feature | Description |
+|---|---|---|
+| 🖥️ | **Server Dashboard** | CPU, RAM, disk, uptime & health for every server in real time |
+| 🔑 | **SSH Key Auth** | Per-server keys with cron guard. Or use your own SSH key |
+| 🛡️ | **Auto Security** | UFW, Fail2Ban, SSH hardening in one command |
+| 📦 | **App Catalog** | 1668+ open-source apps ready to deploy, browsable by category |
+| 🤖 | **AI Agent API** | REST API for your agent — deploy, debug, register via chat |
+| 🐳 | **Docker Management** | Logs, restart, stop/start, cleanup from the dashboard |
+| 🔌 | **SSH Direct** | No tunnel, no agent on your server. Pure SSH, minimal attack surface |
+| 🔒 | **Encrypted Keys** | SSH private keys encrypted at rest (AES-256-GCM) |
+| 🏠 | **Self-Hosted** | Deploy on your own server. Full Docker Compose + Caddy setup |
+| 💰 | **100% Free** | Open source MIT. Free tier: 1 server. No credit card needed |
+
+## 🏗️ Architecture
 
 ```
 ┌──────────────────────────────────────────────────────┐
 │                   srvly platform                      │
 │  ┌─────────────┐  ┌──────────┐  ┌─────────────────┐  │
-│  │  Next.js 14  │  │  tRPC    │  │  Postgres (DB)  │  │
-│  │  (dashboard) │──│  (API)   │──│  + Drizzle ORM  │  │
+│  │  Next.js 14  │  │  tRPC    │  │  Postgres +     │  │
+│  │  (dashboard) │──│  (API)   │──│  Drizzle ORM    │  │
 │  └─────────────┘  └──────────┘  └─────────────────┘  │
 │         │                                              │
 │         ▼                                              │
@@ -40,31 +61,45 @@ srvly is a **management portal** that gives you a unified view of all your VPS i
 └──────────────────┘   └──────────────────┘
 ```
 
+### Stack
+
 | Layer | Technology |
-|---|---|---|
+|---|---|
 | Frontend / API | Next.js 14 + tRPC |
 | Database | PostgreSQL + Drizzle ORM |
-| Queue | Redis 7 + BullMQ (async job processing) |
-| Auth | NextAuth v5 (GitHub OAuth) |
-| Execution | Direct SSH (system `ssh` binary) using per-server key pair |
+| Queue | Redis 7 + BullMQ |
+| Auth | NextAuth v5 (GitHub + Google OAuth) |
+| Execution | Direct SSH using per-server key pair |
 | Proxy | Caddy (auto HTTPS via Let's Encrypt) |
 | Infrastructure | Docker Compose |
 
-## Quick Start (Self-Hosted)
+## 🚀 Quick Start
 
-### Prerequisites
+### Try the Cloud Version
+
+The fastest way to get started:
+
+1. Go to **[console.srvly.app](https://console.srvly.app/auth/signin)**
+2. Sign in with GitHub or Google
+3. Add your first server → copy the one-liner setup command
+4. Run it on your VPS as root
+5. Your server appears in the dashboard with live health data
+
+> **No credit card required. Free tier: 1 server unlimited.**
+
+### Self-Hosted
+
+#### Prerequisites
 
 - A Linux VPS (Ubuntu 24.04 LTS recommended)
-- A domain pointing to your server's IP (e.g., `srvly.example.com`)
-- A [GitHub OAuth App](https://github.com/settings/applications/new) (callback URL: `https://YOUR_DOMAIN/api/auth/callback/github`)
-- Docker and Docker Compose (or run the all-in-one setup below)
+- A domain pointing to your server's IP
+- [GitHub OAuth App](https://github.com/settings/applications/new) (callback: `https://YOUR_DOMAIN/api/auth/callback/github`)
+- [Google OAuth App](https://console.cloud.google.com/auth/clients) (callback: `https://YOUR_DOMAIN/api/auth/callback/google`)
 
-### 1. All-in-one setup (recommended)
-
-SSH into your server and run:
+#### One-Command Setup
 
 ```bash
-curl -sL https://YOUR_DOMAIN/connect.sh | bash -s -- 'YOUR_SSH_PUBLIC_KEY'
+curl -sL https://srvly.app/connect.sh | bash -s -- 'YOUR_SSH_PUBLIC_KEY'
 ```
 
 This single command:
@@ -76,22 +111,22 @@ This single command:
 - 🔑 Sets up your SSH key (with hourly cron guard)
 - ⚙️ Generates `.env` and deploys the stack
 
-### 2. Manual setup
+#### Manual Setup
 
 ```bash
-# Clone the repository
-git clone https://github.com/YOUR_GITHUB_USER/srvly.git /opt/srvly
+# Clone
+git clone https://github.com/Vellis59/srvly.git /opt/srvly
 cd /opt/srvly
 
-# Configure environment
+# Configure
 cp platform/.env.example .env
-nano .env   # Fill in your GitHub OAuth credentials, secrets, and domain
+nano .env   # Fill in your OAuth credentials, secrets, domain
 
-# Start the stack
+# Start
 docker compose -f infra/docker-compose.yml up -d --build
 ```
 
-### 3. Configure your reverse proxy
+#### Configure Reverse Proxy
 
 Edit `infra/Caddyfile` with your domain, then restart:
 
@@ -101,7 +136,7 @@ docker compose -f infra/docker-compose.yml up -d
 
 Caddy automatically provisions Let's Encrypt TLS certificates.
 
-## Configuration
+## 🔧 Configuration
 
 ### Environment Variables
 
@@ -109,53 +144,32 @@ Caddy automatically provisions Let's Encrypt TLS certificates.
 |---|---|---|
 | `DATABASE_URL` | PostgreSQL connection string | ✅ |
 | `POSTGRES_PASSWORD` | PostgreSQL password | ✅ |
-| `AUTH_SECRET` | NextAuth encryption secret (`openssl rand -base64 32`) | ✅ |
-| `NEXT_PUBLIC_BASE_URL` | Your srvly domain (e.g., `https://srvly.example.com`) | ✅ |
+| `AUTH_SECRET` | NextAuth secret (`openssl rand -base64 32`) | ✅ |
+| `NEXT_PUBLIC_BASE_URL` | Your srvly domain | ✅ |
 | `NEXT_PUBLIC_APP_URL` | Same as BASE_URL | ✅ |
 | `NEXTAUTH_URL` | Same as BASE_URL | ✅ |
 | `AUTH_TRUST_HOST` | Set to `true` for production | ✅ |
-| `GITHUB_CLIENT_ID` | GitHub OAuth App client ID | ✅ |
-| `GITHUB_CLIENT_SECRET` | GitHub OAuth App client secret | ✅ |
-| `SSH_KEY_PATH` | Path to store generated SSH keys (`/app/ssh_keys`) | ✅ |
-| `REDIS_URL` | Redis connection for BullMQ job queue | ❌ (recommended) |
-| `SSH_ENCRYPTION_KEY` | Key for AES-256-GCM SSH key encryption (falls back to `AUTH_SECRET`) | ❌ |
+| `GITHUB_CLIENT_ID` | GitHub OAuth client ID | ✅ |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth client secret | ✅ |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID | ✅ |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | ✅ |
+| `SSH_KEY_PATH` | Path for SSH keys (`/app/ssh_keys`) | ✅ |
+| `REDIS_URL` | Redis connection for BullMQ | ❌ (recommended) |
+| `SSH_ENCRYPTION_KEY` | AES-256-GCM key for SSH key encryption | ❌ |
 
-### GitHub OAuth Setup
+### OAuth Setup
 
+**GitHub:**
 1. Go to [GitHub Developer Settings → OAuth Apps](https://github.com/settings/applications/new)
-2. Fill in:
-   - **Application name**: `srvly` (or your choice)
-   - **Homepage URL**: `https://YOUR_DOMAIN`
-   - **Authorization callback URL**: `https://YOUR_DOMAIN/api/auth/callback/github`
-3. Copy `Client ID` and `Client Secret` to your `.env` file
+2. Authorization callback URL: `https://YOUR_DOMAIN/api/auth/callback/github`
+3. Copy `Client ID` and `Client Secret` to `.env`
 
-## Server Connection Flow
+**Google:**
+1. Go to [Google Cloud Console → APIs & Services → Credentials](https://console.cloud.google.com/auth/clients)
+2. Add authorized redirect URI: `https://YOUR_DOMAIN/api/auth/callback/google`
+3. Copy `Client ID` and `Client Secret` to `.env`
 
-1. Sign in with GitHub on your srvly instance
-2. Click **Add Server** → enter IP and an optional custom SSH key
-3. Copy the one-liner setup command shown on screen
-4. Paste and run it on your target server (as root)
-5. srvly creates a cron job that re-checks the SSH key hourly
-6. Your server appears in the dashboard with live health data
-
-## Development
-
-```bash
-# Clone and install
-git clone https://github.com/YOUR_GITHUB_USER/srvly.git
-cd srvly/platform
-npm install
-
-# Setup database
-cp .env.example .env
-# Edit .env with your PostgreSQL credentials
-npx drizzle-kit push
-
-# Run development server
-npm run dev
-```
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 srvly/
@@ -167,17 +181,19 @@ srvly/
 │   │   └── lib/        # SSH utility, tRPC client, i18n
 │   ├── Dockerfile
 │   └── .env.example
-├── infra/              # Docker Compose + Caddyfile for self-hosting
+├── infra/              # Docker Compose + Caddyfile
 │   ├── docker-compose.yml
 │   ├── Caddyfile
-│   ├── deploy-hetzner.sh
-│   └── secure-deploy.sh
-└── scripts/            # Import utilities
+│   └── *.sh            # Deployment & security scripts
+├── landing/            # Static landing page
+├── recipes/            # App installation recipes (1668+)
+├── scripts/            # Import & utility scripts
+└── docs/               # Documentation sources
 ```
 
-## API
+## 📡 API
 
-srvly exposes both tRPC and REST endpoints for agent integration.
+srvly exposes both tRPC and REST endpoints for AI agent integration.
 
 ### REST Endpoints
 
@@ -196,32 +212,55 @@ srvly exposes both tRPC and REST endpoints for agent integration.
 
 ### Authentication
 
-API requests must include the server's `token` in the `Authorization` header:
+API requests require a `Bearer` token in the `Authorization` header:
+
 ```
-Authorization: Bearer <server-token>
+Authorization: Bearer <your-server-token>
 ```
 
 The token is visible on each server's detail page in the dashboard.
 
-## Security
+## 🔒 Security
 
-- **SSH key-only authentication** (password auth disabled)
-- **SSH private keys encrypted at rest** — AES-256-GCM symmetric encryption before writing to PostgreSQL
-- **Input validation** — All API endpoints validated with Zod schemas (types, bounds, regex pattern checks)
+- **SSH key-only authentication** — password auth disabled
+- **SSH private keys encrypted at rest** — AES-256-GCM before writing to PostgreSQL
+- **Input validation** — All API endpoints validated with Zod schemas
 - **RCE prevention** — Environment variables use heredoc + `--env-file` instead of inline shell interpolation
 - **Host validation** — IP/hostname format verified before SSH connection
-- **UFW firewall** (default deny incoming, allow 22/80/443)
-- **Fail2Ban** (3 failed SSH attempts → 1-hour ban)
-- **Cron-guarded SSH key** (re-authorized hourly)
+- **UFW firewall** — default deny incoming, allow 22/80/443
+- **Fail2Ban** — 3 failed SSH attempts → 1-hour ban
+- **Cron-guarded SSH key** — re-authorized hourly
 
-## License
+## 🧑‍💻 Development
 
-[MIT](LICENSE)
+```bash
+# Clone and install
+git clone https://github.com/Vellis59/srvly.git
+cd srvly/platform
+npm install
 
-## Contributing
+# Database setup
+cp .env.example .env
+# Edit .env with your PostgreSQL credentials
+npx drizzle-kit push
+
+# Run dev server
+npm run dev
+```
+
+## 📄 License
+
+[MIT](LICENSE) — do what you want, attribution appreciated.
+
+## 🤝 Contributing
 
 Contributions are welcome! Open an issue or submit a pull request.
 
 ---
 
-**srvly** — Open-source VPS management. Deploy, monitor, and manage your servers with the help of your AI agent.
+<p align="center">
+  <a href="https://srvly.app"><strong>srvly.app</strong></a> ·
+  <a href="https://console.srvly.app">Console</a> ·
+  <a href="https://docs.srvly.app">Docs</a> ·
+  <a href="https://github.com/Vellis59/srvly">GitHub</a>
+</p>
