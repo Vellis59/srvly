@@ -40,7 +40,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   events: {
     async createUser({ user }) {
-      await sendWelcomeEmail({ name: user.name, email: user.email });
+      await sendWelcomeEmail({ name: user.name ?? null, email: user.email ?? null });
     },
   },
 });
