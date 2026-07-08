@@ -108,7 +108,7 @@ export const categories = pgTable("categories", {
 export const installations = pgTable("installations", {
   id: uuid("id").defaultRandom().primaryKey(),
   serverId: uuid("server_id").references(() => servers.id).notNull(),
-  recipeId: text("recipe_id").references(() => recipes.id).notNull(),
+  recipeId: text("recipe_id").notNull(),
   categoryId: uuid("category_id").references(() => categories.id, { onDelete: "set null" }),
   status: text("status").default("pending").notNull(),
   params: jsonb("params"),
