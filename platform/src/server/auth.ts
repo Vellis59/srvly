@@ -4,6 +4,7 @@ import Google from "next-auth/providers/google";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "@/server/db";
 import { users, accounts, sessions, verificationTokens } from "@/server/db/schema";
+import { sendWelcomeEmail } from "@/lib/email";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
@@ -35,6 +36,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     session({ session, user }) {
       if (session.user) session.user.id = user.id;
       return session;
+    },
+  },
+  events: {
+    async createUser({ user }) {
+      await sendWelcomeEmail({ name: user.name, email: user.email });
     },
   },
 });
